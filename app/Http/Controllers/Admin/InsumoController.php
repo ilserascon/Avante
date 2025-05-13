@@ -45,7 +45,7 @@ class InsumoController extends Controller
         $proveedores = Proveedor::all();
         $tiposInsumo = TipoInsumo::all()->map(function($tipo) {
             $campos = [];
-            for ($i = 1; $i <= 8; $i++) {
+            for ($i = 1; $i <= 15; $i++) {
                 $campo = 'campo'.$i;
                 if (!empty($tipo->$campo)) {
                     $campos[$campo] = $tipo->$campo;
@@ -75,6 +75,13 @@ class InsumoController extends Controller
             'campo6' => 'nullable|string',
             'campo7' => 'nullable|string',
             'campo8' => 'nullable|string',
+            'campo9' => 'nullable|string',
+            'campo10' => 'nullable|string',
+            'campo11' => 'nullable|string',
+            'campo12' => 'nullable|string',
+            'campo13' => 'nullable|string',
+            'campo14' => 'nullable|string',
+            'campo15' => 'nullable|string',
         ]);
     
         $insumo = new Insumo();
@@ -93,6 +100,13 @@ class InsumoController extends Controller
         $insumo->campo6 = $request->campo6 ?? null;
         $insumo->campo7 = $request->campo7 ?? null;
         $insumo->campo8 = $request->campo8 ?? null;
+        $insumo->campo9 = $request->campo9 ?? null;
+        $insumo->campo10 = $request->campo10 ?? null;
+        $insumo->campo11 = $request->campo11 ?? null;
+        $insumo->campo12 = $request->campo12 ?? null;
+        $insumo->campo13 = $request->campo13 ?? null;
+        $insumo->campo14 = $request->campo14 ?? null;
+        $insumo->campo15 = $request->campo15 ?? null;
     
         $insumo->save();
     
@@ -137,6 +151,13 @@ class InsumoController extends Controller
             'campo6'           => 'nullable|string|max:255',
             'campo7'           => 'nullable|string|max:255',
             'campo8'           => 'nullable|string|max:255',
+            'campo9'           => 'nullable|string|max:255',
+            'campo10'          => 'nullable|string|max:255',
+            'campo11'          => 'nullable|string|max:255',
+            'campo12'          => 'nullable|string|max:255',
+            'campo13'          => 'nullable|string|max:255',
+            'campo14'          => 'nullable|string|max:255',
+            'campo15'          => 'nullable|string|max:255',
         ]);
 
         $insumo->update($validated);

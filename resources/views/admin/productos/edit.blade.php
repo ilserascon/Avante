@@ -45,7 +45,7 @@
                                                 <option value="">Seleccione un insumo</option>
                                                 @foreach ($insumos as $opcion)
                                                     <option value="{{ $opcion->id }}" {{ $opcion->id == $insumo->id ? 'selected' : '' }}>
-                                                        {{ $opcion->nombre }}
+                                                        {{ $opcion->nombre_completo }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -86,7 +86,7 @@
             <select name="insumos[${insumoIndex}][id]" class="form-control insumo-select" required>
                 <option value="">Seleccione un insumo</option>
                 @foreach ($insumos as $insumo)
-                    <option value="{{ $insumo->id }}">{{ $insumo->nombre }}</option>
+                    <option value="{{ $insumo->id }}">{{ $insumo->nombre_completo }}</option>
                 @endforeach
             </select>
         </div>
@@ -101,7 +101,7 @@
 
     container.appendChild(insumoDiv);
 
-    // Validar insumos duplicados
+
     insumoDiv.querySelector('.insumo-select').addEventListener('change', function () {
         const selectedValue = this.value;
         const allSelects = document.querySelectorAll('.insumo-select');

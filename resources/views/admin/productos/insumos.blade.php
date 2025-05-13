@@ -23,14 +23,14 @@
           </thead>
           <tbody>
             @forelse ($producto->insumos as $insumo)
-              <tr>
-                <td>{{ $insumo->nombre }}</td>
+            <tr>
+                <td>{{ $insumo->nombre_completo }}</td> 
                 <td>{{ $insumo->pivot->cantidad }}</td>
-              </tr>
+            </tr>
             @empty
-              <tr>
+            <tr>
                 <td colspan="2" class="text-center">No hay insumos asignados a este producto.</td>
-              </tr>
+            </tr>
             @endforelse
           </tbody>
         </table>
