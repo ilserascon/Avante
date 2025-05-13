@@ -27,6 +27,13 @@ return new class extends Migration
             $table->string('campo6')->nullable();
             $table->string('campo7')->nullable();
             $table->string('campo8')->nullable();
+            $table->string('campo9')->nullable();
+            $table->string('campo10')->nullable();
+            $table->string('campo11')->nullable();
+            $table->string('campo12')->nullable();
+            $table->string('campo13')->nullable();
+            $table->string('campo14')->nullable();
+            $table->string('campo15')->nullable();
             $table->timestamp('created_at')->nullable();
         });
     }
