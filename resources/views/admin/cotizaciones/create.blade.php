@@ -30,7 +30,7 @@
             </div>
 
             <div id="form-dinamico">
-                <!-- Aquí irán los campos que aparecen según selección -->
+                <!-- Formularios dinámicos -->
             </div>
 
             <div id="tabla-totales-tela-tergal" class="mt-4">
@@ -148,8 +148,6 @@
                     </tbody>
                 </table>
             </div>
-
-
 
             <div class="form-group">
                 <label>Total</label>
