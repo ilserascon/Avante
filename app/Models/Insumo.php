@@ -35,6 +35,16 @@ class Insumo extends Model
         'campo15'
     ];
 
+
+    public $timestamps = false;
+
+    public function productos()
+    {
+        return $this->belongsToMany(Producto::class, 'producto_insumo', 'id_insumo', 'id_producto')
+                    ->withPivot('cantidad')
+                    ->withTimestamps();
+    }
+
     public function tipoInsumo()
     {
         return $this->belongsTo(TipoInsumo::class, 'id_tipo_insumo');
