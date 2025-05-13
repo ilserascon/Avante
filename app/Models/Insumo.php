@@ -1,12 +1,14 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Insumo extends Model
 {
     use HasFactory;
+
     protected $table = 'insumo';
 
     protected $fillable = [
@@ -23,18 +25,15 @@ class Insumo extends Model
         'campo5',
         'campo6',
         'campo7',
-        'campo8'
+        'campo8',
+        'campo9',
+        'campo10',
+        'campo11',
+        'campo12',
+        'campo13',
+        'campo14',
+        'campo15',
     ];
-
-    public $timestamps = false;
-
-    public function productos()
-    {
-        return $this->belongsToMany(Producto::class, 'producto_insumo', 'id_insumo', 'id_producto')
-                    ->withPivot('cantidad')
-                    ->withTimestamps();
-    }
-    
 
     public function tipoInsumo()
     {
@@ -45,6 +44,8 @@ class Insumo extends Model
     {
         return $this->belongsTo(Proveedor::class, 'id_proveedor');
     }
+
+    public $timestamps = true;
 
     const CREATED_AT = 'created_at';
     const UPDATED_AT = null;
