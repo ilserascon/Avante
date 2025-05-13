@@ -26,9 +26,19 @@ class ProductoController extends Controller
 
     public function create()
     {
-        $insumos = Insumo::all();
+        $insumos = Insumo::select(
+            'insumo.id',
+            DB::raw("CONCAT(
+                COALESCE(insumo.nombre, ''), ' | ',
+                COALESCE(insumo.campo1, ''), ' | ',
+                COALESCE(insumo.campo2, ''), ' | ',
+                COALESCE((SELECT nombre FROM proveedores WHERE proveedores.id = insumo.id_proveedor), '')
+            ) AS nombre_completo")
+        )->get();
+
         return view('admin.productos.create', compact('insumos'));
     }
+
 
     public function store(Request $request)
     {
@@ -47,10 +57,22 @@ class ProductoController extends Controller
     
         return redirect()->route('admin.productos.index')->with('success', 'Producto creado correctamente.');
     }
+    
     public function edit($id)
     {
         $producto = Producto::with('insumos')->findOrFail($id);
-        $insumos = Insumo::all();
+
+        $insumos = Insumo::select(
+            DB::raw("CONCAT(
+                    COALESCE(nombre, ''), ' | ',
+                    COALESCE(campo1, ''), ' | ',
+                    COALESCE(campo2, ''), ' | ',
+                    COALESCE((SELECT nombre FROM proveedores WHERE id = insumo.id_proveedor), '')
+                ) AS nombre_completo"),
+            'id'
+        )
+        ->get();
+
         return view('admin.productos.edit', compact('producto', 'insumos'));
     }
 
@@ -93,10 +115,23 @@ class ProductoController extends Controller
             );
         }
     }
+    
     public function verInsumos($id)
-{
-    $producto = Producto::with('insumos')->findOrFail($id);
-    return view('admin.productos.insumos', compact('producto'));
-}
+    {
+        $producto = Producto::with(['insumos' => function ($query) {
+            $query->select(
+                'insumo.id',
+                DB::raw("CONCAT(
+                    COALESCE(insumo.nombre, ''), ' | ',
+                    COALESCE(insumo.campo1, ''), ' | ',
+                    COALESCE(insumo.campo2, ''), ' | ',
+                    COALESCE((SELECT nombre FROM proveedores WHERE proveedores.id = insumo.id_proveedor), '')
+                ) AS nombre_completo")
+            );
+        }])->findOrFail($id);
+
+        return view('admin.productos.insumos', compact('producto'));
+    }
+
 
 }

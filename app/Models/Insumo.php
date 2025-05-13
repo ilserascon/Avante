@@ -36,8 +36,6 @@ class Insumo extends Model
     ];
 
 
-    public $timestamps = false;
-
     public function productos()
     {
         return $this->belongsToMany(Producto::class, 'producto_insumo', 'id_insumo', 'id_producto')
