@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ProveedorController;
 use App\Http\Controllers\Admin\TiposInsumosController;
 use App\Http\Controllers\Admin\InsumoController;
 use App\Http\Controllers\Admin\ClienteController;
+use App\Models\Cliente;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,5 +44,10 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::resource('clientes', App\Http\Controllers\Admin\ClienteController::class);
     Route::resource('almacenes', App\Http\Controllers\Admin\AlmacenController::class)
     ->parameters(['almacenes' => 'almacen']);
+
+    Route::get('/clientes/{cliente}/cotizacion-simulada', function (Cliente $cliente) {
+        return view('admin.clientes.simulada', ['cliente' => $cliente]);
+    })->name('cotizacion.simulada');
+    
 });
 
