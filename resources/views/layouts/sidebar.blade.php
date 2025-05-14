@@ -42,6 +42,11 @@
               <i class="fas fa-boxes"></i> <span>Insumos</span>
           </a>    
         </li>
+        <li class="{{ Request::is('admin/entradas*') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ route('admin.entradas.index') }}">
+              <i class="fas fa-boxes"></i> <span>Entradas</span>
+          </a>    
+        </li>
       @endif
     </ul>
   </aside>

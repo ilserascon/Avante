@@ -44,7 +44,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::resource('clientes', App\Http\Controllers\Admin\ClienteController::class);
     Route::resource('almacenes', App\Http\Controllers\Admin\AlmacenController::class)
     ->parameters(['almacenes' => 'almacen']);
-
+    Route::resource('entradas', App\Http\Controllers\Admin\EntradaController::class);
     Route::get('/clientes/{cliente}/cotizacion-simulada', function (Cliente $cliente) {
         return view('admin.clientes.simulada', ['cliente' => $cliente]);
     })->name('cotizacion.simulada');
