@@ -96,7 +96,6 @@
                 </table>
             </div>
 
-
             <div id="tabla-mano-obra" class="mt-4">
                 <table class="table table-bordered mt-4">
                     <thead class="table-light">
@@ -199,6 +198,7 @@
 </div>
 
 <script>
+    //Script para mostrar y ocultar formularios dinámicos
     document.addEventListener('DOMContentLoaded', function() {
         const cortina = document.getElementById('cotinaCheck');
         const tergal = document.getElementById('tergalCheck');
@@ -275,7 +275,7 @@
                                 <td><input type="text" name="detalle[ancho_tergal_real]" id="ancho_tergal_real" class="form-control"></td>
                             </tr>
                             <tr>
-                                <td><label for="largo_tergal">Largo</label></td>
+                                <td><label for="largo_tergal">Largo (+65cm de bastilla)</label></td>
                                 <td><input type="text" name="detalle[largo_tergal]" id="largo_tergal" class="form-control"></td>
                             </tr>
                             <tr>
@@ -485,7 +485,7 @@
         }
     }
 
-    // Script para calcular el total de tela y tergal para la tabla de totales tergal y cortina
+    // Script para calcular el total de tela y tergal para la tabla de totales tergal y cortina y el costo de mano de obra
     document.addEventListener('input', function() {
         const noLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value);
         const largoCortina = parseFloat(document.getElementById('largo')?.value);
@@ -508,6 +508,28 @@
         document.getElementById('total_tergal_final').value = totalTergalFinal.toFixed(2);
 
         document.getElementById('costo_total_tela_tergal').value = (totalTelaFinal + totalTergalFinal).toFixed(2);
+
+        // Cálculo de Mano de Obra
+
+        const m2CortinaInput = document.querySelector('[name="detalle[m2_1]"]');
+        const m2TergalInput = document.querySelector('[name="detalle[m2_2]"]');
+
+        const costoMO1 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_1]"]')?.value) || 0;
+        const costoMO2 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_2]"]')?.value) || 0;
+
+        const totalMO1 = document.querySelector('[name="detalle[total_mano_obra_1]"]');
+        const totalMO2 = document.querySelector('[name="detalle[total_mano_obra_2]"]');
+        const costoTotalMO = document.querySelector('[name="detalle[costo_total_mano_obra]"]');
+
+        if (m2CortinaInput) m2CortinaInput.value = totalTela.toFixed(2);
+        if (m2TergalInput) m2TergalInput.value = totalTergal.toFixed(2);
+
+        const totalMano1 = totalTela * costoMO1;
+        const totalMano2 = totalTergal * costoMO2;
+
+        if (totalMO1) totalMO1.value = totalMano1.toFixed(2);
+        if (totalMO2) totalMO2.value = totalMano2.toFixed(2);
+        if (costoTotalMO) costoTotalMO.value = (totalMano1 + totalMano2).toFixed(2);
     });
 
     document.addEventListener('input', function(e) {
