@@ -131,61 +131,90 @@
                             <th>Materiales Varios</th>
                             <th>Cantidad</th>
                             <th>Precio Unitario</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="materiales-tbody">
+                        <!-- Insumos fijos -->
                         <tr>
                             <td>Ojillos</td>
-                            <td><input type="number" name="detalle[ojillos_cantidad]" class="form-control" step="1" value="20"></td>
-                            <td><input type="number" name="detalle[ojillos_precio]" class="form-control" step="0.01" value="15.00"></td>
+                            <td><input type="number" name="detalle[ojillos_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
+                            <td><input type="number" name="detalle[ojillos_precio]" class="form-control" value="15.00" oninput="actualizarCostoTotal()"></td>
+                            <td></td>
                         </tr>
                         <tr>
                             <td>Cortinero</td>
-                            <td><input type="number" name="detalle[cortinero_cantidad]" class="form-control" step="1" value="1"></td>
-                            <td><input type="number" name="detalle[cortinero_precio]" class="form-control" step="0.01"></td>
+                            <td><input type="number" name="detalle[cortinero_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
+                            <td><input type="number" name="detalle[cortinero_precio]" class="form-control" value="200" oninput="actualizarCostoTotal()"></td>
+                            <td></td>
                         </tr>
                         <tr>
                             <td>Puntas</td>
-                            <td><input type="number" name="detalle[puntas_cantidad]" class="form-control" step="1" value="2"></td>
-                            <td><input type="number" name="detalle[puntas_precio]" class="form-control" step="0.01" value="100.00"></td>
+                            <td><input type="number" name="detalle[puntas_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
+                            <td><input type="number" name="detalle[puntas_precio]" class="form-control" value="250.00" oninput="actualizarCostoTotal()"></td>
+                            <td></td>
                         </tr>
                         <tr>
                             <td>Mensulas</td>
-                            <td><input type="number" name="detalle[mensulas_cantidad]" class="form-control" step="1"></td>
-                            <td><input type="number" name="detalle[mensulas_precio]" class="form-control" step="0.01"></td>
+                            <td><input type="number" name="detalle[mensulas_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
+                            <td><input type="number" name="detalle[mensulas_precio]" class="form-control" value="120.00" oninput="actualizarCostoTotal()"></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-start">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="añadirOtroInsumo()">Añadir otro</button>
+                            </td>
                         </tr>
                         <tr>
-                            <td>Otros</td>
-                            <td><input type="number" name="detalle[otros1_cantidad]" class="form-control" step="1"></td>
-                            <td><input type="number" name="detalle[otros1_precio]" class="form-control" step="0.01"></td>
+                            <td colspan="3" class="text-end"><strong>Costo Total Materiales:</strong></td>
+                            <td><input type="number" name="detalle[costo_total_materiales]" id="costo_total_materiales" class="form-control" readonly></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="mt-4">
+                <h5><strong>Totales</strong></h5>
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <td><strong>Total No. Lienzos</strong></td>
+                            <td><input type="number" class="form-control" id="total_lienzos" name="totales[total_lienzos]" readonly></td>
                         </tr>
                         <tr>
-                            <td>Otros</td>
-                            <td><input type="number" name="detalle[otros2_cantidad]" class="form-control" step="1"></td>
-                            <td><input type="number" name="detalle[otros2_precio]" class="form-control" step="0.01"></td>
+                            <td><strong>Total m² Forro</strong></td>
+                            <td><input type="number" class="form-control" id="total_m2_forro" name="totales[total_m2_forro]" readonly></td>
                         </tr>
                         <tr>
-                            <td>Otros</td>
-                            <td><input type="number" name="detalle[otros3_cantidad]" class="form-control" step="1"></td>
-                            <td><input type="number" name="detalle[otros3_precio]" class="form-control" step="0.01"></td>
+                            <td><strong>Total m² Tela</strong></td>
+                            <td><input type="number" class="form-control" id="total_m2_tela" name="totales[total_m2_tela]" readonly></td>
                         </tr>
                         <tr>
-                            <td>Otros</td>
-                            <td><input type="number" name="detalle[otros4_cantidad]" class="form-control" step="1"></td>
-                            <td><input type="number" name="detalle[otros4_precio]" class="form-control" step="0.01"></td>
+                            <td><strong>Total m² Tergal</strong></td>
+                            <td><input type="number" class="form-control" id="total_m2_tergal" name="totales[total_m2_tergal]" readonly></td>
                         </tr>
                         <tr>
-                            <td>Otros</td>
-                            <td><input type="number" name="detalle[otros5_cantidad]" class="form-control" step="1"></td>
-                            <td><input type="number" name="detalle[otros5_precio]" class="form-control" step="0.01"></td>
+                            <td><strong>Costo Cortina</strong></td>
+                            <td><input type="text" class="form-control" id="costo_cortina" name="totales[costo_cortina]" readonly></td>
                         </tr>
                         <tr>
-                            <td colspan="2" class="text-end"><strong>Costo Total Materiales:</strong></td>
-                            <td><input type="number" name="detalle[costo_total_materiales]" class="form-control" step="0.01"></td>
+                            <td><strong>Utilidad</strong></td>
+                            <td><input type="text" class="form-control" id="utilidad" name="totales[utilidad]" readonly></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Costo Decorador</strong></td>
+                            <td><input type="text" class="form-control" id="costo_decorador" name="totales[costo_decorador]" readonly></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Precio Público</strong></td>
+                            <td><input type="text" class="form-control" id="precio_publico" name="totales[precio_publico]" readonly></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+
 
             <div class="form-group">
                 <label>Total</label>
@@ -250,7 +279,7 @@
                             </tr>
                             <tr>
                                 <td><label for="no_lienzos_redondeado">No. Lienzos Redondeados</label></td>
-                                <td><input type="number" name="detalle[no_lienzos_redondeado]" id="no_lienzos_redondeado" class="form-control"></td>
+                                <td><input type="number" name="detalle[no_lienzos_redondeado]" id="no_lienzos_redondeado" class="form-control" onchange="actualizarTablaTotales()"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -284,7 +313,7 @@
                             </tr>
                             <tr>
                                 <td><label for="no_lienzos_redondeado_tergal">No. Lienzos Redondeados</label></td>
-                                <td><input type="number" name="detalle[no_lienzos_redondeado_tergal]" id="no_lienzos_redondeado_tergal" class="form-control"></td>
+                                <td><input type="number" name="detalle[no_lienzos_redondeado_tergal]" id="no_lienzos_redondeado_tergal" class="form-control" onchange="actualizarTablaTotales()"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -362,8 +391,8 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td><input type="number" id="total_forro" name="detalle[total_forro]" class="form-control" step="0.01"></td>
-                                <td><input type="text" name="detalle[descripcion_forro]" class="form-control"></td>
+                                <td><input type="number" id="total_forro" name="detalle[total_forro]" class="form-control" step="0.01"/></td>
+                                <td><input type="text" name="detalle[descripcion_forro]" class="form-control" /></td>
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
@@ -403,6 +432,8 @@
                         if (!isNaN(valor)) {
                             totalForro.value = valor.toFixed(2);
                             totalForro.dataset.original = valor;
+
+                            actualizarTablaTotales();
                         }
                     }
 
@@ -424,6 +455,24 @@
                     // Agregar eventos para recalcular cuando se cambien los valores
                     totalForro.addEventListener('input', recalcular);
                     precioM2.addEventListener('input', recalcular);
+
+                    // Escuchar cambios en ancho_tela y actualizar total_forro automáticamente
+                    if (anchoTela && totalForro) {
+                        anchoTela.addEventListener('input', function () {
+                            const valor = parseFloat(anchoTela.value);
+                            if (!isNaN(valor)) {
+                                totalForro.value = valor.toFixed(2);
+                                totalForro.dataset.original = valor;
+                                recalcular();
+                                actualizarTablaTotales();
+                            } else {
+                                totalForro.value = "";
+                                totalForro.dataset.original = "";
+                                recalcular();
+                                actualizarTablaTotales();
+                            }
+                        });
+                    }
                 }, 0);
 
             }
@@ -530,6 +579,124 @@
         if (totalMO1) totalMO1.value = totalMano1.toFixed(2);
         if (totalMO2) totalMO2.value = totalMano2.toFixed(2);
         if (costoTotalMO) costoTotalMO.value = (totalMano1 + totalMano2).toFixed(2);
+    });
+
+    let contadorOtros = 1;
+
+    // Insumos precargados desde el backend
+    const insumosDisponibles = @json($insumos); // Marca error pero funciona igual
+
+    // Scripts para calcular el costo total de materiales
+    function crearSelectInsumos(nombreInput) {
+        const select = document.createElement('select');
+        select.classList.add('form-select');
+        select.name = nombreInput;
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.textContent = "Seleccione un insumo";
+        select.appendChild(defaultOption);
+
+        insumosDisponibles.forEach(insumo => {
+            const option = document.createElement('option');
+            option.value = insumo.id;
+            option.textContent = insumo.nombre;
+            select.appendChild(option);
+        });
+
+        return select;
+    }
+
+    function añadirOtroInsumo() {
+        const tbody = document.getElementById('materiales-tbody');
+
+        const fila = document.createElement('tr');
+
+        // Celda de selección de insumo
+        const tdNombre = document.createElement('td');
+        tdNombre.appendChild(crearSelectInsumos(`detalle[otros${contadorOtros}_nombre]`));
+
+        // Celda cantidad
+        const tdCantidad = document.createElement('td');
+        const inputCantidad = document.createElement('input');
+        inputCantidad.type = 'number';
+        inputCantidad.name = `detalle[otros${contadorOtros}_cantidad]`;
+        inputCantidad.classList.add('form-control');
+        inputCantidad.step = 1;
+        inputCantidad.min = 0;
+        inputCantidad.addEventListener('input', actualizarCostoTotal);
+        tdCantidad.appendChild(inputCantidad);
+
+        // Celda precio
+        const tdPrecio = document.createElement('td');
+        const inputPrecio = document.createElement('input');
+        inputPrecio.type = 'number';
+        inputPrecio.name = `detalle[otros${contadorOtros}_precio]`;
+        inputPrecio.classList.add('form-control');
+        inputPrecio.step = 0.01;
+        inputPrecio.min = 0;
+        inputPrecio.addEventListener('input', actualizarCostoTotal);
+        tdPrecio.appendChild(inputPrecio);
+
+        // Celda eliminar
+        const tdEliminar = document.createElement('td');
+        const btnEliminar = document.createElement('button');
+        btnEliminar.type = 'button';
+        btnEliminar.classList.add('btn', 'btn-danger', 'btn-sm');
+        btnEliminar.innerText = 'Eliminar';
+        btnEliminar.onclick = () => {
+            fila.remove();
+            actualizarCostoTotal();
+        };
+        tdEliminar.appendChild(btnEliminar);
+
+        fila.appendChild(tdNombre);
+        fila.appendChild(tdCantidad);
+        fila.appendChild(tdPrecio);
+        fila.appendChild(tdEliminar);
+
+        tbody.appendChild(fila);
+        contadorOtros++;
+    }
+
+    function actualizarCostoTotal() {
+        const tbody = document.getElementById('materiales-tbody');
+        let total = 0;
+
+        Array.from(tbody.querySelectorAll('tr')).forEach(fila => {
+            const cantidadInput = fila.querySelector('input[name*="_cantidad"]');
+            const precioInput = fila.querySelector('input[name*="_precio"]');
+
+            const cantidad = parseFloat(cantidadInput?.value) || 0;
+            const precio = parseFloat(precioInput?.value) || 0;
+
+            total += cantidad * precio;
+        });
+
+        document.getElementById('costo_total_materiales').value = total.toFixed(2);
+    }
+
+    function actualizarTablaTotales() {
+        // Calcular total de Lienzos
+        const totalLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
+        const totalLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
+        const totalLienzos = totalLienzosCortina + totalLienzosTergal;
+        document.getElementById('total_lienzos').value = totalLienzos.toFixed(2);
+
+        // Calcular total m2 forro
+        const totalForro = parseFloat(document.getElementById('total_forro')?.value) || 0;
+        document.getElementById('total_m2_forro').value = totalForro.toFixed(2);
+    }
+
+    // Escuchar cambios en los campos de lienzos redondeados y total_forro
+    document.addEventListener('input', function(e) {
+        if (
+            e.target.id === 'no_lienzos_redondeado' ||
+            e.target.id === 'no_lienzos_redondeado_tergal' ||
+            e.target.id === 'total_forro'
+        ) {
+            actualizarTablaTotales();
+        }
     });
 
     document.addEventListener('input', function(e) {

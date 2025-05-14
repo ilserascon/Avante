@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Cotizacion;
 
+use App\Models\Insumo;
+
 class CotizacionController extends Controller
 {
     public function index()
@@ -16,7 +18,8 @@ class CotizacionController extends Controller
 
     public function create()
     {
-        return view('admin.cotizaciones.create');
+        $insumos = Insumo::where('id_tipo_insumo', '!=', 1)->get();
+        return view('admin.cotizaciones.create', compact('insumos'));
     }
 
     public function store(Request $request)
