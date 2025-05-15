@@ -52,14 +52,17 @@
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[precio_m2_tela]" id="precio_m2_tela" class="form-control" step="0.01">
+                                    <input type="number" name="detalle[precio_m2_tela]" id="precio_m2_tela" class="form-control" step="0.01" value="100.00">
                                 </div>
                             </td>
                             <td>
                                 <input type="text" name="detalle[descripcion_tela]" class="form-control" placeholder="Cortina">
                             </td>
                             <td>
-                                <input type="number" name="detalle[total_tela_final]" id="total_tela_final" class="form-control" step="0.01">
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[total_tela_final]" id="total_tela_final" class="form-control" step="0.01">
+                                </div>
                             </td>
                         </tr>
 
@@ -71,14 +74,17 @@
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[precio_m2_tergal]" id="precio_m2_tergal" class="form-control" step="0.01">
+                                    <input type="number" name="detalle[precio_m2_tergal]" id="precio_m2_tergal" class="form-control" step="0.01" value="70.00">
                                 </div>
                             </td>
                             <td>
                                 <input type="text" name="detalle[descripcion_tergal]" class="form-control" placeholder="Tergal">
                             </td>
                             <td>
-                                <input type="number" name="detalle[total_tergal_final]" id="total_tergal_final" class="form-control" step="0.01">
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[total_tergal_final]" id="total_tergal_final" class="form-control" step="0.01">
+                                </div>
                             </td>
                         </tr>
 
@@ -108,17 +114,42 @@
                     <tbody>
                         <tr>
                             <td><input type="number" name="detalle[m2_1]" class="form-control" step="0.01"></td>
-                            <td><input type="number" name="detalle[costo_mano_obra_1]" class="form-control" step="0.01"></td>
-                            <td><input type="number" name="detalle[total_mano_obra_1]" class="form-control" step="0.01"></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[costo_mano_obra_1]" class="form-control" step="0.01" value="120.00">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[total_mano_obra_1]" class="form-control" step="0.01">
+                                </div>
+                            </td>
                         </tr>
                         <tr>
                             <td><input type="number" name="detalle[m2_2]" class="form-control" step="0.01"></td>
-                            <td><input type="number" name="detalle[costo_mano_obra_2]" class="form-control" step="0.01"></td>
-                            <td><input type="number" name="detalle[total_mano_obra_2]" class="form-control" step="0.01"></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[costo_mano_obra_2]" class="form-control" step="0.01" value="100.00">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[total_mano_obra_2]" class="form-control" step="0.01">
+                                </div>
+                            </td>
                         </tr>
                         <tr>
                             <td colspan="2" class="text-end"><strong>Costo Mano de Obra:</strong></td>
-                            <td><input type="number" name="detalle[costo_total_mano_obra]" class="form-control" step="0.01"></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[costo_total_mano_obra]" class="form-control" step="0.01">
+                                </div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -139,25 +170,45 @@
                         <tr>
                             <td>Ojillos</td>
                             <td><input type="number" name="detalle[ojillos_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
-                            <td><input type="number" name="detalle[ojillos_precio]" class="form-control" value="15.00" oninput="actualizarCostoTotal()"></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[ojillos_precio]" class="form-control" value="15.00" step="0.01" oninput="actualizarCostoTotal()">
+                                </div>
+                            </td>
                             <td></td>
                         </tr>
                         <tr>
                             <td>Cortinero</td>
                             <td><input type="number" name="detalle[cortinero_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
-                            <td><input type="number" name="detalle[cortinero_precio]" class="form-control" value="200" oninput="actualizarCostoTotal()"></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[cortinero_precio]" class="form-control" value="200" step="0.01" oninput="actualizarCostoTotal()">
+                                </div>
+                            </td>
                             <td></td>
                         </tr>
                         <tr>
                             <td>Puntas</td>
                             <td><input type="number" name="detalle[puntas_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
-                            <td><input type="number" name="detalle[puntas_precio]" class="form-control" value="250.00" oninput="actualizarCostoTotal()"></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[puntas_precio]" class="form-control" value="250.00" step="0.01" oninput="actualizarCostoTotal()">
+                                </div>
+                            </td>
                             <td></td>
                         </tr>
                         <tr>
                             <td>Mensulas</td>
                             <td><input type="number" name="detalle[mensulas_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
-                            <td><input type="number" name="detalle[mensulas_precio]" class="form-control" value="120.00" oninput="actualizarCostoTotal()"></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[mensulas_precio]" class="form-control" value="120.00" step="0.01" oninput="actualizarCostoTotal()">
+                                </div>
+                            </td>
                             <td></td>
                         </tr>
                     </tbody>
@@ -169,7 +220,12 @@
                         </tr>
                         <tr>
                             <td colspan="3" class="text-end"><strong>Costo Total Materiales:</strong></td>
-                            <td><input type="number" name="detalle[costo_total_materiales]" id="costo_total_materiales" class="form-control" readonly></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="detalle[costo_total_materiales]" id="costo_total_materiales" class="form-control" readonly>
+                                </div>
+                            </td>
                         </tr>
                     </tfoot>
                 </table>
@@ -197,29 +253,43 @@
                         </tr>
                         <tr>
                             <td><strong>Costo Cortina</strong></td>
-                            <td><input type="text" class="form-control" id="costo_cortina" name="totales[costo_cortina]" readonly></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="costo_cortina" name="totales[costo_cortina]" readonly>
+                                </div>
+                            </td>
                         </tr>
                         <tr>
                             <td><strong>Utilidad</strong></td>
-                            <td><input type="text" class="form-control" id="utilidad" name="totales[utilidad]" readonly></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="utilidad" name="totales[utilidad]" readonly>
+                                </div>
+                            </td>
                         </tr>
                         <tr>
                             <td><strong>Costo Decorador</strong></td>
-                            <td><input type="text" class="form-control" id="costo_decorador" name="totales[costo_decorador]" readonly></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" readonly>
+                                </div>
+                            </td>
                         </tr>
                         <tr>
                             <td><strong>Precio Público</strong></td>
-                            <td><input type="text" class="form-control" id="precio_publico" name="totales[precio_publico]" readonly></td>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="precio_publico" name="totales[precio_publico]" readonly>
+                                </div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-
-            <div class="form-group">
-                <label>Total</label>
-                <input type="number" name="total" class="form-control" required step="0.01">
-            </div>
-
             <button type="submit" class="btn btn-primary">Guardar Cotización</button>
         </form>
     </div>
@@ -395,13 +465,13 @@
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
-                                        <input type="double" name="detalle[precio_m2_forro]" id="precio_m2_forro" class="form-control" step="0.01">
+                                        <input type="number" name="detalle[precio_m2_forro]" id="precio_m2_forro" class="form-control" step="0.01" value="35.00">
                                     </div>
                                 </td>
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
-                                        <input type="double" name="detalle[total_final_forro]" class="form-control" step="0.01">
+                                        <input type="number" name="detalle[total_final_forro]" class="form-control" step="0.01">
                                     </div>
                                 </td>
                             </tr>
@@ -410,7 +480,7 @@
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
-                                        <input type="double" name="detalle[costo_total_forro]" class="form-control" step="0.01">
+                                        <input type="number" name="detalle[costo_total_forro]" class="form-control" step="0.01">
                                     </div>
                                 </td>
                             </tr>
@@ -629,6 +699,13 @@
 
         // Celda precio
         const tdPrecio = document.createElement('td');
+        const inputGroup = document.createElement('div');
+        inputGroup.classList.add('input-group');
+
+        const span = document.createElement('span');
+        span.classList.add('input-group-text');
+        span.textContent = '$';
+
         const inputPrecio = document.createElement('input');
         inputPrecio.type = 'number';
         inputPrecio.name = `detalle[otros${contadorOtros}_precio]`;
@@ -636,7 +713,10 @@
         inputPrecio.step = 0.01;
         inputPrecio.min = 0;
         inputPrecio.addEventListener('input', actualizarCostoTotal);
-        tdPrecio.appendChild(inputPrecio);
+
+        inputGroup.appendChild(span);
+        inputGroup.appendChild(inputPrecio);
+        tdPrecio.appendChild(inputGroup);
 
         // Celda eliminar
         const tdEliminar = document.createElement('td');
@@ -677,23 +757,51 @@
     }
 
     function actualizarTablaTotales() {
-        // Calcular total de Lienzos
+
+        // Cálculo de telas de la tabla totales
+
         const totalLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
         const totalLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
         const totalLienzos = totalLienzosCortina + totalLienzosTergal;
         document.getElementById('total_lienzos').value = totalLienzos > 0 ? totalLienzos : '';
 
-        // Calcular total m2 forro
         const totalForro = parseFloat(document.getElementById('total_forro')?.value) || 0;
         document.getElementById('total_m2_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
+
+        const totalTela = parseFloat(document.getElementById('total_tela')?.value) || 0;
+        document.getElementById('total_m2_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
+
+        const totalTergal = parseFloat(document.getElementById('total_tergal')?.value) || 0;
+        document.getElementById('total_m2_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
+
+        // Cálculos monetarios de la tabla totales
+
+        const costoTelaTergal = parseFloat(document.getElementById('costo_total_tela_tergal')?.value) || 0;
+        const costoForro = parseFloat(document.querySelector('[name="detalle[costo_total_forro]"]')?.value) || 0;
+        const costoManoObra = parseFloat(document.querySelector('[name="detalle[costo_total_mano_obra]"]')?.value) || 0;
+        const costoMateriales = parseFloat(document.getElementById('costo_total_materiales')?.value) || 0;
+
+        const costoCortina = costoTelaTergal + costoForro + costoManoObra + costoMateriales;
+        document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
+
+        const utilidad = costoCortina * 0.15;
+        document.getElementById('utilidad').value = utilidad > 0 ? utilidad.toFixed(2) : '';
+
+        const costoDecorador = costoCortina + utilidad;
+        document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
+
+        const precioPublico = costoCortina * 2;
+        document.getElementById('precio_publico').value = precioPublico > 0 ? precioPublico.toFixed(2) : '';
     }
 
-    // Escuchar cambios en los campos de lienzos redondeados y total_forro
+    // Escuchar cambios en los campos de lienzos redondeados, total_forro, total_tela y total_tergal
     document.addEventListener('input', function(e) {
         if (
             e.target.id === 'no_lienzos_redondeado' ||
             e.target.id === 'no_lienzos_redondeado_tergal' ||
-            e.target.id === 'total_forro'
+            e.target.id === 'total_forro' ||
+            e.target.id === 'total_tela' ||
+            e.target.id === 'total_tergal'
         ) {
             actualizarTablaTotales();
         }
