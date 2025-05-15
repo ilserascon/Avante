@@ -15,17 +15,17 @@
             <div class="form-group">
                 <label>Tipo de Cotización</label><br>
                 <div class="form-check form-check-inline">
-                    <input type="checkbox" id="cotinaCheck" name="tipo[]" value="cortina" class="form-check-input">
+                    <input type="checkbox" id="cotinaCheck" name="tipo[]" value="cortina" class="form-check-input" autocomplete="off">
                     <label class="form-check-label" for="cotinaCheck">Cortina</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input type="checkbox" id="tergalCheck" name="tipo[]" value="tergal" class="form-check-input">
+                    <input type="checkbox" id="tergalCheck" name="tipo[]" value="tergal" class="form-check-input" autocomplete="off">
                     <label class="form-check-label" for="tergalCheck">Tergal</label>
                 </div>
             </div>
 
             <div class="form-group">
-                <input type="checkbox" id="forroCheck" name="lleva_forro" value="1">
+                <input type="checkbox" id="forroCheck" name="lleva_forro" value="1" autocomplete="off">
                 <label for="forroCheck">Lleva Forro</label>
             </div>
 
@@ -175,7 +175,7 @@
                 </table>
             </div>
 
-            <div class="mt-4">
+            <div id="tabla-totales" class="mt-4">
                 <h5><strong>Totales</strong></h5>
                 <table class="table table-bordered">
                     <tbody>
@@ -214,7 +214,6 @@
                     </tbody>
                 </table>
             </div>
-
 
             <div class="form-group">
                 <label>Total</label>
@@ -458,7 +457,7 @@
 
                     // Escuchar cambios en ancho_tela y actualizar total_forro automáticamente
                     if (anchoTela && totalForro) {
-                        anchoTela.addEventListener('input', function () {
+                        anchoTela.addEventListener('input', function() {
                             const valor = parseFloat(anchoTela.value);
                             if (!isNaN(valor)) {
                                 totalForro.value = valor.toFixed(2);
@@ -497,13 +496,13 @@
         const largoInput = document.getElementById('largo');
         const bastillaCheckbox = document.getElementById('agregar_bastilla');
 
-        if (!largoInput.value) return;
+        if (!largoInput || !bastillaCheckbox) return;
 
-        // Actualiza el valor original cuando el usuario cambia manualmente el valor de largo
-        if (!largoInput.dataset.original || largoInput.value != largoInput.dataset.original) {
+        if (!largoInput.dataset.original || largoInput.value != largoInput.dataset.lastValue) {
             const original = parseFloat(largoInput.value);
             if (!isNaN(original)) {
                 largoInput.dataset.original = original;
+                largoInput.dataset.lastValue = original;
             }
         }
 
@@ -515,6 +514,7 @@
         } else {
             largoInput.value = largoOriginal.toFixed(2);
         }
+        largoInput.dataset.lastValue = largoInput.value;
     });
 
     // Script para calcular No. Lienzos
@@ -681,11 +681,11 @@
         const totalLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
         const totalLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
         const totalLienzos = totalLienzosCortina + totalLienzosTergal;
-        document.getElementById('total_lienzos').value = totalLienzos.toFixed(2);
+        document.getElementById('total_lienzos').value = totalLienzos > 0 ? totalLienzos : '';
 
         // Calcular total m2 forro
         const totalForro = parseFloat(document.getElementById('total_forro')?.value) || 0;
-        document.getElementById('total_m2_forro').value = totalForro.toFixed(2);
+        document.getElementById('total_m2_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
     }
 
     // Escuchar cambios en los campos de lienzos redondeados y total_forro
@@ -697,6 +697,10 @@
         ) {
             actualizarTablaTotales();
         }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setInterval(actualizarTablaTotales, 300);
     });
 
     document.addEventListener('input', function(e) {
