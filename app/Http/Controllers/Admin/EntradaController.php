@@ -10,6 +10,7 @@ use App\Models\Existencia;
 use App\Models\Almacen;
 use App\Models\Producto;
 use App\Models\Insumo;
+use App\Models\TipoInsumo;
 use Illuminate\Http\Request;
 
 class EntradaController extends Controller 
@@ -23,7 +24,9 @@ class EntradaController extends Controller
     public function show($id)
     {
         $entrada = Entrada::with(['almacen', 'usuario', 'detalles'])->findOrFail($id);
-        return view('admin.entradas.show', compact('entrada'));
+        $tipos = TipoInsumo::all(); // Cargar todos los tipos de insumo
+        $tipoSeleccionado = $entrada->detalles->first()->producto->tipo_insumo_id ?? null; // Ejemplo de cómo obtener el tipo seleccionado
+        return view('admin.entradas.show', compact('entrada', 'tipos', 'tipoSeleccionado'));
     }
 
     public function create()

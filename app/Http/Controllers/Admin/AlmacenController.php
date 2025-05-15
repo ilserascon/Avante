@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Almacen;
+use App\Models\Existencia;
+use App\Models\Producto;
+use App\Models\Insumo;
+use App\Models\TipoInsumo;
+use Illuminate\Support\Facades\DB;
 
 class AlmacenController extends Controller
 {
@@ -16,7 +21,7 @@ class AlmacenController extends Controller
             $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
         }
     
-        $almacenes = $query->get(); // Resultados filtrados
+        $almacenes = $query->paginate(10); // Resultados filtrados
     
         return view('admin.almacenes.index', compact('almacenes'));
     }
@@ -54,4 +59,12 @@ class AlmacenController extends Controller
 
         return redirect()->route('admin.almacenes.index')->with('success', 'Almacén actualizado.');
     }
+
+        public function showExistencia($id) {
+        $almacen = Almacen::findOrFail($id);
+        $existencias = Existencia::where('id_almacen', $id)->get();
+
+        return view('admin.almacenes.existencia', compact('almacen', 'existencias'));
+    }
 }
+

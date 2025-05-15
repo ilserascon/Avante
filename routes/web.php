@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\ProveedorController;
 use App\Http\Controllers\Admin\TiposInsumosController;
 use App\Http\Controllers\Admin\InsumoController;
 use App\Http\Controllers\Admin\ClienteController;
+use App\Http\Controllers\Admin\ProductoController;
+use App\Http\Controllers\Admin\AlmacenController;
 use App\Models\Cliente;
 
 /*
@@ -44,6 +46,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::resource('clientes', App\Http\Controllers\Admin\ClienteController::class);
     Route::resource('almacenes', App\Http\Controllers\Admin\AlmacenController::class)
     ->parameters(['almacenes' => 'almacen']);
+    Route::get('/almacenes/{id}/existencia', [App\Http\Controllers\Admin\AlmacenController::class, 'showExistencia'])->name('almacenes.existencia');
     Route::resource('entradas', App\Http\Controllers\Admin\EntradaController::class);
     Route::get('/clientes/{cliente}/cotizacion-simulada', function (Cliente $cliente) {
         return view('admin.clientes.simulada', ['cliente' => $cliente]);

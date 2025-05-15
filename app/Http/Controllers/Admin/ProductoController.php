@@ -19,7 +19,7 @@ class ProductoController extends Controller
             $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
         }
 
-        $productos = $query->get();
+        $productos = $query->paginate(10);
 
         return view('admin.productos.index', compact('productos'));
     }
@@ -31,7 +31,7 @@ class ProductoController extends Controller
             DB::raw("TRIM(CONCAT_WS(' | ', insumo.nombre, insumo.campo1, insumo.campo2, proveedores.nombre)) AS nombre_completo")
         )
         ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor')
-        ->distinct() // Evita duplicados
+        ->distinct() 
         ->get();
 
         return view('admin.productos.create', compact('insumos'));
@@ -52,12 +52,11 @@ class ProductoController extends Controller
             'descripcion' => $validated['descripcion']
         ]);
 
-        // Asociar los insumos al producto
         foreach ($validated['insumos'] as $insumoId) {
             ProductoInsumo::create([
                 'id_producto' => $producto->id,
                 'id_insumo' => $insumoId,
-                'cantidad' => 1, // Puedes ajustar la cantidad según tus necesidades
+                'cantidad' => 1, 
             ]);
         }
 
@@ -104,13 +103,11 @@ class ProductoController extends Controller
     {
         $insumoIds = collect($insumos)->pluck('id')->toArray();
 
-        // Eliminar insumos que ya no están asociados al producto
         ProductoInsumo::where('id_producto', $producto->id)
             ->whereNotIn('id_insumo', $insumoIds)
             ->delete();
 
         foreach ($insumos ?? [] as $insumo) {
-            // Actualizar o insertar el insumo en la tabla pivote
             ProductoInsumo::updateOrInsert(
                 [
                     'id_producto' => $producto->id,

@@ -10,14 +10,12 @@ use Illuminate\Http\Request;
 
 class InsumoController extends Controller
 {
-    public function index(Request $request)
+public function index(Request $request)
 {
     $tipos = TipoInsumo::all();
-
     $tipoSeleccionado = $request->get('tipo_insumo');
-    
+
     $query = Insumo::with(['tipoInsumo', 'proveedor']);
-    
     $camposDinamicos = [];
 
     if ($tipoSeleccionado) {
@@ -34,7 +32,8 @@ class InsumoController extends Controller
         $query->where('id_tipo_insumo', $tipoSeleccionado);
     }
 
-    $insumos = $query->get();
+    // Utiliza paginate() en lugar de get() para habilitar la paginación
+    $insumos = $query->paginate(10)->appends($request->query());
 
     return view('admin.insumos.index', compact('insumos', 'tipos', 'tipoSeleccionado', 'camposDinamicos'));
 }

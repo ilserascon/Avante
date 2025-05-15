@@ -3,6 +3,7 @@
 @section('title', 'Insumos')
 
 @section('content')
+
 <div class="section">
     <div class="section-header">
         <h1>Insumos</h1>
@@ -25,9 +26,7 @@
                     <select name="tipo_insumo" class="form-control">
                         <option value="">Seleccionar Tipo de Insumo</option>
                         @foreach($tipos as $tipo)
-                            <option value="{{ $tipo->id }}" {{ request('tipo_insumo') == $tipo->id ? 'selected' : '' }}>
-                                {{ $tipo->nombre }}
-                            </option>
+                            <option value="{{ $tipo->id }}" {{ request('tipo_insumo') == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -75,20 +74,19 @@
                                 <td>{{ $insumo->costo }}</td>
                                 <td>{{ $insumo->precio_publico }}</td>
                                 <td>{{ $insumo->utilidad }}</td>
-
                                 @foreach($camposDinamicos as $campo => $valor)
                                     <td>{{ $insumo->$campo }}</td>
                                 @endforeach
-
                                 <td>
-                                    <a href="{{ route('admin.insumos.edit', $insumo->id) }}" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                    <a href="{{ route('admin.insumos.edit', $insumo->id) }}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $insumos->appends(request()->query())->links('pagination::bootstrap-4') }}
+                </div>
             @endif
 
             </div>
