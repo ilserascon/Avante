@@ -47,6 +47,34 @@
                 <label for="campo8">Campo 8</label>
                 <input type="text" id="campo8" name="campo8" class="form-control">
             </div>
+            <div class="form-group">
+                <label for="campo9">Campo 9</label>
+                <input type="text" id="campo9" name="campo9" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="campo10">Campo 10</label>
+                <input type="text" id="campo10" name="campo10" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="campo11">Campo 11</label>
+                <input type="text" id="campo11" name="campo11" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="campo12">Campo 12</label>
+                <input type="text" id="campo12" name="campo12" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="campo13">Campo 13</label>
+                <input type="text" id="campo13" name="campo13" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="campo14">Campo 14</label>
+                <input type="text" id="campo14" name="campo14" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="campo15">Campo 15</label>
+                <input type="text" id="campo15" name="campo15" class="form-control">
+            </div>
             <button type="submit" class="btn btn-primary">Guardar</button>
             <a href="{{ route('admin.tipo-insumos.index') }}" class="btn btn-secondary">Cancelar</a>
         </form>
