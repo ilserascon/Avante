@@ -14,7 +14,8 @@ class Cotizacion extends Model
         'cliente_id', 'fecha',
         'lleva_cortina', 'lleva_tergal', 'lleva_forro',
         'total_lienzos', 'total_m2_forro', 'total_m2_tela', 'total_m2_tergal',
-        'costo_cortina', 'utilidad', 'costo_decorador', 'precio_publico'
+        'costo_cortina', 'utilidad', 'costo_decorador', 'precio_publico',
+        'estatus'
     ];
 
     public function cliente()

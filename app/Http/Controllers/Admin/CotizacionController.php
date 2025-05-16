@@ -10,9 +10,22 @@ use App\Models\Insumo;
 
 class CotizacionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $cotizaciones = Cotizacion::latest()->paginate(10);
+        $query = Cotizacion::query();
+
+        if ($request->filled('fecha_inicio')) {
+            $query->whereDate('fecha', '>=', $request->input('fecha_inicio'));
+        }
+        if ($request->filled('fecha_fin')) {
+            $query->whereDate('fecha', '<=', $request->input('fecha_fin'));
+        }
+        if ($request->filled('estatus')) {
+            $query->where('estatus', $request->input('estatus'));
+        }
+
+        $cotizaciones = $query->latest()->paginate(10);
+
         return view('admin.cotizaciones.index', compact('cotizaciones'));
     }
 
@@ -68,7 +81,7 @@ class CotizacionController extends Controller
 
     public function show($id)
     {
-        $cotizacion = Cotizacion::findOrFail($id);
+        $cotizacion = Cotizacion::with('cliente')->findOrFail($id);
         return view('admin.cotizaciones.show', compact('cotizacion'));
     }
 
