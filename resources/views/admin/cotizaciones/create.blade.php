@@ -427,9 +427,18 @@
 
                     function sincronizarTergalConCortina() {
                         // Si hay datos en los campos de cortina, se heredan
-                        if (anchoCortina?.value && largoCortina?.value && anchoTelaCortina?.value) {
+                        if (anchoCortina?.value && anchoTelaCortina?.value) {
+                            // Obtener el largo original de la cortina (sin bastilla)
+                            let largoOriginal = largoCortina?.dataset?.original 
+                                ? parseFloat(largoCortina.dataset.original) 
+                                : parseFloat(largoCortina?.value);
+
                             anchoTergal.value = anchoCortina.value;
-                            largoTergal.value = (parseFloat(largoCortina.value) + 0.65).toFixed(2);
+                            if (!isNaN(largoOriginal)) {
+                                largoTergal.value = (largoOriginal + 0.65).toFixed(2);
+                            } else {
+                                largoTergal.value = '';
+                            }
                             anchoTelaTergal.value = anchoTelaCortina.value;
 
                             /* // Hacer campos readonly
@@ -600,6 +609,10 @@
             largoInput.value = largoOriginal.toFixed(2);
         }
         largoInput.dataset.lastValue = largoInput.value;
+
+        // Actualizar total de tela utilizada
+        const event = new Event('input', { bubbles: true });
+        largoInput.dispatchEvent(event);
     });
 
     // Script para calcular No. Lienzos
