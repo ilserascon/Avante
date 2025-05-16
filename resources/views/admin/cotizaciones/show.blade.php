@@ -41,6 +41,34 @@
                     <p><strong>Detalles:</strong></p>
                     <pre>{{ json_encode($cotizacion->detalles, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                 @endif
+                <hr>
+                <h5>Insumos utilizados</h5>
+                @if($cotizacion->insumos && $cotizacion->insumos->count())
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio unitario</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($cotizacion->insumos as $insumo)
+                                    <tr>
+                                        <td>{{ $insumo->nombre }}</td>
+                                        <td>{{ $insumo->pivot->cantidad }}</td>
+                                        <td>${{ number_format($insumo->pivot->precio_unitario, 2) }}</td>
+                                        <td>${{ number_format($insumo->pivot->subtotal, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p>No hay insumos registrados para esta cotización.</p>
+                @endif
             </div>
             <div class="card-footer">
                 <div class="row">

@@ -31,8 +31,11 @@ class CotizacionController extends Controller
 
     public function create()
     {
-        $insumos = Insumo::where('id_tipo_insumo', '!=', 1)->get();
-        return view('admin.cotizaciones.create', compact('insumos'));
+        $insumos = Insumo::where('id_tipo_insumo', '=', 2)->get();
+
+        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])->get()->keyBy('nombre');
+
+        return view('admin.cotizaciones.create', compact('insumos', 'insumosFijos'));
     }
 
     public function store(Request $request)
@@ -69,19 +72,75 @@ class CotizacionController extends Controller
         $cotizacion->costo_decorador   = $totales['costo_decorador'] ?? null;
         $cotizacion->precio_publico    = $totales['precio_publico'] ?? null;
 
-        // Puedes guardar el detalle completo como JSON si lo necesitas para referencia
-        // $cotizacion->detalles = json_encode($detalle);
-
-        // $cotizacion->estatus = 'pendiente';
+        $cotizacion->estatus = $request->input('estatus', 'pendiente');
 
         $cotizacion->save();
+
+        $insumos = $request->input('insumos', []);
+        if (!empty($insumos)) {
+            $cotizacion->insumos()->attach($insumos);
+        }
+
+        $insumosFijos = [
+            'ojillos' => Insumo::where('nombre', 'Ojillos')->first(),
+            'cortinero' => Insumo::where('nombre', 'Cortinero')->first(),
+            'puntas' => Insumo::where('nombre', 'Puntas')->first(),
+            'mensulas' => Insumo::where('nombre', 'Mensulas')->first(),
+        ];
+
+        $insumosAttach = [];
+
+        // Insumos fijos
+        foreach ($insumosFijos as $key => $insumo) {
+            if ($insumo) {
+                $cantidad = $detalle["{$key}_cantidad"] ?? 0;
+                $precio = $detalle["{$key}_precio"] ?? 0;
+                if ($cantidad > 0) {
+                    $insumosAttach[$insumo->id] = [
+                        'cantidad' => $cantidad,
+                        'precio_unitario' => $precio,
+                        'subtotal' => $cantidad * $precio,
+                    ];
+                }
+            }
+        }
+
+        $ojillosId = $detalle['ojillos_id'] ?? null;
+        $cantidad = $detalle['ojillos_cantidad'] ?? 0;
+        $precio = $detalle['ojillos_precio'] ?? 0;
+
+        // Insumos dinámicos
+        foreach ($detalle as $k => $v) {
+            if (preg_match('/^otros(\d+)_nombre$/', $k, $matches)) {
+                $index = $matches[1];
+                $insumoId = $v;
+                $cantidad = $detalle["otros{$index}_cantidad"] ?? 0;
+                $precio = $detalle["otros{$index}_precio"] ?? 0;
+                if ($insumoId && $cantidad > 0) {
+                    if (isset($insumosAttach[$insumoId])) {
+                        $insumosAttach[$insumoId]['cantidad'] += $cantidad;
+                        $insumosAttach[$insumoId]['subtotal'] += $cantidad * $precio;
+                    } else {
+                        $insumosAttach[$insumoId] = [
+                            'cantidad' => $cantidad,
+                            'precio_unitario' => $precio,
+                            'subtotal' => $cantidad * $precio,
+                        ];
+                    }
+                }
+            }
+        }
+
+        if (!empty($insumosAttach)) {
+            $cotizacion->insumos()->attach($insumosAttach);
+        }
 
         return redirect()->route('admin.cotizaciones.index')->with('success', 'Cotización creada exitosamente.');
     }
 
     public function show($id)
     {
-        $cotizacion = Cotizacion::with('cliente')->findOrFail($id);
+        $cotizacion = Cotizacion::with(['cliente', 'insumos'])->findOrFail($id);
         return view('admin.cotizaciones.show', compact('cotizacion'));
     }
 

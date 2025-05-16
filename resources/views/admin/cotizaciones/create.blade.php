@@ -183,7 +183,10 @@
                     <tbody id="materiales-tbody">
                         <!-- Insumos fijos -->
                         <tr>
-                            <td>Ojillos</td>
+                            <td>
+                                Ojillos
+                                <input type="hidden" name="detalle[ojillos_id]" value="{{ $insumosFijos['Ojillos']->id ?? '' }}">
+                            </td>
                             <td><input type="number" name="detalle[ojillos_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
                             <td>
                                 <div class="input-group">
@@ -194,7 +197,10 @@
                             <td></td>
                         </tr>
                         <tr>
-                            <td>Cortinero</td>
+                            <td>
+                                Cortinero
+                                <input type="hidden" name="detalle[cortinero_id]" value="{{ $insumosFijos['Cortinero']->id ?? '' }}">
+                            </td>
                             <td><input type="number" name="detalle[cortinero_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
                             <td>
                                 <div class="input-group">
@@ -205,7 +211,10 @@
                             <td></td>
                         </tr>
                         <tr>
-                            <td>Puntas</td>
+                            <td>
+                                Puntas
+                                <input type="hidden" name="detalle[puntas_id]" value="{{ $insumosFijos['Puntas']->id ?? '' }}">
+                            </td>
                             <td><input type="number" name="detalle[puntas_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
                             <td>
                                 <div class="input-group">
@@ -216,7 +225,10 @@
                             <td></td>
                         </tr>
                         <tr>
-                            <td>Mensulas</td>
+                            <td>
+                                Mensulas
+                                <input type="hidden" name="detalle[mensulas_id]" value="{{ $insumosFijos['Mensulas']->id ?? '' }}">
+                            </td>
                             <td><input type="number" name="detalle[mensulas_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
                             <td>
                                 <div class="input-group">
