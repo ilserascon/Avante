@@ -44,6 +44,15 @@
                 <label for="forroCheck">Lleva Forro</label>
             </div>
 
+            <div class="form-group">
+                <label for="estatus">Estatus</label>
+                <select name="estatus" id="estatus" class="form-control" required>
+                    <option value="pendiente" selected>Pendiente</option>
+                    <option value="aprobada">Aprobada</option>
+                    <option value="cancelada">Cancelada</option>
+                </select>
+            </div>
+
             <div id="form-dinamico">
                 <!-- Formularios dinámicos -->
             </div>
