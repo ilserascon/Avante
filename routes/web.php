@@ -48,11 +48,6 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     // COtizaciones
     Route::resource('cotizaciones', App\Http\Controllers\Admin\CotizacionController::class)
     ->parameters(['cotizaciones' => 'cotizacion']);
-
-
-    Route::get('/clientes/{cliente}/cotizacion-simulada', function (Cliente $cliente) {
-        return view('admin.clientes.simulada', ['cliente' => $cliente]);
-    })->name('cotizacion.simulada');
     
 });
 
