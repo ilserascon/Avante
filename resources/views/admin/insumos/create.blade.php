@@ -52,11 +52,10 @@
     <script>
     document.getElementById('id_tipo_insumo').addEventListener('change', function() {
         const camposDiv = document.getElementById('campos-dinamicos');
-        camposDiv.innerHTML = ''; // Limpiar los campos previos
+        camposDiv.innerHTML = '';
         const selectedOption = this.options[this.selectedIndex];
         const campos = JSON.parse(selectedOption.getAttribute('data-campos'));
 
-        // Crear los inputs para los campos dinámicos
         for (let key in campos) {
             camposDiv.innerHTML += `<label>${campos[key]}</label><input type="text" name="${key}" class="form-control mb-2">`;
         }

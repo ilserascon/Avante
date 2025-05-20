@@ -10,34 +10,38 @@ use Illuminate\Http\Request;
 
 class InsumoController extends Controller
 {
-public function index(Request $request)
-{
-    $tipos = TipoInsumo::all();
-    $tipoSeleccionado = $request->get('tipo_insumo');
+    public function index(Request $request)
+    {
+        $tipos = TipoInsumo::all();
+        $tipoSeleccionado = $request->get('tipo_insumo');
 
-    $query = Insumo::with(['tipoInsumo', 'proveedor']);
-    $camposDinamicos = [];
+        $query = Insumo::with(['tipoInsumo', 'proveedor']);
 
-    if ($tipoSeleccionado) {
-        $tipo = TipoInsumo::find($tipoSeleccionado);
-
-        if ($tipo) {
-            foreach ($tipo->getAttributes() as $campo => $valor) {
-                if (str_starts_with($campo, 'campo') && !empty($valor)) {
-                    $camposDinamicos[$campo] = $valor;
-                }
-            }
+        if ($request->has('nombre') && $request->nombre != '') {
+            $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
         }
 
-        $query->where('id_tipo_insumo', $tipoSeleccionado);
+        $camposDinamicos = [];
+
+        if ($tipoSeleccionado) {
+            $tipo = TipoInsumo::find($tipoSeleccionado);
+
+            if ($tipo) {
+                foreach ($tipo->getAttributes() as $campo => $valor) {
+                    if (str_starts_with($campo, 'campo') && !empty($valor)) {
+                        $camposDinamicos[$campo] = $valor;
+                    }
+                }
+            }
+
+            $query->where('id_tipo_insumo', $tipoSeleccionado);
+        }
+
+        $insumos = $query->paginate(10)->appends($request->query());
+
+        return view('admin.insumos.index', compact('insumos', 'tipos', 'tipoSeleccionado', 'camposDinamicos'));
     }
 
-    $insumos = $query->paginate(10)->appends($request->query());
-
-    return view('admin.insumos.index', compact('insumos', 'tipos', 'tipoSeleccionado', 'camposDinamicos'));
-}
-
-    
     public function create()
     {
         $proveedores = Proveedor::all();

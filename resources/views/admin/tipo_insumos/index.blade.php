@@ -30,6 +30,13 @@
                                 <th>Campo 6</th>
                                 <th>Campo 7</th>
                                 <th>Campo 8</th>
+                                <th>Campo 9</th>
+                                <th>Campo 10</th>
+                                <th>Campo 11</th>
+                                <th>Campo 12</th>
+                                <th>Campo 13</th>
+                                <th>Campo 14</th>
+                                <th>Campo 15</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -45,6 +52,13 @@
                                     <td>{{ $tipoInsumo->campo6 }}</td>
                                     <td>{{ $tipoInsumo->campo7 }}</td>
                                     <td>{{ $tipoInsumo->campo8 }}</td>
+                                    <td>{{ $tipoInsumo->campo9 }}</td>
+                                    <td>{{ $tipoInsumo->campo10 }}</td>
+                                    <td>{{ $tipoInsumo->campo11 }}</td>
+                                    <td>{{ $tipoInsumo->campo12 }}</td>
+                                    <td>{{ $tipoInsumo->campo13 }}</td>
+                                    <td>{{ $tipoInsumo->campo14 }}</td>
+                                    <td>{{ $tipoInsumo->campo15 }}</td>
                                     <td>
                                         <a href="{{ route('admin.tipo-insumos.edit', $tipoInsumo->id) }}" class="btn btn-warning btn-sm">
                                             <i class="fas fa-edit"></i>

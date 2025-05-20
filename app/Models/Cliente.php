@@ -12,7 +12,18 @@ class Cliente extends Model
     protected $table = 'clientes';
 
     protected $fillable = [
-        'nombre', 'rfc', 'razon_social', 'telefono', 'email', 'direccion', 'codigo_postal', 'borrado'
+        'nombre',
+        'rfc',
+        'razon_social',
+        'telefono',
+        'email',
+        'direccion',
+        'codigo_postal',
+        'borrado'
     ];
 
+    public function cotizaciones()
+    {
+        return $this->hasMany(Cotizacion::class);
+    }
 }

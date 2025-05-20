@@ -24,7 +24,6 @@ Route::get('/', function () {
     return redirect('/login'); 
 });
 
-
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 /*Route::middleware(['auth'])->group(function () {
@@ -45,12 +44,15 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::get('productos/{id}/insumos', [App\Http\Controllers\Admin\ProductoController::class, 'verInsumos'])->name('productos.insumos');
     Route::resource('clientes', App\Http\Controllers\Admin\ClienteController::class);
     Route::resource('almacenes', App\Http\Controllers\Admin\AlmacenController::class)
-    ->parameters(['almacenes' => 'almacen']);
+        ->parameters(['almacenes' => 'almacen']);
     Route::get('/almacenes/{id}/existencia', [App\Http\Controllers\Admin\AlmacenController::class, 'showExistencia'])->name('almacenes.existencia');
     Route::resource('entradas', App\Http\Controllers\Admin\EntradaController::class);
+
     Route::get('/clientes/{cliente}/cotizacion-simulada', function (Cliente $cliente) {
         return view('admin.clientes.simulada', ['cliente' => $cliente]);
     })->name('cotizacion.simulada');
-    
-});
 
+    // Cotizaciones
+    Route::resource('cotizaciones', App\Http\Controllers\Admin\CotizacionController::class)
+        ->parameters(['cotizaciones' => 'cotizacion']);
+});
