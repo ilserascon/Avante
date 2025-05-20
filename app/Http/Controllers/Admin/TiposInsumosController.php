@@ -40,6 +40,13 @@ class TiposInsumosController extends Controller
             'campo6'  => 'nullable|string|max:255',
             'campo7'  => 'nullable|string|max:255',
             'campo8'  => 'nullable|string|max:255',
+            'campo9'  => 'nullable|string|max:255',
+            'campo10'  => 'nullable|string|max:255',
+            'campo11'  => 'nullable|string|max:255',
+            'campo12'  => 'nullable|string|max:255',
+            'campo13'  => 'nullable|string|max:255',
+            'campo14'  => 'nullable|string|max:255',
+            'campo15'  => 'nullable|string|max:255',
         ]);
 
         TipoInsumo::create($validated);
@@ -67,6 +74,13 @@ class TiposInsumosController extends Controller
             'campo6'  => 'nullable|string|max:255',
             'campo7'  => 'nullable|string|max:255',
             'campo8'  => 'nullable|string|max:255',
+            'campo9'  => 'nullable|string|max:255',
+            'campo10'  => 'nullable|string|max:255',
+            'campo11'  => 'nullable|string|max:255',
+            'campo12'  => 'nullable|string|max:255',
+            'campo13'  => 'nullable|string|max:255',
+            'campo14'  => 'nullable|string|max:255',
+            'campo15'  => 'nullable|string|max:255',
         ]);
 
         $tipoInsumo->update($validated);
