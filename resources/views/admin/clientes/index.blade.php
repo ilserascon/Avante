@@ -71,22 +71,6 @@
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
-
-                                @php
-                                    $telefono = preg_replace('/[^0-9]/', '', $cliente->telefono ?? '');
-                                    $urlCotizacion = url("/admin/clientes/{$cliente->id}/cotizacion-simulada");
-                                    $mensaje = urlencode("Hola {$cliente->nombre}, te comparto el enlace con tu cotización simulada: {$urlCotizacion}. Haz clic para verla!");
-                                @endphp
-
-                                @if($telefono)
-                                    <a href="https://wa.me/52{{ $telefono }}?text={{ $mensaje }}" target="_blank" 
-                                    class="btn btn-success btn-sm mt-1" 
-                                    style="background-color: #25D366; border-color: #25D366;">
-                                        <i class="fab fa-whatsapp"></i> Cotización
-                                    </a>
-                                @endif
-
-
                             </td>
                         </tr>
                         @empty

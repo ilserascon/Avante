@@ -35,12 +35,13 @@ class Insumo extends Model
         'campo15'
     ];
 
+    public $timestamps = false;
 
     public function productos()
     {
         return $this->belongsToMany(Producto::class, 'producto_insumo', 'id_insumo', 'id_producto')
-                    ->withPivot('cantidad')
-                    ->withTimestamps();
+            ->withPivot('cantidad')
+            ->withTimestamps();
     }
 
     public function tipoInsumo()
@@ -53,7 +54,12 @@ class Insumo extends Model
         return $this->belongsTo(Proveedor::class, 'id_proveedor');
     }
 
-    public $timestamps = true;
+    public function cotizaciones()
+    {
+        return $this->belongsToMany(Cotizacion::class, 'cotizacion_insumo')
+            ->withPivot('cantidad', 'precio_unitario', 'subtotal')
+            ->withTimestamps();
+    }
 
     const CREATED_AT = 'created_at';
     const UPDATED_AT = null;

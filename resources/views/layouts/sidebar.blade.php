@@ -42,6 +42,12 @@
               <i class="fas fa-boxes"></i> <span>Insumos</span>
           </a>    
         </li>
+        <li class="{{ request()->is('admin/cotizaciones*') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ route('admin.cotizaciones.index') }}">
+              <i class="fas fa-calculator"></i> <span>Cotizador</span>
+          </a>
+      </li>
+
       @endif
     </ul>
   </aside>

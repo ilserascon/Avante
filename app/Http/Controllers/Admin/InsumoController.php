@@ -16,7 +16,11 @@ class InsumoController extends Controller
 
     $tipoSeleccionado = $request->get('tipo_insumo');
     
-    $query = Insumo::with(['tipoInsumo', 'proveedor']);
+    $query = Insumo::query();
+
+        if ($request->has('nombre') && $request->nombre != '') {
+            $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
+        }
     
     $camposDinamicos = [];
 
