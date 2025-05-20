@@ -54,7 +54,7 @@
         <select name="insumos[${insumoIndex}][id]" class="form-control" required>
           <option value="">Seleccione un insumo</option>
           @foreach ($insumos as $insumo)
-            <option value="{{ $insumo->id }}">{{ $insumo->nombre }}</option>
+            <option value="{{ $insumo->id }}">{{ $insumo->nombre_completo }}</option>
           @endforeach
         </select>
       </div>

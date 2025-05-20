@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Insumo extends Model
 {
     use HasFactory;
+
     protected $table = 'insumo';
 
     protected $fillable = [
@@ -43,7 +44,6 @@ class Insumo extends Model
             ->withTimestamps();
     }
 
-
     public function tipoInsumo()
     {
         return $this->belongsTo(TipoInsumo::class, 'id_tipo_insumo');
@@ -60,7 +60,6 @@ class Insumo extends Model
             ->withPivot('cantidad', 'precio_unitario', 'subtotal')
             ->withTimestamps();
     }
-
 
     const CREATED_AT = 'created_at';
     const UPDATED_AT = null;
