@@ -26,14 +26,13 @@ class ProductoController extends Controller
 
     public function create()
     {
-        $insumos = Insumo::select(
+    $insumos = DB::table('insumo')
+        ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor')
+        ->select(
             'insumo.id',
             DB::raw("TRIM(CONCAT_WS(' | ', insumo.nombre, insumo.campo1, insumo.campo2, proveedores.nombre)) AS nombre_completo")
         )
-        ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor')
-        ->distinct() 
         ->get();
-
         return view('admin.productos.create', compact('insumos'));
     }
 
@@ -43,20 +42,20 @@ class ProductoController extends Controller
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'insumos' => 'required|array',
-            'insumos.*' => 'exists:insumos,id'
+            'insumos.*.id' => 'required|exists:insumo,id',
+            'insumos.*.cantidad' => 'required|numeric|min:0',
         ]);
 
-        // Crear el producto
         $producto = Producto::create([
             'nombre' => $validated['nombre'],
             'descripcion' => $validated['descripcion']
         ]);
 
-        foreach ($validated['insumos'] as $insumoId) {
+        foreach ($validated['insumos'] as $insumo) {
             ProductoInsumo::create([
                 'id_producto' => $producto->id,
-                'id_insumo' => $insumoId,
-                'cantidad' => 1, 
+                'id_insumo' => $insumo['id'],
+                'cantidad' => $insumo['cantidad'],
             ]);
         }
 
@@ -125,14 +124,10 @@ class ProductoController extends Controller
     {
         $producto = Producto::with(['insumos' => function ($query) {
             $query->select(
-                'insumo.id',
-                DB::raw("CONCAT(
-                    COALESCE(insumo.nombre, ''), ' | ',
-                    COALESCE(insumo.campo1, ''), ' | ',
-                    COALESCE(insumo.campo2, ''), ' | ',
-                    COALESCE((SELECT nombre FROM proveedores WHERE proveedores.id = insumo.id_proveedor), '')
-                ) AS nombre_completo")
-            );
+                'insumo.*',
+                DB::raw("TRIM(CONCAT_WS(' | ', insumo.nombre, insumo.campo1, insumo.campo2, proveedores.nombre)) AS nombre_completo")
+            )
+            ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor');
         }])->findOrFail($id);
 
         return view('admin.productos.insumos', compact('producto'));
