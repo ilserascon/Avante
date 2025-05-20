@@ -19,7 +19,7 @@ class ProductoController extends Controller
             $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
         }
 
-        $productos = $query->get();
+        $productos = $query->paginate(10);
 
         return view('admin.productos.index', compact('productos'));
     }
@@ -28,50 +28,55 @@ class ProductoController extends Controller
     {
         $insumos = Insumo::select(
             'insumo.id',
-            DB::raw("CONCAT(
-                COALESCE(insumo.nombre, ''), ' | ',
-                COALESCE(insumo.campo1, ''), ' | ',
-                COALESCE(insumo.campo2, ''), ' | ',
-                COALESCE((SELECT nombre FROM proveedores WHERE proveedores.id = insumo.id_proveedor), '')
-            ) AS nombre_completo")
-        )->get();
+            DB::raw("TRIM(CONCAT_WS(' | ', insumo.nombre, insumo.campo1, insumo.campo2, proveedores.nombre)) AS nombre_completo")
+        )
+        ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor')
+        ->distinct() 
+        ->get();
 
         return view('admin.productos.create', compact('insumos'));
     }
 
-
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'insumos' => 'sometimes|array',
-            'insumos.*.id' => 'required|exists:insumo,id',
-            'insumos.*.cantidad' => 'required|numeric|min:0',
+            'insumos' => 'required|array',
+            'insumos.*' => 'exists:insumos,id'
         ]);
-    
-        DB::transaction(function () use ($request) {
-            $producto = Producto::create($request->only('nombre', 'descripcion'));
-            $this->syncInsumos($producto, $request->insumos);
-        });
-    
+
+        // Crear el producto
+        $producto = Producto::create([
+            'nombre' => $validated['nombre'],
+            'descripcion' => $validated['descripcion']
+        ]);
+
+        foreach ($validated['insumos'] as $insumoId) {
+            ProductoInsumo::create([
+                'id_producto' => $producto->id,
+                'id_insumo' => $insumoId,
+                'cantidad' => 1, 
+            ]);
+        }
+
         return redirect()->route('admin.productos.index')->with('success', 'Producto creado correctamente.');
     }
-    
+
+
     public function edit($id)
     {
         $producto = Producto::with('insumos')->findOrFail($id);
 
         $insumos = Insumo::select(
-            DB::raw("CONCAT(
-                    COALESCE(nombre, ''), ' | ',
-                    COALESCE(campo1, ''), ' | ',
-                    COALESCE(campo2, ''), ' | ',
-                    COALESCE((SELECT nombre FROM proveedores WHERE id = insumo.id_proveedor), '')
-                ) AS nombre_completo"),
-            'id'
-        )
-        ->get();
+            'insumo.id',
+            DB::raw("TRIM(CONCAT_WS(' | ', 
+                COALESCE(insumo.nombre, ''), 
+                COALESCE(insumo.campo1, ''), 
+                COALESCE(insumo.campo2, ''), 
+                COALESCE((SELECT nombre FROM proveedores WHERE proveedores.id = insumo.id_proveedor), '')
+            )) AS nombre_completo")
+        )->get();
 
         return view('admin.productos.edit', compact('producto', 'insumos'));
     }
@@ -85,23 +90,23 @@ class ProductoController extends Controller
             'insumos.*.id' => 'required|exists:insumo,id',
             'insumos.*.cantidad' => 'required|numeric|min:0',
         ]);
-    
+
         DB::transaction(function () use ($request, $producto) {
             $producto->update($request->only('nombre', 'descripcion'));
             $this->syncInsumos($producto, $request->insumos);
         });
-    
+
         return redirect()->route('admin.productos.index')->with('success', 'Producto actualizado correctamente.');
     }
-    
+
     private function syncInsumos(Producto $producto, $insumos)
     {
         $insumoIds = collect($insumos)->pluck('id')->toArray();
-    
+
         ProductoInsumo::where('id_producto', $producto->id)
             ->whereNotIn('id_insumo', $insumoIds)
             ->delete();
-    
+
         foreach ($insumos ?? [] as $insumo) {
             ProductoInsumo::updateOrInsert(
                 [
@@ -115,7 +120,7 @@ class ProductoController extends Controller
             );
         }
     }
-    
+
     public function verInsumos($id)
     {
         $producto = Producto::with(['insumos' => function ($query) {
@@ -132,6 +137,5 @@ class ProductoController extends Controller
 
         return view('admin.productos.insumos', compact('producto'));
     }
-
 
 }

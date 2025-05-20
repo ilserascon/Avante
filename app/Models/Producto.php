@@ -25,5 +25,11 @@ class Producto extends Model
                     ->withPivot('cantidad', 'created_at', 'updated_at');
     }
     
+    public function entradas()
+    {
+        return $this->belongsToMany(Entrada::class, 'detalle_entradas', 'id_producto', 'id_entrada')
+                    ->withPivot('cantidad', 'precio_unitario')
+                    ->withTimestamps();
+    }
     
 }

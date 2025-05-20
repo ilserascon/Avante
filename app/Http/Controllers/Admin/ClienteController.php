@@ -20,7 +20,7 @@ class ClienteController extends Controller
             $query->where('rfc', 'LIKE', '%' . $request->rfc . '%');
         }
 
-        $clientes = $query->where('borrado', 0)->get();
+        $clientes = $query->where('borrado', 0)->paginate(10);
 
         return view('admin.clientes.index', compact('clientes'));
     }

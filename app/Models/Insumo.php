@@ -35,7 +35,11 @@ class Insumo extends Model
         'campo15'
     ];
 
-    public $timestamps = false;
+
+    public $timestamps = true;
+
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = null;
 
     public function productos()
     {
@@ -61,6 +65,14 @@ class Insumo extends Model
             ->withTimestamps();
     }
 
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = null;
+    public function getNombreCompletoAttribute()
+    {
+        $proveedor = $this->proveedor ? $this->proveedor->nombre : '';
+        return trim(implode(' | ', array_filter([
+            $this->nombre,
+            $this->campo1,
+            $this->campo2,
+            $proveedor
+        ])));
+    }
 }

@@ -14,6 +14,9 @@
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+
+    <!-- Incluir CSS de Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
 </head>
 <body>
     <div id="app">
@@ -76,6 +79,18 @@
         </main>
     </div>
 
-    <script src="{{ asset('js/app.js') }}" defer></script>
+ 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+
+            $('.insumo-select').select2({
+                placeholder: "Seleccione o busque un insumo",
+                allowClear: true
+            });
+        });
+    </script>
 </body>
 </html>
