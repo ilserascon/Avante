@@ -18,7 +18,7 @@ class TiposInsumosController extends Controller
 
         // $query->where('borrado', 0);
 
-        $tipoInsumos = $query->get();
+        $tipoInsumos = $query->paginate(10);
 
         return view('admin.tipo_insumos.index', compact('tipoInsumos'));
     }

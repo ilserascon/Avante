@@ -35,7 +35,12 @@ class Insumo extends Model
         'campo15'
     ];
 
+    public $timestamps = true;
 
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = null;
+
+    // Relaciones
     public function productos()
     {
         return $this->belongsToMany(Producto::class, 'producto_insumo', 'id_insumo', 'id_producto')
@@ -53,8 +58,15 @@ class Insumo extends Model
         return $this->belongsTo(Proveedor::class, 'id_proveedor');
     }
 
-    public $timestamps = true;
-
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = null;
+    // Accesor
+    public function getNombreCompletoAttribute()
+    {
+        $proveedor = $this->proveedor ? $this->proveedor->nombre : '';
+        return trim(implode(' | ', array_filter([
+            $this->nombre,
+            $this->campo1,
+            $this->campo2,
+            $proveedor
+        ])));
+    }
 }

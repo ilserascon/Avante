@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('id_almacen')->constrained('almacenes')->onDelete('cascade');
-            $table->foreignId('id_producto')->constrained('productos')->onDelete('cascade');
-            $table->foreignId('id_insumo')->constrained('insumo')->onDelete('cascade');
+            $table->foreignId('id_producto')->nullable('productos')->onDelete('cascade');
+            $table->foreignId('id_insumo')->nullable('insumo')->onDelete('cascade');
             $table->decimal('cantidad', 10, 2)->nullable();
 
             $table->timestamps();

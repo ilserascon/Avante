@@ -96,6 +96,9 @@
                         @endforelse
                     </tbody>
                 </table>
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $clientes->appends(request()->query())->links('pagination::bootstrap-4') }}                
+                </div>
             </div>
         </div>
     </div>

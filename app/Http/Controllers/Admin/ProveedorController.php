@@ -20,7 +20,7 @@ class ProveedorController extends Controller
             $query->where('rfc', 'LIKE', '%' . $request->rfc . '%');
         }
 
-        $proveedores = $query->where('borrado', 0)->get();
+        $proveedores = $query->where('borrado', 0)->paginate(10);
 
         return view('admin.proveedores.index', compact('proveedores'));
     }

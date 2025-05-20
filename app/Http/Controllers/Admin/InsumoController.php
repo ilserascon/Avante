@@ -32,7 +32,6 @@ public function index(Request $request)
         $query->where('id_tipo_insumo', $tipoSeleccionado);
     }
 
-    // Utiliza paginate() en lugar de get() para habilitar la paginación
     $insumos = $query->paginate(10)->appends($request->query());
 
     return view('admin.insumos.index', compact('insumos', 'tipos', 'tipoSeleccionado', 'camposDinamicos'));

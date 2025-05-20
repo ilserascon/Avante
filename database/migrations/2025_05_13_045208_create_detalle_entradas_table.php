@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('detalle_entradas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_entrada')->constrained('entradas')->onDelete('cascade');
-            $table->foreignId('id_producto')->constrained('productos')->onDelete('cascade');
+            $table->foreignId('id_producto')->nullable()->constrained('productos')->onDelete('cascade');
             $table->foreignId('id_insumo')->nullable()->constrained('insumo')->onDelete('cascade');
             $table->decimal('cantidad', 10, 2)->nullable();
             $table->timestamps();

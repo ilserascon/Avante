@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -17,15 +16,20 @@ class EntradaController extends Controller
 {
     public function index()
     {
-        $entradas = Entrada::with(['almacen', 'usuario'])->get();
+        $entradas = Entrada::with(['almacen', 'usuario'])->paginate(10); 
         return view('admin.entradas.index', compact('entradas'));
     }
 
     public function show($id)
     {
-        $entrada = Entrada::with(['almacen', 'usuario', 'detalles'])->findOrFail($id);
-        $tipos = TipoInsumo::all(); // Cargar todos los tipos de insumo
-        $tipoSeleccionado = $entrada->detalles->first()->producto->tipo_insumo_id ?? null; // Ejemplo de cómo obtener el tipo seleccionado
+        $entrada = Entrada::with([
+            'almacen',
+            'usuario',
+            'detalles.insumo.proveedor',
+            'detalles.producto'
+        ])->findOrFail($id);
+        $tipos = TipoInsumo::all(); 
+        $tipoSeleccionado = $entrada->detalles->first()->producto->tipo_insumo_id ?? null;
         return view('admin.entradas.show', compact('entrada', 'tipos', 'tipoSeleccionado'));
     }
 
@@ -33,52 +37,152 @@ class EntradaController extends Controller
     {
         $almacenes = Almacen::all();
         $productos = Producto::all();
-        $insumos = Insumo::all();
+        $insumos = DB::table('insumo')
+            ->select(
+                'insumo.id',
+                DB::raw("TRIM(CONCAT_WS(' | ', 
+                    COALESCE(insumo.nombre, ''), 
+                    COALESCE(insumo.campo1, ''), 
+                    COALESCE(insumo.campo2, ''), 
+                    COALESCE((SELECT nombre FROM proveedores WHERE proveedores.id = insumo.id_proveedor), '')
+                )) AS nombre_completo")
+            )
+            ->get();
+
         return view('admin.entradas.create', compact('almacenes', 'productos', 'insumos'));
     }
 
     public function edit($id)
     {
-        $entrada = Entrada::findOrFail($id); 
-        $almacenes = Almacen::all(); 
-        return view('admin.entradas.edit', compact('entrada', 'almacenes'));
+        $entrada = Entrada::with('detalles')->findOrFail($id);
+        $almacenes = Almacen::all();
+        $productos = Producto::all();
+        $insumos = DB::table('insumo')
+            ->select(
+                'insumo.id',
+                DB::raw("TRIM(CONCAT_WS(' | ', 
+                    COALESCE(insumo.nombre, ''), 
+                    COALESCE(insumo.campo1, ''), 
+                    COALESCE(insumo.campo2, ''), 
+                    COALESCE((SELECT nombre FROM proveedores WHERE proveedores.id = insumo.id_proveedor), '')
+                )) AS nombre_completo")
+            )
+            ->get();
+
+        return view('admin.entradas.edit', compact('entrada', 'almacenes', 'productos', 'insumos'));
     }
 
     public function update(Request $request, $id)
     {
         $entrada = Entrada::findOrFail($id);
-        $entrada->update($request->all());
+        $entrada->update([
+            'id_almacen' => $request->id_almacen,
+        ]);
+
+        foreach ($entrada->detalles as $detalle) {
+            $campo = $detalle->id_producto ? 'id_producto' : 'id_insumo';
+            $id = $detalle->$campo;
+
+            $existencia = Existencia::where('id_almacen', $entrada->id_almacen)
+                ->where($campo, $id)
+                ->first();
+
+            if ($existencia) {
+                $existencia->cantidad -= $detalle->cantidad;
+                $existencia->save();
+            }
+
+            $detalle->delete();
+        }
+
+        foreach ($request->items as $item) {
+            $id_producto = $item['tipo'] === 'producto' ? $item['id'] : null;
+            $id_insumo = $item['tipo'] === 'insumo' ? $item['id'] : null;
+
+            if ($id_producto && !Producto::find($id_producto)) {
+                return back()->withErrors(['Producto inválido: no existe en la base de datos']);
+            }
+            if ($id_insumo && !Insumo::find($id_insumo)) {
+                return back()->withErrors(['Insumo inválido: no existe en la base de datos']);
+            }
+
+            $detalle = new DetalleEntrada([
+                'id_producto' => $id_producto,
+                'id_insumo' => $id_insumo,
+                'cantidad' => $item['cantidad'],
+            ]);
+            $entrada->detalles()->save($detalle);
+
+            $campo = $item['tipo'] === 'producto' ? 'id_producto' : 'id_insumo';
+
+            $existencia = Existencia::where('id_almacen', $entrada->id_almacen)
+                ->where($campo, $item['id'])
+                ->first();
+
+            if ($existencia) {
+                $existencia->cantidad += $item['cantidad'];
+                $existencia->save();
+            } else {
+                Existencia::create([
+                    'id_almacen' => $entrada->id_almacen,
+                    'id_producto' => $id_producto,
+                    'id_insumo' => $id_insumo,
+                    'cantidad' => $item['cantidad'],
+                ]);
+            }
+        }
+
         return redirect()->route('admin.entradas.index')->with('success', 'Entrada actualizada correctamente.');
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'id_almacen' => 'required|exists:almacenes,id',
-            'productos' => 'required|array',
-            'productos.*.id_producto' => 'required|exists:productos,id',
-            'productos.*.cantidad' => 'required|numeric|min:0.01',
-            'productos.*.precio_unitario' => 'required|numeric|min:0.01',
-            'productos.*.id_insumo' => 'nullable|exists:insumo,id',
+        $entrada = Entrada::create([
+            'id_almacen' => $request->id_almacen,
+            'id_usuario' => auth()->id(),
         ]);
 
-        DB::transaction(function () use ($request) {
-            $entrada = Entrada::create([
-                'id_almacen' => $request->id_almacen,
-                'id_usuario' => auth()->id(),
-            ]);
+        foreach ($request->items as $item) {
+            if (!empty($item['id_producto'])) {
+                $id_producto = $item['id_producto'];
+                $id_insumo = null;
+                $tipo = 'producto';
+                $id = $id_producto;
+            } elseif (!empty($item['id_insumo'])) {
+                $id_producto = null;
+                $id_insumo = $item['id_insumo'];
+                $tipo = 'insumo';
+                $id = $id_insumo;
+            } else {
+                continue; 
+            }
 
-            foreach ($request->productos as $producto) {
-                DetalleEntrada::create([
-                    'id_entrada' => $entrada->id,
-                    'id_producto' => $producto['id_producto'],
-                    'id_insumo' => $producto['id_insumo'] ?? null,
-                    'cantidad' => $producto['cantidad'],
-                    'precio_unitario' => $producto['precio_unitario'],
+            $detalle = new DetalleEntrada([
+                'id_producto' => $id_producto,
+                'id_insumo' => $id_insumo,
+                'cantidad' => $item['cantidad'],
+            ]);
+            $entrada->detalles()->save($detalle);
+
+            $campo = $tipo === 'producto' ? 'id_producto' : 'id_insumo';
+
+            $existencia = Existencia::where('id_almacen', $entrada->id_almacen)
+                ->where($campo, $id)
+                ->first();
+
+            if ($existencia) {
+                $existencia->cantidad += $item['cantidad'];
+                $existencia->save();
+            } else {
+                Existencia::create([
+                    'id_almacen' => $entrada->id_almacen,
+                    'id_producto' => $id_producto,
+                    'id_insumo' => $id_insumo,
+                    'cantidad' => $item['cantidad'],
                 ]);
             }
-        });
+        }
 
-        return redirect()->route('admin.entradas.index')->with('success', 'Entrada creada correctamente.');
+        return redirect()->route('admin.entradas.index')->with('success', 'Entrada registrada correctamente.');
     }
 }
