@@ -16,7 +16,7 @@
                 <label for="cliente_id">Cliente</label>
                 <select name="cliente_id" id="cliente_id" class="form-control" required>
                     <option value="">Seleccione un cliente</option>
-                    @foreach(\App\Models\Cliente::orderBy('nombre')->get() as $cliente)
+                    @foreach(\App\Models\Cliente::where('borrado', 0)->orderBy('nombre')->get() as $cliente)
                         <option value="{{ $cliente->id }}">{{ $cliente->nombre }}</option>
                     @endforeach
                 </select>
@@ -535,20 +535,28 @@
 
                 setTimeout(() => {
                     const anchoTela = document.getElementById('ancho_tela');
+                    const anchoTergal = document.getElementById('ancho_tergal');
                     const totalForro = document.getElementById('total_forro');
                     const precioM2 = document.querySelector('[name="detalle[precio_m2_forro]"]');
                     const totalFinal = document.querySelector('[name="detalle[total_final_forro]"]');
                     const costoTotal = document.querySelector('[name="detalle[costo_total_forro]"]');
 
-                    // Copiar ancho de tela si existe
-                    if (anchoTela && totalForro && anchoTela.value) {
-                        const valor = parseFloat(anchoTela.value);
+                    function actualizarTotalForro() {
+                        let valor = null;
+                        if (anchoTela && anchoTela.value) {
+                            valor = parseFloat(anchoTela.value);
+                        } else if (anchoTergal && anchoTergal.value) {
+                            valor = parseFloat(anchoTergal.value);
+                        }
                         if (!isNaN(valor)) {
                             totalForro.value = valor.toFixed(2);
                             totalForro.dataset.original = valor;
-
-                            actualizarTablaTotales();
+                        } else {
+                            totalForro.value = "";
+                            totalForro.dataset.original = "";
                         }
+                        recalcular();
+                        actualizarTablaTotales();
                     }
 
                     // Función para recalcular total y costo total
@@ -570,23 +578,15 @@
                     totalForro.addEventListener('input', recalcular);
                     precioM2.addEventListener('input', recalcular);
 
-                    // Escuchar cambios en ancho_tela y actualizar total_forro automáticamente
-                    if (anchoTela && totalForro) {
-                        anchoTela.addEventListener('input', function() {
-                            const valor = parseFloat(anchoTela.value);
-                            if (!isNaN(valor)) {
-                                totalForro.value = valor.toFixed(2);
-                                totalForro.dataset.original = valor;
-                                recalcular();
-                                actualizarTablaTotales();
-                            } else {
-                                totalForro.value = "";
-                                totalForro.dataset.original = "";
-                                recalcular();
-                                actualizarTablaTotales();
-                            }
-                        });
+                    // Escuchar cambios en ancho_tela y ancho_tergal
+                    if (anchoTela) {
+                        anchoTela.addEventListener('input', actualizarTotalForro);
                     }
+                    if (anchoTergal) {
+                        anchoTergal.addEventListener('input', actualizarTotalForro);
+                    }
+
+                    actualizarTotalForro();
                 }, 0);
 
             }
