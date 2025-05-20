@@ -98,7 +98,7 @@
                     </tbody>
                 </table>
 
-                {{ $cotizaciones->links() }}
+                {{ $cotizaciones->links('pagination::bootstrap-5') }}
             </div>
         </div>
     </div>
