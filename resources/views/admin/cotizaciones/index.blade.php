@@ -16,9 +16,9 @@
             <div class="col">
                 <select name="estatus" class="form-control">
                     <option value="">Todos los estatus</option>
-                    <option value="pendiente" {{ request('estatus') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
-                    <option value="aprobada" {{ request('estatus') == 'aprobada' ? 'selected' : '' }}>Aprobada</option>
-                    <option value="cancelada" {{ request('estatus') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                    <option value="solicitada" {{ request('estatus') == 'solicitada' ? 'selected' : '' }}>Solicitada</option>
+                    <option value="aceptada" {{ request('estatus') == 'aceptada' ? 'selected' : '' }}>Aceptada</option>
+                    <option value="rechazada" {{ request('estatus') == 'rechazada' ? 'selected' : '' }}>Rechazada</option>
                 </select>
             </div>
             <div class="col">

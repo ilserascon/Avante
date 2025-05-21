@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('cotizaciones', function (Blueprint $table) {
-            $table->enum('estatus', ['pendiente', 'aprobada', 'cancelada'])->default('pendiente');
+            $table->enum('estatus', ['solicitada', 'aceptada', 'rechazada'])->default('solicitada');
         });
     }
 

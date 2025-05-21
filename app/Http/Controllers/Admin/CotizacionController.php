@@ -72,7 +72,7 @@ class CotizacionController extends Controller
         $cotizacion->costo_decorador   = $totales['costo_decorador'] ?? null;
         $cotizacion->precio_publico    = $totales['precio_publico'] ?? null;
 
-        $cotizacion->estatus = $request->input('estatus', 'pendiente');
+        $cotizacion->estatus = $request->input('estatus', 'solicitada');
 
         $cotizacion->save();
 
