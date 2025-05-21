@@ -133,7 +133,12 @@
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[costo_mano_obra_1]" class="form-control" step="0.01" value="120.00">
+                                    <input type="number"
+                                        name="detalle[costo_mano_obra_1]"
+                                        class="form-control"
+                                        step="0.01"
+                                        value="{{ $manoObra['Mano de Obra Cortina']->precio_publico ?? '' }}"
+                                        readonly>
                                 </div>
                             </td>
                             <td>
@@ -148,7 +153,12 @@
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[costo_mano_obra_2]" class="form-control" step="0.01" value="100.00">
+                                    <input type="number"
+                                        name="detalle[costo_mano_obra_2]"
+                                        class="form-control"
+                                        step="0.01"
+                                        value="{{ $manoObra['Mano de Obra Tergal']->precio_publico ?? '' }}"
+                                        readonly>
                                 </div>
                             </td>
                             <td>
@@ -188,11 +198,13 @@
                                 Ojillos
                                 <input type="hidden" name="detalle[ojillos_id]" value="{{ $insumosFijos['Ojillos']->id ?? '' }}">
                             </td>
-                            <td><input type="number" name="detalle[ojillos_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off"></td>
+                            <td>
+                                <input type="number" name="detalle[ojillos_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                            </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[ojillos_precio]" class="form-control" value="15.00" step="0.01" oninput="actualizarCostoTotal()">
+                                    <input type="number" class="form-control" value="{{ $insumosFijos['Ojillos']->precio_publico ?? '' }}" step="0.01" readonly>
                                 </div>
                             </td>
                             <td></td>
@@ -202,11 +214,13 @@
                                 Cortinero
                                 <input type="hidden" name="detalle[cortinero_id]" value="{{ $insumosFijos['Cortinero']->id ?? '' }}">
                             </td>
-                            <td><input type="number" name="detalle[cortinero_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off"></td>
+                            <td>
+                                <input type="number" name="detalle[cortinero_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                            </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[cortinero_precio]" class="form-control" value="200" step="0.01" oninput="actualizarCostoTotal()">
+                                    <input type="number" class="form-control" value="{{ $insumosFijos['Cortinero']->precio_publico ?? '' }}" step="0.01" readonly>
                                 </div>
                             </td>
                             <td></td>
@@ -216,11 +230,13 @@
                                 Puntas
                                 <input type="hidden" name="detalle[puntas_id]" value="{{ $insumosFijos['Puntas']->id ?? '' }}">
                             </td>
-                            <td><input type="number" name="detalle[puntas_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off"></td>
+                            <td>
+                                <input type="number" name="detalle[puntas_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                            </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[puntas_precio]" class="form-control" value="250.00" step="0.01" oninput="actualizarCostoTotal()">
+                                    <input type="number" class="form-control" value="{{ $insumosFijos['Puntas']->precio_publico ?? '' }}" step="0.01" readonly>
                                 </div>
                             </td>
                             <td></td>
@@ -230,11 +246,13 @@
                                 Mensulas
                                 <input type="hidden" name="detalle[mensulas_id]" value="{{ $insumosFijos['Mensulas']->id ?? '' }}">
                             </td>
-                            <td><input type="number" name="detalle[mensulas_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off"></td>
+                            <td>
+                                <input type="number" name="detalle[mensulas_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                            </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[mensulas_precio]" class="form-control" value="120.00" step="0.01" oninput="actualizarCostoTotal()" autocomplete="off">
+                                    <input type="number" class="form-control" value="{{ $insumosFijos['Mensulas']->precio_publico ?? '' }}" step="0.01" readonly>
                                 </div>
                             </td>
                             <td></td>
@@ -623,7 +641,9 @@
             });
             const bastillaTergalCheckbox = document.getElementById('agregar_bastilla_tergal');
             if (bastillaTergalCheckbox && bastillaTergalCheckbox.checked) {
-                bastillaTergalCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                bastillaTergalCheckbox.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             }
         }
 
@@ -658,7 +678,9 @@
         }
 
         // Actualizar total de tela utilizada
-        const event = new Event('input', { bubbles: true });
+        const event = new Event('input', {
+            bubbles: true
+        });
         largoInput.dispatchEvent(event);
     });
 
@@ -686,7 +708,9 @@
                 largoTergalInput.value = largoOriginal.toFixed(2);
             }
 
-            const event = new Event('input', { bubbles: true });
+            const event = new Event('input', {
+                bubbles: true
+            });
             largoTergalInput.dispatchEvent(event);
         }
     });
@@ -848,8 +872,14 @@
         let total = 0;
 
         Array.from(tbody.querySelectorAll('tr')).forEach(fila => {
+            // Busca el input de cantidad
             const cantidadInput = fila.querySelector('input[name*="_cantidad"]');
-            const precioInput = fila.querySelector('input[name*="_precio"]');
+            // Busca el input de precio (puede ser readonly o editable)
+            let precioInput = fila.querySelector('input[type="number"].form-control[readonly]');
+            if (!precioInput) {
+                // Si no es readonly, busca el editable (para insumos "otros")
+                precioInput = fila.querySelector('input[name*="_precio"]');
+            }
 
             const cantidad = parseFloat(cantidadInput?.value) || 0;
             const precio = parseFloat(precioInput?.value) || 0;

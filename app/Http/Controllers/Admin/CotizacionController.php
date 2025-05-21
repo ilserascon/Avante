@@ -34,9 +34,21 @@ class CotizacionController extends Controller
     {
         $insumos = Insumo::where('id_tipo_insumo', '=', 2)->get();
 
-        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])->get()->keyBy('nombre');
+        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
+            ->where('id_tipo_insumo', 2)
+            ->get()
+            ->keyBy('nombre');
 
-        return view('admin.cotizaciones.create', compact('insumos', 'insumosFijos'));
+        // Mano de obra
+        $manoObra = Insumo::whereIn('nombre', [
+            'Mano de Obra Cortina',
+            'Mano de Obra Tergal'
+        ])
+        ->where('id_tipo_insumo', 3)
+        ->get()
+        ->keyBy('nombre');
+
+        return view('admin.cotizaciones.create', compact('insumos', 'insumosFijos', 'manoObra'));
     }
 
     public function store(Request $request)
@@ -82,20 +94,20 @@ class CotizacionController extends Controller
             $cotizacion->insumos()->attach($insumos);
         }
 
-        $insumosFijos = [
-            'ojillos' => Insumo::where('nombre', 'Ojillos')->first(),
-            'cortinero' => Insumo::where('nombre', 'Cortinero')->first(),
-            'puntas' => Insumo::where('nombre', 'Puntas')->first(),
-            'mensulas' => Insumo::where('nombre', 'Mensulas')->first(),
-        ];
+        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
+            ->where('id_tipo_insumo', 2)
+            ->get()
+            ->keyBy('nombre');
 
         $insumosAttach = [];
 
         // Insumos fijos
-        foreach ($insumosFijos as $key => $insumo) {
+        foreach (['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'] as $nombre) {
+            $insumo = $insumosFijos->get($nombre);
             if ($insumo) {
+                $key = strtolower($nombre); // para coincidir con tus campos detalle, ej: ojillos_cantidad
                 $cantidad = $detalle["{$key}_cantidad"] ?? 0;
-                $precio = $detalle["{$key}_precio"] ?? 0;
+                $precio = $insumo->precio_publico; // Usa el precio_publico de la BD
                 if ($cantidad > 0) {
                     $insumosAttach[$insumo->id] = [
                         'cantidad' => $cantidad,
