@@ -88,10 +88,26 @@
                                 <td>${{ number_format($cotizacion->precio_publico, 2) }}</td>
                                 <td>{{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}</td>
                                 <td>{{ ucfirst($cotizacion->estatus) }}</td>
-                                <td>
-                                    <a href="{{ route('admin.cotizaciones.show', $cotizacion->id) }}" class="btn btn-info btn-sm">
-                                        Ver
+                                <td class="d-inline-flex align-items-center">
+                                    <a href="{{ route('admin.cotizaciones.show', $cotizacion->id) }}" class="btn btn-info btn-sm" style="margin-right: 0.5rem;" title="Ver detalles">
+                                        <i class="fas fa-eye"></i> Ver
                                     </a>
+                                    @if($cotizacion->estatus === 'solicitada')
+                                        <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="d-inline mb-0" style="margin-right: 0.5rem;">
+                                            @csrf
+                                            <input type="hidden" name="estatus" value="aceptada">
+                                            <button type="submit" class="btn btn-success btn-sm" title="Aceptar">
+                                                <i class="fas fa-check"></i> Aceptar
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="d-inline mb-0">
+                                            @csrf
+                                            <input type="hidden" name="estatus" value="rechazada">
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Rechazar">
+                                                <i class="fas fa-times"></i> Rechazar
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

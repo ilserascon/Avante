@@ -147,4 +147,11 @@ class CotizacionController extends Controller
     public function edit($id) {}
     public function update(Request $request, $id) {}
     public function destroy($id) {}
+
+    public function cambiarEstatus(Request $request, Cotizacion $cotizacion)
+    {
+        $cotizacion->estatus = $request->estatus;
+        $cotizacion->save();
+        return redirect()->back()->with('success', 'Estatus actualizado correctamente.');
+    }
 }

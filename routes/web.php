@@ -7,7 +7,7 @@ use App\Http\Controllers\Admin\InsumoController;
 use App\Http\Controllers\Admin\ClienteController;
 use App\Http\Controllers\Admin\ProductoController;
 use App\Http\Controllers\Admin\AlmacenController;
-use App\Models\Cliente;
+use App\Http\Controllers\Admin\CotizacionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,11 +48,8 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::get('/almacenes/{id}/existencia', [App\Http\Controllers\Admin\AlmacenController::class, 'showExistencia'])->name('almacenes.existencia');
     Route::resource('entradas', App\Http\Controllers\Admin\EntradaController::class);
 
-    Route::get('/clientes/{cliente}/cotizacion-simulada', function (Cliente $cliente) {
-        return view('admin.clientes.simulada', ['cliente' => $cliente]);
-    })->name('cotizacion.simulada');
-
     // Cotizaciones
     Route::resource('cotizaciones', App\Http\Controllers\Admin\CotizacionController::class)
         ->parameters(['cotizaciones' => 'cotizacion']);
+    Route::post('cotizaciones/{cotizacion}/cambiar-estatus', [CotizacionController::class, 'cambiarEstatus'])->name('cotizaciones.cambiar-estatus');
 });
