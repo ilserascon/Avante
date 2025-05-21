@@ -92,6 +92,9 @@
                                     <a href="{{ route('admin.cotizaciones.show', $cotizacion->id) }}" class="btn btn-info btn-sm" style="margin-right: 0.5rem;" title="Ver detalles">
                                         <i class="fas fa-eye"></i> Ver
                                     </a>
+                                    <a href="{{ route('admin.cotizaciones.pdf', $cotizacion->id) }}" class="btn btn-primary btn-sm" style="margin-right: 0.5rem;" target="_blank">
+                                        <i class="fas fa-file-pdf"></i> PDF
+                                    </a>
                                     @if($cotizacion->estatus === 'solicitada')
                                         <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="d-inline mb-0" style="margin-right: 0.5rem;">
                                             @csrf

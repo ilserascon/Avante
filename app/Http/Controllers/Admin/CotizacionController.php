@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Cotizacion;
-
 use App\Models\Insumo;
+use Barryvdh\DomPDF\Facade\Pdf; // Usa la facade de DomPDF
+use Illuminate\Support\Facades\Storage;
 
 class CotizacionController extends Controller
 {
@@ -153,5 +154,23 @@ class CotizacionController extends Controller
         $cotizacion->estatus = $request->estatus;
         $cotizacion->save();
         return redirect()->back()->with('success', 'Estatus actualizado correctamente.');
+    }
+
+    public function generarPdf($id)
+    {
+        $cotizacion = Cotizacion::findOrFail($id);
+
+        $pdf = Pdf::loadView('admin.cotizaciones.pdf', compact('cotizacion'));
+
+        $fileName = 'cotizacion_' . $cotizacion->id . '.pdf';
+        $filePath = 'pdfs/' . $fileName;
+
+        // Guarda el PDF en storage/app/public/pdfs
+        Storage::disk('public')->put($filePath, $pdf->output());
+
+        // Devuelve la URL pública para descargar
+        $url = Storage::url($filePath);
+
+        return response()->download(storage_path('app/public/pdfs/' . $fileName));
     }
 }
