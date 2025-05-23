@@ -5,11 +5,13 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
+        // Asegura que el tipo de insumo con ID 2 exista
+        DB::table('tipo_insumo')->insertOrIgnore([
+            ['id' => 2, 'nombre' => 'Accesorios'],
+        ]);
+
         DB::table('insumo')->insert([
             [
                 'nombre' => 'Ojillos',
@@ -50,9 +52,6 @@ return new class extends Migration
         ]);
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         DB::table('insumo')->whereIn('nombre', [
