@@ -360,6 +360,50 @@
     </div>
 </div>
 
+<select id="plantilla_tela" class="d-none">
+    @php
+    function limpiarPrecio($valor) {
+    $valor = str_replace(['$', ' '], '', $valor);
+    $valor = str_replace(',', '.', $valor);
+    return floatval($valor);
+    }
+    @endphp
+    <option value="">Seleccione una tela</option>
+    @foreach($telas as $tela)
+    @php
+    if(limpiarPrecio($tela->precio_publico) > 0) {
+    $precio = limpiarPrecio($tela->precio_publico);
+    } elseif(limpiarPrecio($tela->campo6) > 0) {
+    $precio = limpiarPrecio($tela->campo6);
+    } elseif(limpiarPrecio($tela->campo13) > 0) {
+    $precio = limpiarPrecio($tela->campo13);
+    } else {
+    $precio = 100;
+    }
+    @endphp
+    <option value="{{ $tela->id }}" data-precio="{{ $precio }}">
+        {{ $tela->nombre }} - {{ $tela->campo1 }} - {{ $tela->campo2 }}
+    </option>
+    @endforeach
+</select>
+
+<select id="plantilla_tergal" class="d-none">
+    <option value="">Seleccione un tergal</option>
+    @foreach($tergales as $tergal)
+    <option value="{{ $tergal->id }}" data-precio="{{ is_numeric($tergal->precio_publico) ? $tergal->precio_publico : 0 }}">
+        {{ $tergal->nombre }} - {{ $tergal->campo1 }} - {{ $tergal->campo2 }}
+    </option>
+    @endforeach
+</select>
+
+<select id="plantilla_forro" class="d-none">
+    <option value="">Seleccione un forro</option>
+    @foreach($forros as $forro)
+    <option value="{{ $forro->id }}" data-precio="{{ is_numeric($forro->precio_publico) ? $forro->precio_publico : 0 }}">
+        {{ $forro->nombre }} - {{ $forro->campo1 }} - {{ $forro->campo2 }}
+    </option>
+    @endforeach
+</select>
 <script>
     //Script para mostrar y ocultar formularios dinámicos
     document.addEventListener('DOMContentLoaded', function() {
@@ -382,7 +426,17 @@
             formDinamico.innerHTML = '';
 
             if (cortina.checked) {
+                let telaSeleccionada = null;
+                const telaSelectExistente = document.getElementById('tela_id');
+                if (telaSelectExistente) {
+                    telaSeleccionada = telaSelectExistente.value;
+                }
+
                 formDinamico.innerHTML += `
+                    <div class="mb-3">
+                        <label for="tela_id">Tela</label>
+                        <select id="tela_id" name="detalle[tela_id]" class="form-control select2"></select>
+                    </div>
                     <table class="table table-bordered mt-4">
                         <thead class="table-light">
                             <tr>
@@ -423,10 +477,43 @@
                         </tbody>
                     </table>
                 `;
+
+                setTimeout(function() {
+                    const plantilla = document.getElementById('plantilla_tela');
+                    const telaSelect = document.getElementById('tela_id');
+                    telaSelect.innerHTML = plantilla.innerHTML;
+
+                    // Restaurar selección antes de select2
+                    if (telaSeleccionada) {
+                        $(telaSelect).val(telaSeleccionada);
+                    }
+
+                    $(telaSelect).select2();
+
+                    $(telaSelect).on('change', function() {
+                        const precio = $(this).find('option:selected').data('precio');
+                        $('#precio_m2_tela').val(Number(precio).toFixed(2)).trigger('input');
+
+                        const metros = parseFloat($('#total_tela').val()) || 0;
+                        const total = metros * Number(precio);
+                        $('#total_tela_final').val(total.toFixed(2));
+
+                        const totalTergalFinal = parseFloat($('#total_tergal_final').val()) || 0;
+                        $('#costo_total_tela_tergal').val((total + totalTergalFinal).toFixed(2));
+
+                        actualizarTablaTotales();
+                    });
+
+                    $(telaSelect).trigger('change');
+                }, 0);
             }
 
             if (tergal.checked) {
                 formDinamico.innerHTML += `
+                <div class="mb-3">
+        <label for="tergal_id">Tergal</label>
+        <select id="tergal_id" name="detalle[tergal_id]" class="form-control select2"></select>
+    </div>
         <table class="table table-bordered mt-4">
             <thead class="table-light">
                 <tr>
@@ -517,6 +604,32 @@
                             largoTergal.readOnly = false;
                             anchoTelaTergal.readOnly = false;
                         }
+                        const plantillaTergal = document.getElementById('plantilla_tergal');
+                        const tergalSelect = document.getElementById('tergal_id');
+                        tergalSelect.innerHTML = plantillaTergal.innerHTML;
+
+                        // DESPUES VA A SERVIR PARA RECUPERAR EL TERGAL SELECCIONADO
+                        // if (tergalSeleccionado) {
+                        //     $(tergalSelect).val(tergalSeleccionado);
+                        // }
+
+                        $(tergalSelect).select2();
+
+                        $(tergalSelect).on('change', function() {
+                            const precio = $(this).find('option:selected').data('precio');
+                            $('#precio_m2_tergal').val(Number(precio).toFixed(2)).trigger('input');
+
+                            const metros = parseFloat($('#total_tergal').val()) || 0;
+                            const total = metros * Number(precio);
+                            $('#total_tergal_final').val(total.toFixed(2));
+
+                            const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
+                            $('#costo_total_tela_tergal').val((totalTelaFinal + total).toFixed(2));
+
+                            actualizarTablaTotales();
+                        });
+
+                        $(tergalSelect).trigger('change');
                     }
 
                     // Escuchar cambios en inputs para actualizar tergal si los datos de cortina cambian
@@ -538,36 +651,39 @@
 
             if (forro.checked) {
                 formDinamico.innerHTML += `
-                    <table class="table table-bordered mt-4">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Total Forro</th>
-                                <th>Precio m²</th>
-                                <th>Descripción</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><input type="number" id="total_forro" name="detalle[total_forro]" class="form-control" step="0.01"/></td>
-                                <td>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" name="detalle[precio_m2_forro]" id="precio_m2_forro" class="form-control" step="0.01" value="35.00">
-                                    </div>
-                                </td>
-                                <td><input type="text" name="detalle[descripcion_forro]" class="form-control" placeholder="Forro"/></td>
-                                <td>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" name="detalle[total_final_forro]" class="form-control" step="0.01">
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                `;
-
+    <div class="mb-3">
+        <label for="forro_id">Forro</label>
+        <select id="forro_id" name="detalle[forro_id]" class="form-control select2"></select>
+    </div>
+    <table class="table table-bordered mt-4">
+        <thead class="table-light">
+            <tr>
+                <th>Total Forro</th>
+                <th>Precio m²</th>
+                <th>Descripción</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="number" id="total_forro" name="detalle[total_forro]" class="form-control" step="0.01"/></td>
+                <td>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" name="detalle[precio_m2_forro]" id="precio_m2_forro" class="form-control" step="0.01" value="35.00">
+                    </div>
+                </td>
+                <td><input type="text" name="detalle[descripcion_forro]" class="form-control" placeholder="Forro"/></td>
+                <td>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" name="detalle[total_final_forro]" class="form-control" step="0.01">
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+`;
                 setTimeout(() => {
                     const anchoTela = document.getElementById('ancho_tela');
                     const anchoTergal = document.getElementById('ancho_tergal');
@@ -575,6 +691,25 @@
                     const precioM2 = document.querySelector('[name="detalle[precio_m2_forro]"]');
                     const totalFinal = document.querySelector('[name="detalle[total_final_forro]"]');
                     const costoTotal = document.querySelector('[name="detalle[costo_total_forro]"]');
+                    const plantillaForro = document.getElementById('plantilla_forro');
+                    const forroSelect = document.getElementById('forro_id');
+                    forroSelect.innerHTML = plantillaForro.innerHTML;
+
+                    $(forroSelect).select2();
+
+                    $(forroSelect).on('change', function() {
+                        const precio = $(this).find('option:selected').data('precio');
+                        $('#precio_m2_forro').val(Number(precio).toFixed(2)).trigger('input');
+
+                        // Calcula metros de forro y actualiza el total_final_forro
+                        const metros = parseFloat($('#total_forro').val()) || 0;
+                        const total = metros * Number(precio);
+                        $('[name="detalle[total_final_forro]"]').val(total.toFixed(2));
+
+                        actualizarTablaTotales();
+                    });
+
+                    $(forroSelect).trigger('change');
 
                     function actualizarTotalForro() {
                         let valor = null;
@@ -941,10 +1076,6 @@
         }
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        setInterval(actualizarTablaTotales, 300);
-    });
-
     document.addEventListener('input', function(e) {
         if (['ancho', 'ancho_tela'].includes(e.target.id)) {
             calcularLienzos();
@@ -977,6 +1108,123 @@
 
         // Oculta al cargar la página
         mostrarOcultarTablas();
+    });
+
+    document.addEventListener('input', function(e) {
+        if (
+            e.target.id === 'no_lienzos_redondeado' ||
+            e.target.id === 'largo' ||
+            e.target.id === 'precio_m2_tela'
+        ) {
+            actualizarTablaTotales();
+        }
+    });
+
+    $(document).on('change', '#tela_id', function() {
+        const precio = $(this).find('option:selected').data('precio');
+        $('#precio_m2_tela').val(Number(precio).toFixed(2));
+
+        const metros = parseFloat($('#total_tela').val()) || 0;
+        const total = metros * Number(precio);
+        $('#total_tela_final').val(total.toFixed(2));
+
+        const totalTergalFinal = parseFloat($('#total_tergal_final').val()) || 0;
+        $('#costo_total_tela_tergal').val((total + totalTergalFinal).toFixed(2));
+
+        actualizarTablaTotales();
+    });
+
+    $(document).on('change', '#tergal_id', function() {
+        const precio = $(this).find('option:selected').data('precio');
+        $('#precio_m2_tergal').val(Number(precio).toFixed(2));
+
+        const metros = parseFloat($('#total_tergal').val()) || 0;
+        const total = metros * Number(precio);
+        $('#total_tergal_final').val(total.toFixed(2));
+
+        const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
+        $('#costo_total_tela_tergal').val((totalTelaFinal + total).toFixed(2));
+
+        actualizarTablaTotales();
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'precio_m2_tela') {
+            const metros = parseFloat($('#total_tela').val()) || 0;
+            const precio = parseFloat($('#precio_m2_tela').val()) || 0;
+            const total = metros * precio;
+            $('#total_tela_final').val(total.toFixed(2));
+
+            const totalTergalFinal = parseFloat($('#total_tergal_final').val()) || 0;
+            $('#costo_total_tela_tergal').val((total + totalTergalFinal).toFixed(2));
+
+            actualizarTablaTotales();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'precio_m2_tergal') {
+            const metros = parseFloat($('#total_tergal').val()) || 0;
+            const precio = parseFloat($('#precio_m2_tergal').val()) || 0;
+            const total = metros * precio;
+            $('#total_tergal_final').val(total.toFixed(2));
+
+            // Actualiza costo total tela y tergal
+            const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
+            $('#costo_total_tela_tergal').val((totalTelaFinal + total).toFixed(2));
+
+            actualizarTablaTotales();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'total_tela') {
+            const metros = parseFloat($('#total_tela').val()) || 0;
+            const precio = parseFloat($('#precio_m2_tela').val()) || 0;
+            const total = metros * precio;
+            $('#total_tela_final').val(total.toFixed(2));
+
+            const totalTergalFinal = parseFloat($('#total_tergal_final').val()) || 0;
+            $('#costo_total_tela_tergal').val((total + totalTergalFinal).toFixed(2));
+
+            actualizarTablaTotales();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'total_tergal') {
+            const metros = parseFloat($('#total_tergal').val()) || 0;
+            const precio = parseFloat($('#precio_m2_tergal').val()) || 0;
+            const total = metros * precio;
+            $('#total_tergal_final').val(total.toFixed(2));
+
+            const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
+            $('#costo_total_tela_tergal').val((totalTelaFinal + total).toFixed(2));
+
+            actualizarTablaTotales();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'precio_m2_forro') {
+            const metros = parseFloat($('#total_forro').val()) || 0;
+            const precio = parseFloat($('#precio_m2_forro').val()) || 0;
+            const total = metros * precio;
+            $('[name="detalle[total_final_forro]"]').val(total.toFixed(2));
+
+            actualizarTablaTotales();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'total_forro') {
+            const metros = parseFloat($('#total_forro').val()) || 0;
+            const precio = parseFloat($('#precio_m2_forro').val()) || 0;
+            const total = metros * precio;
+            $('[name="detalle[total_final_forro]"]').val(total.toFixed(2));
+
+            actualizarTablaTotales();
+        }
     });
 </script>
 @endsection

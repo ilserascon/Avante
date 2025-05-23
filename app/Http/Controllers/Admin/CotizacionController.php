@@ -44,11 +44,27 @@ class CotizacionController extends Controller
             'Mano de Obra Cortina',
             'Mano de Obra Tergal'
         ])
-        ->where('id_tipo_insumo', 3)
-        ->get()
-        ->keyBy('nombre');
+            ->where('id_tipo_insumo', 3)
+            ->get()
+            ->keyBy('nombre');
 
-        return view('admin.cotizaciones.create', compact('insumos', 'insumosFijos', 'manoObra'));
+        $telas = Insumo::where('id_tipo_insumo', 1)->get();
+
+        $tergales = Insumo::where('id_tipo_insumo', 4)->get();
+
+        $forros = Insumo::where('id_tipo_insumo', 5)->get();
+
+        return view('admin.cotizaciones.create', compact(
+            'insumos',
+            'insumosFijos',
+            'manoObra',
+            'telas',
+            'tergales',
+            'forros'
+        ));
+
+
+        return view('admin.cotizaciones.create', compact('insumos', 'insumosFijos', 'manoObra', 'telas'));
     }
 
     public function store(Request $request)

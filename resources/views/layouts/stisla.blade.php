@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="{{ asset('stisla/assets/modules/fontawesome/css/all.min.css') }}">
   <link rel="stylesheet" href="{{ asset('stisla/assets/css/style.css') }}">
   <link rel="stylesheet" href="{{ asset('stisla/assets/css/components.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 </head>
 <body>
@@ -23,6 +24,7 @@
     </div>
   </div>
 
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="{{ asset('stisla/assets/modules/jquery.min.js') }}"></script>
   <script src="{{ asset('stisla/assets/modules/popper.js') }}"></script>
   <script src="{{ asset('stisla/assets/modules/bootstrap/js/bootstrap.min.js') }}"></script>
@@ -31,6 +33,8 @@
   <script src="{{ asset('stisla/assets/modules/moment.min.js') }}"></script>
   <script src="{{ asset('stisla/assets/js/scripts.js') }}"></script>
   <script src="{{ asset('stisla/assets/js/custom.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
   @yield('scripts')
 
 </body>
