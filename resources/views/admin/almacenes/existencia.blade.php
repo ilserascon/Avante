@@ -26,7 +26,7 @@
                         @forelse($existencias as $existencia)
                             <tr>
                                 <td>{{ $existencia->producto->nombre ?? '-' }}</td>
-                                <td>{{ $existencia->insumo->nombre ?? '-' }}</td>
+                                <td>{{ $existencia->insumo->nombre_completo ?? '-' }}</td>
                                 <td>{{ $existencia->cantidad }}</td>
                             </tr>
                         @empty
