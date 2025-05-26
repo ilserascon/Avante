@@ -38,6 +38,15 @@ class UserController extends Controller
             'email' => 'required|email|unique:users',
             'role_id' => 'required|exists:roles,id',
             'password' => 'required|min:6'
+        ], [
+            'name.required' => 'El campo nombre es obligatorio.',
+            'email.required' => 'El campo correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe ser válido.',
+            'email.unique' => 'El correo electrónico ya está registrado.',
+            'role_id.required' => 'El campo rol es obligatorio.',
+            'role_id.exists' => 'El rol seleccionado no es válido.',
+            'password.required' => 'El campo contraseña es obligatorio.',
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
         ]);
 
         User::create([
@@ -79,6 +88,15 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'role_id' => 'required|exists:roles,id',
+            'password' => 'nullable|min:6'
+        ], [
+            'name.required' => 'El campo nombre es obligatorio.',
+            'email.required' => 'El campo correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe ser válido.',
+            'email.unique' => 'El correo electrónico ya está registrado.',
+            'role_id.required' => 'El campo rol es obligatorio.',
+            'role_id.exists' => 'El rol seleccionado no es válido.',
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
         ]);
 
         $data = $request->only(['name', 'email', 'role_id']);
@@ -91,7 +109,6 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado.');
     }
-
     /**
      * Remove the specified resource from storage.
      */

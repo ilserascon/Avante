@@ -44,6 +44,17 @@ class ProductoController extends Controller
             'insumos' => 'required|array',
             'insumos.*.id' => 'required|exists:insumo,id',
             'insumos.*.cantidad' => 'required|numeric|min:0',
+        ], [
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
+            'descripcion.string' => 'La descripción debe ser texto.',
+            'insumos.required' => 'Debe agregar al menos un insumo.',
+            'insumos.array' => 'El formato de insumos no es válido.',
+            'insumos.*.id.required' => 'Debe seleccionar un insumo.',
+            'insumos.*.id.exists' => 'El insumo seleccionado no es válido.',
+            'insumos.*.cantidad.required' => 'La cantidad del insumo es obligatoria.',
+            'insumos.*.cantidad.numeric' => 'La cantidad del insumo debe ser numérica.',
+            'insumos.*.cantidad.min' => 'La cantidad del insumo no puede ser negativa.',
         ]);
 
         $producto = Producto::create([
@@ -86,6 +97,16 @@ class ProductoController extends Controller
             'insumos' => 'sometimes|array',
             'insumos.*.id' => 'required|exists:insumo,id',
             'insumos.*.cantidad' => 'required|numeric|min:0',
+        ], [
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
+            'descripcion.string' => 'La descripción debe ser texto.',
+            'insumos.array' => 'El formato de insumos no es válido.',
+            'insumos.*.id.required' => 'Debe seleccionar un insumo.',
+            'insumos.*.id.exists' => 'El insumo seleccionado no es válido.',
+            'insumos.*.cantidad.required' => 'La cantidad del insumo es obligatoria.',
+            'insumos.*.cantidad.numeric' => 'La cantidad del insumo debe ser numérica.',
+            'insumos.*.cantidad.min' => 'La cantidad del insumo no puede ser negativa.',
         ]);
 
         DB::transaction(function () use ($request, $producto) {
@@ -95,7 +116,7 @@ class ProductoController extends Controller
 
         return redirect()->route('admin.productos.index')->with('success', 'Producto actualizado correctamente.');
     }
-
+    
     private function syncInsumos(Producto $producto, $insumos)
     {
         $insumoIds = collect($insumos)->pluck('id')->toArray();

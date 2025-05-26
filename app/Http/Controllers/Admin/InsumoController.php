@@ -84,8 +84,21 @@ class InsumoController extends Controller
             'campo13' => 'nullable|string',
             'campo14' => 'nullable|string',
             'campo15' => 'nullable|string',
+        ], [
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
+            'id_proveedor.required' => 'El campo proveedor es obligatorio.',
+            'id_proveedor.exists' => 'El proveedor seleccionado no es válido.',
+            'id_tipo_insumo.required' => 'El campo tipo de insumo es obligatorio.',
+            'id_tipo_insumo.exists' => 'El tipo de insumo seleccionado no es válido.',
+            'costo.required' => 'El campo costo es obligatorio.',
+            'costo.numeric' => 'El campo costo debe ser numérico.',
+            'precio_publico.required' => 'El campo precio público es obligatorio.',
+            'precio_publico.numeric' => 'El campo precio público debe ser numérico.',
+            'utilidad.required' => 'El campo utilidad es obligatorio.',
+            'utilidad.numeric' => 'El campo utilidad debe ser numérico.',
         ]);
-    
+
         $insumo = new Insumo();
         $insumo->nombre = $request->nombre;
         $insumo->id_proveedor = $request->id_proveedor;
@@ -93,25 +106,14 @@ class InsumoController extends Controller
         $insumo->costo = $request->costo;
         $insumo->precio_publico = $request->precio_publico;
         $insumo->utilidad = $request->utilidad;
-    
-        $insumo->campo1 = $request->campo1 ?? null;
-        $insumo->campo2 = $request->campo2 ?? null;
-        $insumo->campo3 = $request->campo3 ?? null;
-        $insumo->campo4 = $request->campo4 ?? null;
-        $insumo->campo5 = $request->campo5 ?? null;
-        $insumo->campo6 = $request->campo6 ?? null;
-        $insumo->campo7 = $request->campo7 ?? null;
-        $insumo->campo8 = $request->campo8 ?? null;
-        $insumo->campo9 = $request->campo9 ?? null;
-        $insumo->campo10 = $request->campo10 ?? null;
-        $insumo->campo11 = $request->campo11 ?? null;
-        $insumo->campo12 = $request->campo12 ?? null;
-        $insumo->campo13 = $request->campo13 ?? null;
-        $insumo->campo14 = $request->campo14 ?? null;
-        $insumo->campo15 = $request->campo15 ?? null;
-    
+
+        for ($i = 1; $i <= 15; $i++) {
+            $campo = 'campo' . $i;
+            $insumo->$campo = $request->$campo ?? null;
+        }
+
         $insumo->save();
-    
+
         return redirect()->route('admin.insumos.index')->with('success', 'Insumo creado exitosamente');
     }
 
@@ -160,6 +162,16 @@ class InsumoController extends Controller
             'campo13'          => 'nullable|string|max:255',
             'campo14'          => 'nullable|string|max:255',
             'campo15'          => 'nullable|string|max:255',
+        ], [
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
+            'id_proveedor.required' => 'El campo proveedor es obligatorio.',
+            'id_proveedor.exists' => 'El proveedor seleccionado no es válido.',
+            'id_tipo_insumo.required' => 'El campo tipo de insumo es obligatorio.',
+            'id_tipo_insumo.exists' => 'El tipo de insumo seleccionado no es válido.',
+            'costo.numeric' => 'El campo costo debe ser numérico.',
+            'precio_publico.numeric' => 'El campo precio público debe ser numérico.',
+            'utilidad.numeric' => 'El campo utilidad debe ser numérico.',
         ]);
 
         $insumo->update($validated);

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Cotizacion;
-
 use App\Models\Insumo;
 
 class CotizacionController extends Controller
@@ -44,9 +43,15 @@ class CotizacionController extends Controller
         $validated = $request->validate([
             'cliente_id'         => 'required|exists:clientes,id',
             'fecha'              => 'required|date',
-            // Los siguientes campos pueden ser opcionales según el formulario
             'detalle'            => 'array',
             'totales'            => 'array',
+        ], [
+            'cliente_id.required' => 'El campo cliente es obligatorio.',
+            'cliente_id.exists' => 'El cliente seleccionado no es válido.',
+            'fecha.required' => 'El campo fecha es obligatorio.',
+            'fecha.date' => 'La fecha debe ser válida.',
+            'detalle.array' => 'El detalle debe ser un arreglo.',
+            'totales.array' => 'Los totales deben ser un arreglo.',
         ]);
 
         $detalle = $request->input('detalle', []);

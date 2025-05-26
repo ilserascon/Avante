@@ -38,6 +38,17 @@ class ProveedorController extends Controller
             'razon_social' => 'required|string|max:255',
             'telefono' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:proveedores',
+        ], [
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
+            'rfc.required' => 'El campo RFC es obligatorio.',
+            'rfc.unique' => 'El RFC ya está registrado.',
+            'razon_social.required' => 'El campo razón social es obligatorio.',
+            'razon_social.max' => 'El campo razón social no debe exceder 255 caracteres.',
+            'telefono.max' => 'El campo teléfono no debe exceder 255 caracteres.',
+            'email.email' => 'El correo electrónico debe ser válido.',
+            'email.unique' => 'El correo electrónico ya está registrado.',
+            'email.max' => 'El correo electrónico no debe exceder 255 caracteres.',
         ]);
     
         Proveedor::create($validated + ['borrado' => 0]);
@@ -62,6 +73,17 @@ class ProveedorController extends Controller
             'razon_social' => 'required|string|max:255',
             'telefono' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:proveedores,email,' . $proveedor->id,
+        ], [
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
+            'rfc.required' => 'El campo RFC es obligatorio.',
+            'rfc.unique' => 'El RFC ya está registrado.',
+            'razon_social.required' => 'El campo razón social es obligatorio.',
+            'razon_social.max' => 'El campo razón social no debe exceder 255 caracteres.',
+            'telefono.max' => 'El campo teléfono no debe exceder 255 caracteres.',
+            'email.email' => 'El correo electrónico debe ser válido.',
+            'email.unique' => 'El correo electrónico ya está registrado.',
+            'email.max' => 'El correo electrónico no debe exceder 255 caracteres.',
         ]);
 
         $proveedor->update($validated);

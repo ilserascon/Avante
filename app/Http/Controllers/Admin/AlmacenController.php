@@ -30,12 +30,16 @@ class AlmacenController extends Controller
     {
         return view('admin.almacenes.create');
     }
-
+    
     public function store(Request $request)
     {
         $request->validate([
             'nombre' => 'required|string|max:255',
             'ubicacion' => 'nullable|string|max:255',
+        ], [
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
+            'ubicacion.max' => 'El campo ubicación no debe exceder 255 caracteres.',
         ]);
 
         Almacen::create($request->all());
@@ -43,21 +47,26 @@ class AlmacenController extends Controller
         return redirect()->route('admin.almacenes.index')->with('success', 'Almacén creado correctamente.');
     }
 
-    public function edit(Almacen $almacen)
-    {
-        return view('admin.almacenes.edit', compact('almacen'));
-    }
-
     public function update(Request $request, Almacen $almacen)
     {
         $request->validate([
             'nombre' => 'required|string|max:255',
             'ubicacion' => 'nullable|string|max:255',
+        ], [
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
+            'ubicacion.max' => 'El campo ubicación no debe exceder 255 caracteres.',
         ]);
 
         $almacen->update($request->all());
 
         return redirect()->route('admin.almacenes.index')->with('success', 'Almacén actualizado.');
+    }
+
+    public function edit($id)
+    {
+        $almacen = Almacen::findOrFail($id);
+        return view('admin.almacenes.edit', compact('almacen'));
     }
 
     public function showExistencia($id, Request $request)
