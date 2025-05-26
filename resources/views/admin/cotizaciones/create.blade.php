@@ -417,6 +417,20 @@
             const atributosOriginales = {};
             const estadosCheckbox = {};
 
+            // Guardar valores para que no se borren al actualizar el formulario
+            let telaSeleccionada = null;
+            let tergalSeleccionado = null;
+            let forroSeleccionado = null;
+
+            const telaSelectExistente = document.getElementById('tela_id');
+            if (telaSelectExistente) telaSeleccionada = telaSelectExistente.value;
+
+            const tergalSelectExistente = document.getElementById('tergal_id');
+            if (tergalSelectExistente) tergalSeleccionado = tergalSelectExistente.value;
+
+            const forroSelectExistente = document.getElementById('forro_id');
+            if (forroSelectExistente) forroSeleccionado = forroSelectExistente.value;
+
             formDinamico.querySelectorAll('input').forEach(input => {
                 if (input.name) valoresPrevios[input.name] = input.value;
                 if (input.type === 'checkbox' && input.id) estadosCheckbox[input.id] = input.checked;
@@ -426,16 +440,13 @@
             formDinamico.innerHTML = '';
 
             if (cortina.checked) {
-                let telaSeleccionada = null;
-                const telaSelectExistente = document.getElementById('tela_id');
-                if (telaSelectExistente) {
-                    telaSeleccionada = telaSelectExistente.value;
-                }
-
                 formDinamico.innerHTML += `
                     <div class="mb-3">
                         <label for="tela_id">Tela</label>
-                        <select id="tela_id" name="detalle[tela_id]" class="form-control select2"></select>
+                        <select id="tela_id" name="detalle[tela_id]" class="form-control select2" required
+                            oninvalid="this.setCustomValidity('Por favor selecciona una tela')"
+                            oninput="this.setCustomValidity('')">
+                        </select>
                     </div>
                     <table class="table table-bordered mt-4">
                         <thead class="table-light">
@@ -510,50 +521,53 @@
 
             if (tergal.checked) {
                 formDinamico.innerHTML += `
-                <div class="mb-3">
-        <label for="tergal_id">Tergal</label>
-        <select id="tergal_id" name="detalle[tergal_id]" class="form-control select2"></select>
-    </div>
-        <table class="table table-bordered mt-4">
-            <thead class="table-light">
-                <tr>
-                    <th>Ancho tela tergal</th>
-                    <th>Ancho</th>
-                    <th>Largo</th>
-                    <th>No. Lienzos</th>
-                    <th>No. Lienzos Redondeados</th>
-                    <th>Bastilla</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <input type="text" name="detalle[ancho_tergal]" id="ancho_tergal" class="form-control">
-                    </td>
-                    <td>
-                        <input type="text" name="detalle[ancho_tergal_real]" id="ancho_tergal_real" class="form-control">
-                    </td>
-                    <td>
-                        <input type="text" name="detalle[largo_tergal]" id="largo_tergal" class="form-control">
-                    </td>
-                    <td>
-                        <input type="double" name="detalle[no_lienzos_tergal]" id="no_lienzos_tergal" class="form-control">
-                    </td>
-                    <td>
-                        <input type="number" name="detalle[no_lienzos_redondeado_tergal]" id="no_lienzos_redondeado_tergal" class="form-control" onchange="actualizarTablaTotales()">
-                    </td>
-                    <td class="text-center">
-                        <div class="d-flex align-items-center justify-content-center">
-                            <div class="form-check form-check-inline mb-0">
-                                <input type="checkbox" id="agregar_bastilla_tergal" class="form-check-input me-2">
-                                <label class="form-check-label mb-0" for="agregar_bastilla_tergal">+65 cm</label>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    `;
+                    <div class="mb-3">
+                        <label for="tergal_id">Tergal</label>
+                        <select id="tergal_id" name="detalle[tergal_id]" class="form-control select2" required
+                            oninvalid="this.setCustomValidity('Por favor selecciona un tergal')"
+                            oninput="this.setCustomValidity('')">
+                        </select>
+                    </div>
+                    <table class="table table-bordered mt-4">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ancho tela tergal</th>
+                                <th>Ancho</th>
+                                <th>Largo</th>
+                                <th>No. Lienzos</th>
+                                <th>No. Lienzos Redondeados</th>
+                                <th>Bastilla</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <input type="text" name="detalle[ancho_tergal]" id="ancho_tergal" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="text" name="detalle[ancho_tergal_real]" id="ancho_tergal_real" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="text" name="detalle[largo_tergal]" id="largo_tergal" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="double" name="detalle[no_lienzos_tergal]" id="no_lienzos_tergal" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="number" name="detalle[no_lienzos_redondeado_tergal]" id="no_lienzos_redondeado_tergal" class="form-control" onchange="actualizarTablaTotales()">
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="form-check form-check-inline mb-0">
+                                            <input type="checkbox" id="agregar_bastilla_tergal" class="form-check-input me-2">
+                                            <label class="form-check-label mb-0" for="agregar_bastilla_tergal">+65 cm</label>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
                 setTimeout(() => {
                     const anchoCortina = document.getElementById('ancho');
                     const largoCortina = document.getElementById('largo');
@@ -575,6 +589,30 @@
                             noLienzosRedondeadoTergal.value = Math.ceil(lienzos);
                         }
                     }
+                    const plantillaTergal = document.getElementById('plantilla_tergal');
+                    const tergalSelect = document.getElementById('tergal_id');
+                    tergalSelect.innerHTML = plantillaTergal.innerHTML;
+
+                    if (tergalSeleccionado) {
+                        $(tergalSelect).val(tergalSeleccionado);
+                    }
+
+
+                    $(tergalSelect).select2();
+
+                    $(tergalSelect).on('change', function() {
+                        const precio = $(this).find('option:selected').data('precio');
+                        $('#precio_m2_tergal').val(Number(precio).toFixed(2)).trigger('input');
+
+                        const metros = parseFloat($('#total_tergal').val()) || 0;
+                        const total = metros * Number(precio);
+                        $('#total_tergal_final').val(total.toFixed(2));
+
+                        const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
+                        $('#costo_total_tela_tergal').val((totalTelaFinal + total).toFixed(2));
+
+                        actualizarTablaTotales();
+                    });
 
                     function sincronizarTergalConCortina() {
                         // Si hay datos en los campos de cortina, se heredan
@@ -604,30 +642,6 @@
                             largoTergal.readOnly = false;
                             anchoTelaTergal.readOnly = false;
                         }
-                        const plantillaTergal = document.getElementById('plantilla_tergal');
-                        const tergalSelect = document.getElementById('tergal_id');
-                        tergalSelect.innerHTML = plantillaTergal.innerHTML;
-
-                        // DESPUES VA A SERVIR PARA RECUPERAR EL TERGAL SELECCIONADO
-                        // if (tergalSeleccionado) {
-                        //     $(tergalSelect).val(tergalSeleccionado);
-                        // }
-
-                        $(tergalSelect).select2();
-
-                        $(tergalSelect).on('change', function() {
-                            const precio = $(this).find('option:selected').data('precio');
-                            $('#precio_m2_tergal').val(Number(precio).toFixed(2)).trigger('input');
-
-                            const metros = parseFloat($('#total_tergal').val()) || 0;
-                            const total = metros * Number(precio);
-                            $('#total_tergal_final').val(total.toFixed(2));
-
-                            const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
-                            $('#costo_total_tela_tergal').val((totalTelaFinal + total).toFixed(2));
-
-                            actualizarTablaTotales();
-                        });
 
                         $(tergalSelect).trigger('change');
                     }
@@ -651,39 +665,42 @@
 
             if (forro.checked) {
                 formDinamico.innerHTML += `
-    <div class="mb-3">
-        <label for="forro_id">Forro</label>
-        <select id="forro_id" name="detalle[forro_id]" class="form-control select2"></select>
-    </div>
-    <table class="table table-bordered mt-4">
-        <thead class="table-light">
-            <tr>
-                <th>Total Forro</th>
-                <th>Precio m²</th>
-                <th>Descripción</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><input type="number" id="total_forro" name="detalle[total_forro]" class="form-control" step="0.01"/></td>
-                <td>
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="number" name="detalle[precio_m2_forro]" id="precio_m2_forro" class="form-control" step="0.01" value="35.00">
+                    <div class="mb-3">
+                        <label for="forro_id">Forro</label>
+                        <select id="forro_id" name="detalle[forro_id]" class="form-control select2" required
+                            oninvalid="this.setCustomValidity('Por favor selecciona un forro')"
+                            oninput="this.setCustomValidity('')">
+                        </select>
                     </div>
-                </td>
-                <td><input type="text" name="detalle[descripcion_forro]" class="form-control" placeholder="Forro"/></td>
-                <td>
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="number" name="detalle[total_final_forro]" class="form-control" step="0.01">
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-`;
+                    <table class="table table-bordered mt-4">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Total Forro</th>
+                                <th>Precio m²</th>
+                                <th>Descripción</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="number" id="total_forro" name="detalle[total_forro]" class="form-control" step="0.01"/></td>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" name="detalle[precio_m2_forro]" id="precio_m2_forro" class="form-control" step="0.01" value="35.00">
+                                    </div>
+                                </td>
+                                <td><input type="text" name="detalle[descripcion_forro]" class="form-control" placeholder="Forro"/></td>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" name="detalle[total_final_forro]" class="form-control" step="0.01">
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
                 setTimeout(() => {
                     const anchoTela = document.getElementById('ancho_tela');
                     const anchoTergal = document.getElementById('ancho_tergal');
@@ -694,6 +711,10 @@
                     const plantillaForro = document.getElementById('plantilla_forro');
                     const forroSelect = document.getElementById('forro_id');
                     forroSelect.innerHTML = plantillaForro.innerHTML;
+
+                    if (forroSeleccionado) {
+                        $(forroSelect).val(forroSeleccionado);
+                    }
 
                     $(forroSelect).select2();
 
