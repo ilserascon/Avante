@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Cotizacion;
-
 use App\Models\Insumo;
+use Barryvdh\DomPDF\Facade\Pdf; // Usa la facade de DomPDF
+use Illuminate\Support\Facades\Storage;
 
 class CotizacionController extends Controller
 {
@@ -33,9 +34,37 @@ class CotizacionController extends Controller
     {
         $insumos = Insumo::where('id_tipo_insumo', '=', 2)->get();
 
-        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])->get()->keyBy('nombre');
+        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
+            ->where('id_tipo_insumo', 2)
+            ->get()
+            ->keyBy('nombre');
 
-        return view('admin.cotizaciones.create', compact('insumos', 'insumosFijos'));
+        // Mano de obra
+        $manoObra = Insumo::whereIn('nombre', [
+            'Mano de Obra Cortina',
+            'Mano de Obra Tergal'
+        ])
+            ->where('id_tipo_insumo', 3)
+            ->get()
+            ->keyBy('nombre');
+
+        $telas = Insumo::where('id_tipo_insumo', 1)->get();
+
+        $tergales = Insumo::where('id_tipo_insumo', 4)->get();
+
+        $forros = Insumo::where('id_tipo_insumo', 5)->get();
+
+        return view('admin.cotizaciones.create', compact(
+            'insumos',
+            'insumosFijos',
+            'manoObra',
+            'telas',
+            'tergales',
+            'forros'
+        ));
+
+
+        return view('admin.cotizaciones.create', compact('insumos', 'insumosFijos', 'manoObra', 'telas'));
     }
 
     public function store(Request $request)
@@ -72,7 +101,7 @@ class CotizacionController extends Controller
         $cotizacion->costo_decorador   = $totales['costo_decorador'] ?? null;
         $cotizacion->precio_publico    = $totales['precio_publico'] ?? null;
 
-        $cotizacion->estatus = $request->input('estatus', 'pendiente');
+        $cotizacion->estatus = $request->input('estatus', 'solicitada');
 
         $cotizacion->save();
 
@@ -81,20 +110,20 @@ class CotizacionController extends Controller
             $cotizacion->insumos()->attach($insumos);
         }
 
-        $insumosFijos = [
-            'ojillos' => Insumo::where('nombre', 'Ojillos')->first(),
-            'cortinero' => Insumo::where('nombre', 'Cortinero')->first(),
-            'puntas' => Insumo::where('nombre', 'Puntas')->first(),
-            'mensulas' => Insumo::where('nombre', 'Mensulas')->first(),
-        ];
+        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
+            ->where('id_tipo_insumo', 2)
+            ->get()
+            ->keyBy('nombre');
 
         $insumosAttach = [];
 
         // Insumos fijos
-        foreach ($insumosFijos as $key => $insumo) {
+        foreach (['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'] as $nombre) {
+            $insumo = $insumosFijos->get($nombre);
             if ($insumo) {
+                $key = strtolower($nombre); // para coincidir con tus campos detalle, ej: ojillos_cantidad
                 $cantidad = $detalle["{$key}_cantidad"] ?? 0;
-                $precio = $detalle["{$key}_precio"] ?? 0;
+                $precio = $insumo->precio_publico; // Usa el precio_publico de la BD
                 if ($cantidad > 0) {
                     $insumosAttach[$insumo->id] = [
                         'cantidad' => $cantidad,
@@ -147,4 +176,29 @@ class CotizacionController extends Controller
     public function edit($id) {}
     public function update(Request $request, $id) {}
     public function destroy($id) {}
+
+    public function cambiarEstatus(Request $request, Cotizacion $cotizacion)
+    {
+        $cotizacion->estatus = $request->estatus;
+        $cotizacion->save();
+        return redirect()->back()->with('success', 'Estatus actualizado correctamente.');
+    }
+
+    public function generarPdf($id)
+    {
+        $cotizacion = Cotizacion::findOrFail($id);
+
+        $pdf = Pdf::loadView('admin.cotizaciones.pdf', compact('cotizacion'));
+
+        $fileName = 'cotizacion_' . $cotizacion->id . '.pdf';
+        $filePath = 'pdfs/' . $fileName;
+
+        // Guarda el PDF en storage/app/public/pdfs
+        Storage::disk('public')->put($filePath, $pdf->output());
+
+        // Devuelve la URL pública para descargar
+        $url = Storage::url($filePath);
+
+        return response()->download(storage_path('app/public/pdfs/' . $fileName));
+    }
 }
