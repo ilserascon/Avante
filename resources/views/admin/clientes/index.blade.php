@@ -25,6 +25,12 @@
                     <input type="text" name="rfc" value="{{ request('rfc') }}" class="form-control" placeholder="Buscar por RFC">
                 </div>
                 <div class="col">
+                    <select name="estado" class="form-control">
+                        <option value="habilitado" {{ $estado == 'habilitado' ? 'selected' : '' }}>Habilitados</option>
+                        <option value="inhabilitado" {{ $estado == 'inhabilitado' ? 'selected' : '' }}>Inhabilitados</option>
+                    </select>
+                </div>
+                <div class="col">
                     <button type="submit" class="btn btn-primary">Buscar</button>
                     <a href="{{ route('admin.clientes.index') }}" class="btn btn-secondary">Limpiar</a>
                 </div>
@@ -60,33 +66,25 @@
                             <td>{{ $cliente->direccion ?? '-' }}</td>
                             <td>{{ $cliente->codigo_postal ?? '-' }}</td>
                             <td>
-                                <a href="{{ route('admin.clientes.edit', $cliente->id) }}" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-
-                                <form action="{{ route('admin.clientes.destroy', $cliente->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar Cliente?')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-
-                                @php
-                                    $telefono = preg_replace('/[^0-9]/', '', $cliente->telefono ?? '');
-                                    $urlCotizacion = url("/admin/clientes/{$cliente->id}/cotizacion-simulada");
-                                    $mensaje = urlencode("Hola {$cliente->nombre}, te comparto el enlace con tu cotización simulada: {$urlCotizacion}. Haz clic para verla!");
-                                @endphp
-
-                                @if($telefono)
-                                    <a href="https://wa.me/52{{ $telefono }}?text={{ $mensaje }}" target="_blank" 
-                                    class="btn btn-success btn-sm mt-1" 
-                                    style="background-color: #25D366; border-color: #25D366;">
-                                        <i class="fab fa-whatsapp"></i> Cotización
+                                @if($cliente->borrado == 0)
+                                    <a href="{{ route('admin.clientes.edit', $cliente->id) }}" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i>
                                     </a>
+                                    <form action="{{ route('admin.clientes.destroy', $cliente->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-danger btn-sm" onclick="return confirm('¿Inhabilitar Cliente?')">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('admin.clientes.habilitar', $cliente->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button class="btn btn-success btn-sm" onclick="return confirm('¿Habilitar Cliente?')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
                                 @endif
-
-
                             </td>
                         </tr>
                         @empty

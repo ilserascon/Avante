@@ -20,9 +20,16 @@ class ProveedorController extends Controller
             $query->where('rfc', 'LIKE', '%' . $request->rfc . '%');
         }
 
-        $proveedores = $query->where('borrado', 0)->paginate(10);
+        $estado = $request->get('estado', 'habilitado');
+        if ($estado === 'habilitado') {
+            $query->where('borrado', 0);
+        } elseif ($estado === 'inhabilitado') {
+            $query->where('borrado', 1);
+        }
 
-        return view('admin.proveedores.index', compact('proveedores'));
+        $proveedores = $query->paginate(10);
+
+        return view('admin.proveedores.index', compact('proveedores', 'estado'));
     }
 
     public function create()
@@ -73,7 +80,13 @@ class ProveedorController extends Controller
     {
         $proveedor = Proveedor::findOrFail($id);
         $proveedor->update(['borrado' => 1]);
+        return redirect()->route('admin.proveedores.index')->with('success', 'Proveedor inhabilitado exitosamente');
+    }
 
-        return redirect()->route('admin.proveedores.index')->with('success', 'Proveedor eliminado exitosamente');
+    public function habilitar($id)
+    {
+        $proveedor = Proveedor::findOrFail($id);
+        $proveedor->update(['borrado' => 0]);
+        return redirect()->route('admin.proveedores.index', ['estado' => 'inhabilitado'])->with('success', 'Proveedor habilitado exitosamente');
     }
 }

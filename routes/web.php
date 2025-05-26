@@ -26,6 +26,7 @@ Auth::routes();
 // Rutas SOLO para Administrador
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+    Route::post('users/{user}/habilitar', [App\Http\Controllers\Admin\UserController::class, 'habilitar'])->name('users.habilitar');
     Route::resource('tipo-insumos', TiposInsumosController::class)->except(['destroy']);
     Route::resource('insumos', InsumoController::class)->except(['destroy']);
     Route::resource('productos', ProductoController::class)->parameters(['productos' => 'producto']);
@@ -40,6 +41,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
 // Rutas para Administrador y Almacén
 Route::middleware(['auth', 'role:Administrador,Almacén,Almacen'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('proveedores', ProveedorController::class);
+    Route::post('proveedores/{proveedor}/habilitar', [App\Http\Controllers\Admin\ProveedorController::class, 'habilitar'])->name('proveedores.habilitar');
     Route::resource('almacenes', AlmacenController::class)->parameters(['almacenes' => 'almacen']);
     Route::get('/almacenes/{id}/existencia', [AlmacenController::class, 'showExistencia'])->name('almacenes.existencia');
     Route::resource('entradas', App\Http\Controllers\Admin\EntradaController::class);
@@ -51,6 +53,7 @@ Route::middleware(['auth', 'role:Administrador,Cotizador'])->prefix('admin')->na
     Route::resource('productos', App\Http\Controllers\Admin\ProductoController::class)->parameters(['productos' => 'producto']);
     Route::get('productos/{id}/insumos', [ProductoController::class, 'verInsumos'])->name('productos.insumos');
     Route::resource('clientes', App\Http\Controllers\Admin\ClienteController::class);
+    Route::post('clientes/{cliente}/habilitar', [App\Http\Controllers\Admin\ClienteController::class, 'habilitar'])->name('clientes.habilitar');
     Route::resource('cotizaciones', App\Http\Controllers\Admin\CotizacionController::class)
         ->parameters(['cotizaciones' => 'cotizacion']);
     Route::post('cotizaciones/{cotizacion}/cambiar-estatus', [CotizacionController::class, 'cambiarEstatus'])->name('cotizaciones.cambiar-estatus');

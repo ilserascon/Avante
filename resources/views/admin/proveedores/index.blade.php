@@ -26,6 +26,12 @@
                     <input type="text" name="rfc" value="{{ request('rfc') }}" class="form-control" placeholder="Buscar por RFC">
                 </div>
                 <div class="col">
+                    <select name="estado" class="form-control">
+                        <option value="habilitado" {{ (isset($estado) && $estado == 'habilitado') ? 'selected' : '' }}>Habilitados</option>
+                        <option value="inhabilitado" {{ (isset($estado) && $estado == 'inhabilitado') ? 'selected' : '' }}>Inhabilitados</option>
+                    </select>
+                </div>
+                <div class="col">
                     <button type="submit" class="btn btn-primary">Buscar</button>
                     <a href="{{ route('admin.proveedores.index') }}" class="btn btn-secondary">Limpiar</a>
                 </div>
@@ -57,16 +63,25 @@
                                 <td>{{ $proveedor->telefono ?? '-' }}</td>
                                 <td>{{ $proveedor->email ?? '-' }}</td>
                                 <td>
-                                    <a href="{{ route('admin.proveedores.edit', $proveedor->id) }}" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('admin.proveedores.destroy', $proveedor->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar proveedor?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    @if($proveedor->borrado == 0)
+                                        <a href="{{ route('admin.proveedores.edit', $proveedor->id) }}" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="{{ route('admin.proveedores.destroy', $proveedor->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-danger btn-sm" onclick="return confirm('¿Inhabilitar proveedor?')">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form action="{{ route('admin.proveedores.habilitar', $proveedor->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button class="btn btn-success btn-sm" onclick="return confirm('¿Habilitar proveedor?')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
