@@ -12,52 +12,44 @@
         <form method="POST" action="{{ route('admin.cotizaciones.store') }}">
             @csrf
 
-            <div class="form-group">
-                <label for="cliente_id">Cliente</label>
-                <select name="cliente_id" id="cliente_id" class="form-control" required>
-                    <option value="">Seleccione un cliente</option>
-                    @foreach(\App\Models\Cliente::where('borrado', 0)->orderBy('nombre')->get() as $cliente)
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="cliente_id">Cliente</label>
+                    <select name="cliente_id" id="cliente_id" class="form-control" required autocomplete="off">
+                        <option value="">Seleccione un cliente</option>
+                        @foreach(\App\Models\Cliente::where('borrado', 0)->orderBy('nombre')->get() as $cliente)
                         <option value="{{ $cliente->id }}">{{ $cliente->nombre }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="fecha">Fecha</label>
-                <input type="date" name="fecha" id="fecha" class="form-control" required value="{{ date('Y-m-d') }}">
-            </div>
-
-            <div class="form-group">
-                <label>Tipo de Cotización</label><br>
-                <div class="form-check form-check-inline">
-                    <input type="checkbox" id="cotinaCheck" name="tipo[]" value="cortina" class="form-check-input" autocomplete="off">
-                    <label class="form-check-label" for="cotinaCheck">Cortina</label>
+                        @endforeach
+                    </select>
                 </div>
-                <div class="form-check form-check-inline">
-                    <input type="checkbox" id="tergalCheck" name="tipo[]" value="tergal" class="form-check-input" autocomplete="off">
-                    <label class="form-check-label" for="tergalCheck">Tergal</label>
+                <div class="col-md-6 mb-3">
+                    <label for="fecha">Fecha</label>
+                    <input type="date" name="fecha" id="fecha" class="form-control" required value="{{ date('Y-m-d') }}">
                 </div>
             </div>
-
-            <div class="form-group">
-                <input type="checkbox" id="forroCheck" name="lleva_forro" value="1" autocomplete="off">
-                <label for="forroCheck">Lleva Forro</label>
-            </div>
-
-            <div class="form-group">
-                <label for="estatus">Estatus</label>
-                <select name="estatus" id="estatus" class="form-control" required>
-                    <option value="pendiente" selected>Pendiente</option>
-                    <option value="aprobada">Aprobada</option>
-                    <option value="cancelada">Cancelada</option>
-                </select>
+            <div class="row mb-3 align-items-center">
+                <div class="col d-flex align-items-center gap-3">
+                    <label class="mb-0 me-3 align-middle" style="vertical-align: middle;">Tipo de Cotización:</label>
+                    <div class="form-check form-check-inline" style="margin-left: 0.5rem;">
+                        <input type="checkbox" id="cotinaCheck" name="tipo[]" value="cortina" class="form-check-input" autocomplete="off">
+                        <label class="form-check-label" for="cotinaCheck">Cortina</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input type="checkbox" id="tergalCheck" name="tipo[]" value="tergal" class="form-check-input" autocomplete="off">
+                        <label class="form-check-label" for="tergalCheck">Tergal</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input type="checkbox" id="forroCheck" name="lleva_forro" value="1" class="form-check-input" autocomplete="off">
+                        <label class="form-check-label" for="forroCheck">Lleva Forro</label>
+                    </div>
+                </div>
             </div>
 
             <div id="form-dinamico">
                 <!-- Formularios dinámicos -->
             </div>
 
-            <div id="tabla-totales-tela-tergal" class="mt-4">
+            <div id="tabla-totales-tela-tergal" class="mt-4 d-none">
                 <table class="table table-bordered mt-4">
                     <thead class="table-light">
                         <tr>
@@ -126,7 +118,7 @@
                 </table>
             </div>
 
-            <div id="tabla-mano-obra" class="mt-4">
+            <div id="tabla-mano-obra" class="mt-4 d-none">
                 <table class="table table-bordered mt-4">
                     <thead class="table-light">
                         <tr>
@@ -141,7 +133,12 @@
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[costo_mano_obra_1]" class="form-control" step="0.01" value="120.00">
+                                    <input type="number"
+                                        name="detalle[costo_mano_obra_1]"
+                                        class="form-control"
+                                        step="0.01"
+                                        value="{{ $manoObra['Mano de Obra Cortina']->precio_publico ?? '' }}"
+                                        readonly>
                                 </div>
                             </td>
                             <td>
@@ -156,7 +153,12 @@
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[costo_mano_obra_2]" class="form-control" step="0.01" value="100.00">
+                                    <input type="number"
+                                        name="detalle[costo_mano_obra_2]"
+                                        class="form-control"
+                                        step="0.01"
+                                        value="{{ $manoObra['Mano de Obra Tergal']->precio_publico ?? '' }}"
+                                        readonly>
                                 </div>
                             </td>
                             <td>
@@ -179,7 +181,7 @@
                 </table>
             </div>
 
-            <div id="tabla-materiales-varios" class="mt-4">
+            <div id="tabla-materiales-varios" class="mt-4 d-none">
                 <table class="table table-bordered mt-4">
                     <thead class="table-light">
                         <tr>
@@ -196,11 +198,13 @@
                                 Ojillos
                                 <input type="hidden" name="detalle[ojillos_id]" value="{{ $insumosFijos['Ojillos']->id ?? '' }}">
                             </td>
-                            <td><input type="number" name="detalle[ojillos_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
+                            <td>
+                                <input type="number" name="detalle[ojillos_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                            </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[ojillos_precio]" class="form-control" value="15.00" step="0.01" oninput="actualizarCostoTotal()">
+                                    <input type="number" class="form-control" value="{{ $insumosFijos['Ojillos']->precio_publico ?? '' }}" step="0.01" readonly>
                                 </div>
                             </td>
                             <td></td>
@@ -210,11 +214,13 @@
                                 Cortinero
                                 <input type="hidden" name="detalle[cortinero_id]" value="{{ $insumosFijos['Cortinero']->id ?? '' }}">
                             </td>
-                            <td><input type="number" name="detalle[cortinero_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
+                            <td>
+                                <input type="number" name="detalle[cortinero_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                            </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[cortinero_precio]" class="form-control" value="200" step="0.01" oninput="actualizarCostoTotal()">
+                                    <input type="number" class="form-control" value="{{ $insumosFijos['Cortinero']->precio_publico ?? '' }}" step="0.01" readonly>
                                 </div>
                             </td>
                             <td></td>
@@ -224,11 +230,13 @@
                                 Puntas
                                 <input type="hidden" name="detalle[puntas_id]" value="{{ $insumosFijos['Puntas']->id ?? '' }}">
                             </td>
-                            <td><input type="number" name="detalle[puntas_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
+                            <td>
+                                <input type="number" name="detalle[puntas_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                            </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[puntas_precio]" class="form-control" value="250.00" step="0.01" oninput="actualizarCostoTotal()">
+                                    <input type="number" class="form-control" value="{{ $insumosFijos['Puntas']->precio_publico ?? '' }}" step="0.01" readonly>
                                 </div>
                             </td>
                             <td></td>
@@ -238,11 +246,13 @@
                                 Mensulas
                                 <input type="hidden" name="detalle[mensulas_id]" value="{{ $insumosFijos['Mensulas']->id ?? '' }}">
                             </td>
-                            <td><input type="number" name="detalle[mensulas_cantidad]" class="form-control" oninput="actualizarCostoTotal()"></td>
+                            <td>
+                                <input type="number" name="detalle[mensulas_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                            </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" name="detalle[mensulas_precio]" class="form-control" value="120.00" step="0.01" oninput="actualizarCostoTotal()">
+                                    <input type="number" class="form-control" value="{{ $insumosFijos['Mensulas']->precio_publico ?? '' }}" step="0.01" readonly>
                                 </div>
                             </td>
                             <td></td>
@@ -267,70 +277,133 @@
                 </table>
             </div>
 
-            <div id="tabla-totales" class="mt-4">
+            <div id="tabla-totales" class="mt-4 d-none">
                 <h5><strong>Totales</strong></h5>
-                <table class="table table-bordered">
-                    <tbody>
-                        <tr>
-                            <td><strong>Total No. Lienzos</strong></td>
-                            <td><input type="number" class="form-control" id="total_lienzos" name="totales[total_lienzos]" readonly></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total m² Forro</strong></td>
-                            <td><input type="number" class="form-control" id="total_m2_forro" name="totales[total_m2_forro]" readonly></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total m² Tela</strong></td>
-                            <td><input type="number" class="form-control" id="total_m2_tela" name="totales[total_m2_tela]" readonly></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total m² Tergal</strong></td>
-                            <td><input type="number" class="form-control" id="total_m2_tergal" name="totales[total_m2_tergal]" readonly></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Costo Cortina</strong></td>
-                            <td>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" id="costo_cortina" name="totales[costo_cortina]" readonly>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Utilidad</strong></td>
-                            <td>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" id="utilidad" name="totales[utilidad]" readonly>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Costo Decorador</strong></td>
-                            <td>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" readonly>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Precio Público</strong></td>
-                            <td>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" id="precio_publico" name="totales[precio_publico]" readonly>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Total No. Lienzos</strong></td>
+                                    <td>
+                                        <input type="number" class="form-control" id="total_lienzos" name="totales[total_lienzos]" readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total m² Forro</strong></td>
+                                    <td>
+                                        <input type="number" class="form-control" id="total_m2_forro" name="totales[total_m2_forro]" readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total m² Tela</strong></td>
+                                    <td>
+                                        <input type="number" class="form-control" id="total_m2_tela" name="totales[total_m2_tela]" readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total m² Tergal</strong></td>
+                                    <td>
+                                        <input type="number" class="form-control" id="total_m2_tergal" name="totales[total_m2_tergal]" readonly>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Costo Cortina</strong></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="costo_cortina" name="totales[costo_cortina]" readonly>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Utilidad</strong></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="utilidad" name="totales[utilidad]" readonly>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Costo Decorador</strong></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" readonly>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Precio Público</strong></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="precio_publico" name="totales[precio_publico]" readonly>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary">Guardar Cotización</button>
+            <a href="{{ route('admin.cotizaciones.index') }}" class="btn btn-secondary">Cancelar</a>
         </form>
     </div>
 </div>
 
+<select id="plantilla_tela" class="d-none">
+    @php
+    function limpiarPrecio($valor) {
+    $valor = str_replace(['$', ' '], '', $valor);
+    $valor = str_replace(',', '.', $valor);
+    return floatval($valor);
+    }
+    @endphp
+    <option value="">Seleccione una tela</option>
+    @foreach($telas as $tela)
+    @php
+    if(limpiarPrecio($tela->precio_publico) > 0) {
+    $precio = limpiarPrecio($tela->precio_publico);
+    } elseif(limpiarPrecio($tela->campo6) > 0) {
+    $precio = limpiarPrecio($tela->campo6);
+    } elseif(limpiarPrecio($tela->campo13) > 0) {
+    $precio = limpiarPrecio($tela->campo13);
+    } else {
+    $precio = 100;
+    }
+    @endphp
+    <option value="{{ $tela->id }}" data-precio="{{ $precio }}">
+        {{ $tela->nombre }} - {{ $tela->campo1 }} - {{ $tela->campo2 }}
+    </option>
+    @endforeach
+</select>
+
+<select id="plantilla_tergal" class="d-none">
+    <option value="">Seleccione un tergal</option>
+    @foreach($tergales as $tergal)
+    <option value="{{ $tergal->id }}" data-precio="{{ is_numeric($tergal->precio_publico) ? $tergal->precio_publico : 0 }}">
+        {{ $tergal->nombre }} - {{ $tergal->campo1 }} - {{ $tergal->campo2 }}
+    </option>
+    @endforeach
+</select>
+
+<select id="plantilla_forro" class="d-none">
+    <option value="">Seleccione un forro</option>
+    @foreach($forros as $forro)
+    <option value="{{ $forro->id }}" data-precio="{{ is_numeric($forro->precio_publico) ? $forro->precio_publico : 0 }}">
+        {{ $forro->nombre }} - {{ $forro->campo1 }} - {{ $forro->campo2 }}
+    </option>
+    @endforeach
+</select>
 <script>
     //Script para mostrar y ocultar formularios dinámicos
     document.addEventListener('DOMContentLoaded', function() {
@@ -340,90 +413,161 @@
         const formDinamico = document.getElementById('form-dinamico');
 
         function actualizarFormulario() {
-            // Guardar valores
             const valoresPrevios = {};
-            const inputsActuales = formDinamico.querySelectorAll('input');
-            inputsActuales.forEach(input => {
-                if (input.name) {
-                    valoresPrevios[input.name] = input.value;
-                }
+            const atributosOriginales = {};
+            const estadosCheckbox = {};
+
+            // Guardar valores para que no se borren al actualizar el formulario
+            let telaSeleccionada = null;
+            let tergalSeleccionado = null;
+            let forroSeleccionado = null;
+
+            const telaSelectExistente = document.getElementById('tela_id');
+            if (telaSelectExistente) telaSeleccionada = telaSelectExistente.value;
+
+            const tergalSelectExistente = document.getElementById('tergal_id');
+            if (tergalSelectExistente) tergalSeleccionado = tergalSelectExistente.value;
+
+            const forroSelectExistente = document.getElementById('forro_id');
+            if (forroSelectExistente) forroSeleccionado = forroSelectExistente.value;
+
+            formDinamico.querySelectorAll('input').forEach(input => {
+                if (input.name) valoresPrevios[input.name] = input.value;
+                if (input.type === 'checkbox' && input.id) estadosCheckbox[input.id] = input.checked;
+                if (input.dataset && input.dataset.original !== undefined && input.id) atributosOriginales[input.id] = input.dataset.original;
             });
 
             formDinamico.innerHTML = '';
 
             if (cortina.checked) {
                 formDinamico.innerHTML += `
-                    <table class="table table-bordered">
+                    <div class="mb-3">
+                        <label for="tela_id">Tela</label>
+                        <select id="tela_id" name="detalle[tela_id]" class="form-control select2" required
+                            oninvalid="this.setCustomValidity('Por favor selecciona una tela')"
+                            oninput="this.setCustomValidity('')">
+                        </select>
+                    </div>
+                    <table class="table table-bordered mt-4">
                         <thead class="table-light">
                             <tr>
-                                <th colspan="2">Información General Cortina</th>
+                                <th>Ancho tela cortina</th>
+                                <th>Ancho</th>
+                                <th>Largo</th>
+                                <th>No. Lienzos</th>
+                                <th>No. Lienzos Redondeados</th>
+                                <th>Bastilla</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><label for="ancho_tela">Ancho de tela</label></td>
-                                <td><input type="text" name="detalle[ancho_tela]" id="ancho_tela" class="form-control"></td>
-                            </tr>
-                            <tr>
-                                <td><label for="ancho">Ancho</label></td>
-                                <td><input type="text" name="detalle[ancho]" id="ancho" class="form-control"></td>
-                            </tr>
-                            <tr>
-                                <td><label for="largo">Largo</label></td>
                                 <td>
-                                    <div class="d-flex">
-                                        <input type="text" name="detalle[largo]" id="largo" class="form-control" />
-                                        <input type="checkbox" id="agregar_bastilla" class="ms-3" style="margin-left: 10px;">
-                                        <label for="agregar_bastilla" class="ms-3" style="margin-left: 10px;">Agregar 40 cm de Bastilla</label>
+                                    <input type="text" name="detalle[ancho_tela]" id="ancho_tela" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="text" name="detalle[ancho]" id="ancho" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="text" name="detalle[largo]" id="largo" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="double" name="detalle[no_lienzos]" id="no_lienzos" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="number" name="detalle[no_lienzos_redondeado]" id="no_lienzos_redondeado" class="form-control" onchange="actualizarTablaTotales()">
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="form-check form-check-inline mb-0">
+                                            <input type="checkbox" id="agregar_bastilla" class="form-check-input me-2">
+                                            <label class="form-check-label mb-0" for="agregar_bastilla">+40 cm</label>
+                                        </div>
                                     </div>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td><label for="no_lienzos">No. Lienzos</label></td>
-                                <td><input type="double" name="detalle[no_lienzos]" id="no_lienzos" class="form-control"></td>
-                            </tr>
-                            <tr>
-                                <td><label for="no_lienzos_redondeado">No. Lienzos Redondeados</label></td>
-                                <td><input type="number" name="detalle[no_lienzos_redondeado]" id="no_lienzos_redondeado" class="form-control" onchange="actualizarTablaTotales()"></td>
                             </tr>
                         </tbody>
                     </table>
                 `;
+
+                setTimeout(function() {
+                    const plantilla = document.getElementById('plantilla_tela');
+                    const telaSelect = document.getElementById('tela_id');
+                    telaSelect.innerHTML = plantilla.innerHTML;
+
+                    // Restaurar selección antes de select2
+                    if (telaSeleccionada) {
+                        $(telaSelect).val(telaSeleccionada);
+                    }
+
+                    $(telaSelect).select2();
+
+                    $(telaSelect).on('change', function() {
+                        const precio = $(this).find('option:selected').data('precio');
+                        $('#precio_m2_tela').val(Number(precio).toFixed(2)).trigger('input');
+
+                        const metros = parseFloat($('#total_tela').val()) || 0;
+                        const total = metros * Number(precio);
+                        $('#total_tela_final').val(total.toFixed(2));
+
+                        const totalTergalFinal = parseFloat($('#total_tergal_final').val()) || 0;
+                        $('#costo_total_tela_tergal').val((total + totalTergalFinal).toFixed(2));
+
+                        actualizarTablaTotales();
+                    });
+
+                    $(telaSelect).trigger('change');
+                }, 0);
             }
 
             if (tergal.checked) {
                 formDinamico.innerHTML += `
-                    <table class="table table-bordered">
+                    <div class="mb-3">
+                        <label for="tergal_id">Tergal</label>
+                        <select id="tergal_id" name="detalle[tergal_id]" class="form-control select2" required
+                            oninvalid="this.setCustomValidity('Por favor selecciona un tergal')"
+                            oninput="this.setCustomValidity('')">
+                        </select>
+                    </div>
+                    <table class="table table-bordered mt-4">
                         <thead class="table-light">
                             <tr>
-                                <th colspan="2">Información General Tergal</th>
+                                <th>Ancho tela tergal</th>
+                                <th>Ancho</th>
+                                <th>Largo</th>
+                                <th>No. Lienzos</th>
+                                <th>No. Lienzos Redondeados</th>
+                                <th>Bastilla</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><label for="ancho_tergal">Ancho de tergal</label></td>
-                                <td><input type="text" name="detalle[ancho_tergal]" id="ancho_tergal" class="form-control"></td>
-                            </tr>
-                            <tr>
-                                <td><label for="ancho_tergal_real">Ancho</label></td>
-                                <td><input type="text" name="detalle[ancho_tergal_real]" id="ancho_tergal_real" class="form-control"></td>
-                            </tr>
-                            <tr>
-                                <td><label for="largo_tergal">Largo (+65cm de bastilla)</label></td>
-                                <td><input type="text" name="detalle[largo_tergal]" id="largo_tergal" class="form-control"></td>
-                            </tr>
-                            <tr>
-                                <td><label for="no_lienzos_tergal">No. Lienzos</label></td>
-                                <td><input type="double" name="detalle[no_lienzos_tergal]" id="no_lienzos_tergal" class="form-control"></td>
-                            </tr>
-                            <tr>
-                                <td><label for="no_lienzos_redondeado_tergal">No. Lienzos Redondeados</label></td>
-                                <td><input type="number" name="detalle[no_lienzos_redondeado_tergal]" id="no_lienzos_redondeado_tergal" class="form-control" onchange="actualizarTablaTotales()"></td>
+                                <td>
+                                    <input type="text" name="detalle[ancho_tergal]" id="ancho_tergal" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="text" name="detalle[ancho_tergal_real]" id="ancho_tergal_real" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="text" name="detalle[largo_tergal]" id="largo_tergal" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="double" name="detalle[no_lienzos_tergal]" id="no_lienzos_tergal" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="number" name="detalle[no_lienzos_redondeado_tergal]" id="no_lienzos_redondeado_tergal" class="form-control" onchange="actualizarTablaTotales()">
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="form-check form-check-inline mb-0">
+                                            <input type="checkbox" id="agregar_bastilla_tergal" class="form-check-input me-2">
+                                            <label class="form-check-label mb-0" for="agregar_bastilla_tergal">+65 cm</label>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 `;
-
                 setTimeout(() => {
                     const anchoCortina = document.getElementById('ancho');
                     const largoCortina = document.getElementById('largo');
@@ -445,27 +589,52 @@
                             noLienzosRedondeadoTergal.value = Math.ceil(lienzos);
                         }
                     }
+                    const plantillaTergal = document.getElementById('plantilla_tergal');
+                    const tergalSelect = document.getElementById('tergal_id');
+                    tergalSelect.innerHTML = plantillaTergal.innerHTML;
+
+                    if (tergalSeleccionado) {
+                        $(tergalSelect).val(tergalSeleccionado);
+                    }
+
+
+                    $(tergalSelect).select2();
+
+                    $(tergalSelect).on('change', function() {
+                        const precio = $(this).find('option:selected').data('precio');
+                        $('#precio_m2_tergal').val(Number(precio).toFixed(2)).trigger('input');
+
+                        const metros = parseFloat($('#total_tergal').val()) || 0;
+                        const total = metros * Number(precio);
+                        $('#total_tergal_final').val(total.toFixed(2));
+
+                        const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
+                        $('#costo_total_tela_tergal').val((totalTelaFinal + total).toFixed(2));
+
+                        actualizarTablaTotales();
+                    });
 
                     function sincronizarTergalConCortina() {
                         // Si hay datos en los campos de cortina, se heredan
                         if (anchoCortina?.value && anchoTelaCortina?.value) {
-                            // Obtener el largo original de la cortina (sin bastilla)
-                            let largoOriginal = largoCortina?.dataset?.original 
-                                ? parseFloat(largoCortina.dataset.original) 
-                                : parseFloat(largoCortina?.value);
+                            let largoOriginal = largoCortina?.dataset?.original ?
+                                parseFloat(largoCortina.dataset.original) :
+                                parseFloat(largoCortina?.value);
 
                             anchoTergal.value = anchoCortina.value;
-                            if (!isNaN(largoOriginal)) {
-                                largoTergal.value = (largoOriginal + 0.65).toFixed(2);
-                            } else {
-                                largoTergal.value = '';
+
+                            // Solo actualiza el original si la bastilla de tergal NO está marcada
+                            const bastillaTergalCheckbox = document.getElementById('agregar_bastilla_tergal');
+                            if (bastillaTergalCheckbox && !bastillaTergalCheckbox.checked) {
+                                if (!isNaN(largoOriginal)) {
+                                    largoTergal.value = (largoOriginal).toFixed(2);
+                                    largoTergal.dataset.original = largoOriginal;
+                                } else {
+                                    largoTergal.value = '';
+                                    largoTergal.dataset.original = '';
+                                }
                             }
                             anchoTelaTergal.value = anchoTelaCortina.value;
-
-                            /* // Hacer campos readonly
-                            anchoTergal.readOnly = true;
-                            largoTergal.readOnly = true;
-                            anchoTelaTergal.readOnly = true; */
 
                             calcularTergal();
                         } else {
@@ -473,6 +642,8 @@
                             largoTergal.readOnly = false;
                             anchoTelaTergal.readOnly = false;
                         }
+
+                        $(tergalSelect).trigger('change');
                     }
 
                     // Escuchar cambios en inputs para actualizar tergal si los datos de cortina cambian
@@ -494,25 +665,32 @@
 
             if (forro.checked) {
                 formDinamico.innerHTML += `
+                    <div class="mb-3">
+                        <label for="forro_id">Forro</label>
+                        <select id="forro_id" name="detalle[forro_id]" class="form-control select2" required
+                            oninvalid="this.setCustomValidity('Por favor selecciona un forro')"
+                            oninput="this.setCustomValidity('')">
+                        </select>
+                    </div>
                     <table class="table table-bordered mt-4">
                         <thead class="table-light">
                             <tr>
                                 <th>Total Forro</th>
-                                <th>Descripción</th>
                                 <th>Precio m²</th>
+                                <th>Descripción</th>
                                 <th>Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td><input type="number" id="total_forro" name="detalle[total_forro]" class="form-control" step="0.01"/></td>
-                                <td><input type="text" name="detalle[descripcion_forro]" class="form-control" /></td>
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
                                         <input type="number" name="detalle[precio_m2_forro]" id="precio_m2_forro" class="form-control" step="0.01" value="35.00">
                                     </div>
                                 </td>
+                                <td><input type="text" name="detalle[descripcion_forro]" class="form-control" placeholder="Forro"/></td>
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
@@ -520,19 +698,9 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td colspan="3" class="text-end"><strong>Costo total forro:</strong></td>
-                                <td>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" name="detalle[costo_total_forro]" class="form-control" step="0.01">
-                                    </div>
-                                </td>
-                            </tr>
                         </tbody>
                     </table>
                 `;
-
                 setTimeout(() => {
                     const anchoTela = document.getElementById('ancho_tela');
                     const anchoTergal = document.getElementById('ancho_tergal');
@@ -540,6 +708,29 @@
                     const precioM2 = document.querySelector('[name="detalle[precio_m2_forro]"]');
                     const totalFinal = document.querySelector('[name="detalle[total_final_forro]"]');
                     const costoTotal = document.querySelector('[name="detalle[costo_total_forro]"]');
+                    const plantillaForro = document.getElementById('plantilla_forro');
+                    const forroSelect = document.getElementById('forro_id');
+                    forroSelect.innerHTML = plantillaForro.innerHTML;
+
+                    if (forroSeleccionado) {
+                        $(forroSelect).val(forroSeleccionado);
+                    }
+
+                    $(forroSelect).select2();
+
+                    $(forroSelect).on('change', function() {
+                        const precio = $(this).find('option:selected').data('precio');
+                        $('#precio_m2_forro').val(Number(precio).toFixed(2)).trigger('input');
+
+                        // Calcula metros de forro y actualiza el total_final_forro
+                        const metros = parseFloat($('#total_forro').val()) || 0;
+                        const total = metros * Number(precio);
+                        $('[name="detalle[total_final_forro]"]').val(total.toFixed(2));
+
+                        actualizarTablaTotales();
+                    });
+
+                    $(forroSelect).trigger('change');
 
                     function actualizarTotalForro() {
                         let valor = null;
@@ -597,7 +788,19 @@
                 if (input.name && valoresPrevios.hasOwnProperty(input.name)) {
                     input.value = valoresPrevios[input.name];
                 }
+                if (input.type === 'checkbox' && estadosCheckbox.hasOwnProperty(input.id)) {
+                    input.checked = estadosCheckbox[input.id];
+                }
+                if (input.dataset && atributosOriginales.hasOwnProperty(input.id)) {
+                    input.dataset.original = atributosOriginales[input.id];
+                }
             });
+            const bastillaTergalCheckbox = document.getElementById('agregar_bastilla_tergal');
+            if (bastillaTergalCheckbox && bastillaTergalCheckbox.checked) {
+                bastillaTergalCheckbox.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
         }
 
 
@@ -613,11 +816,11 @@
 
         if (!largoInput || !bastillaCheckbox) return;
 
-        if (!largoInput.dataset.original || largoInput.value != largoInput.dataset.lastValue) {
+        // Solo guarda el valor original si no existe
+        if (!largoInput.dataset.original) {
             const original = parseFloat(largoInput.value);
             if (!isNaN(original)) {
                 largoInput.dataset.original = original;
-                largoInput.dataset.lastValue = original;
             }
         }
 
@@ -629,11 +832,43 @@
         } else {
             largoInput.value = largoOriginal.toFixed(2);
         }
-        largoInput.dataset.lastValue = largoInput.value;
 
         // Actualizar total de tela utilizada
-        const event = new Event('input', { bubbles: true });
+        const event = new Event('input', {
+            bubbles: true
+        });
         largoInput.dispatchEvent(event);
+    });
+
+    // Script para agregar 65 cm de bastilla al largo del tergal
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'agregar_bastilla_tergal') {
+            const largoTergalInput = document.getElementById('largo_tergal');
+            const bastillaTergalCheckbox = e.target;
+
+            if (!largoTergalInput || !bastillaTergalCheckbox) return;
+
+            if (!largoTergalInput.dataset.original || largoTergalInput.value === "") {
+                const original = parseFloat(largoTergalInput.value);
+                if (!isNaN(original) && original > 0) {
+                    largoTergalInput.dataset.original = original;
+                }
+            }
+
+            const largoOriginal = parseFloat(largoTergalInput.dataset.original);
+            if (isNaN(largoOriginal)) return;
+
+            if (bastillaTergalCheckbox.checked) {
+                largoTergalInput.value = (largoOriginal + 0.65).toFixed(2);
+            } else {
+                largoTergalInput.value = largoOriginal.toFixed(2);
+            }
+
+            const event = new Event('input', {
+                bubbles: true
+            });
+            largoTergalInput.dispatchEvent(event);
+        }
     });
 
     // Script para calcular No. Lienzos
@@ -793,8 +1028,14 @@
         let total = 0;
 
         Array.from(tbody.querySelectorAll('tr')).forEach(fila => {
+            // Busca el input de cantidad
             const cantidadInput = fila.querySelector('input[name*="_cantidad"]');
-            const precioInput = fila.querySelector('input[name*="_precio"]');
+            // Busca el input de precio (puede ser readonly o editable)
+            let precioInput = fila.querySelector('input[type="number"].form-control[readonly]');
+            if (!precioInput) {
+                // Si no es readonly, busca el editable (para insumos "otros")
+                precioInput = fila.querySelector('input[name*="_precio"]');
+            }
 
             const cantidad = parseFloat(cantidadInput?.value) || 0;
             const precio = parseFloat(precioInput?.value) || 0;
@@ -826,7 +1067,7 @@
         // Cálculos monetarios de la tabla totales
 
         const costoTelaTergal = parseFloat(document.getElementById('costo_total_tela_tergal')?.value) || 0;
-        const costoForro = parseFloat(document.querySelector('[name="detalle[costo_total_forro]"]')?.value) || 0;
+        const costoForro = parseFloat(document.querySelector('[name="detalle[total_final_forro]"]')?.value) || 0;
         const costoManoObra = parseFloat(document.querySelector('[name="detalle[costo_total_mano_obra]"]')?.value) || 0;
         const costoMateriales = parseFloat(document.getElementById('costo_total_materiales')?.value) || 0;
 
@@ -856,13 +1097,154 @@
         }
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        setInterval(actualizarTablaTotales, 300);
-    });
-
     document.addEventListener('input', function(e) {
         if (['ancho', 'ancho_tela'].includes(e.target.id)) {
             calcularLienzos();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const cortina = document.getElementById('cotinaCheck');
+        const tergal = document.getElementById('tergalCheck');
+        const forro = document.getElementById('forroCheck');
+
+        const tablas = [
+            document.getElementById('tabla-totales-tela-tergal'),
+            document.getElementById('tabla-mano-obra'),
+            document.getElementById('tabla-materiales-varios'),
+            document.getElementById('tabla-totales')
+        ];
+
+        function mostrarOcultarTablas() {
+            if (cortina.checked || tergal.checked || forro.checked) {
+                tablas.forEach(tabla => tabla && tabla.classList.remove('d-none'));
+            } else {
+                tablas.forEach(tabla => tabla && tabla.classList.add('d-none'));
+            }
+        }
+
+        cortina.addEventListener('change', mostrarOcultarTablas);
+        tergal.addEventListener('change', mostrarOcultarTablas);
+        forro.addEventListener('change', mostrarOcultarTablas);
+
+        // Oculta al cargar la página
+        mostrarOcultarTablas();
+    });
+
+    document.addEventListener('input', function(e) {
+        if (
+            e.target.id === 'no_lienzos_redondeado' ||
+            e.target.id === 'largo' ||
+            e.target.id === 'precio_m2_tela'
+        ) {
+            actualizarTablaTotales();
+        }
+    });
+
+    $(document).on('change', '#tela_id', function() {
+        const precio = $(this).find('option:selected').data('precio');
+        $('#precio_m2_tela').val(Number(precio).toFixed(2));
+
+        const metros = parseFloat($('#total_tela').val()) || 0;
+        const total = metros * Number(precio);
+        $('#total_tela_final').val(total.toFixed(2));
+
+        const totalTergalFinal = parseFloat($('#total_tergal_final').val()) || 0;
+        $('#costo_total_tela_tergal').val((total + totalTergalFinal).toFixed(2));
+
+        actualizarTablaTotales();
+    });
+
+    $(document).on('change', '#tergal_id', function() {
+        const precio = $(this).find('option:selected').data('precio');
+        $('#precio_m2_tergal').val(Number(precio).toFixed(2));
+
+        const metros = parseFloat($('#total_tergal').val()) || 0;
+        const total = metros * Number(precio);
+        $('#total_tergal_final').val(total.toFixed(2));
+
+        const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
+        $('#costo_total_tela_tergal').val((totalTelaFinal + total).toFixed(2));
+
+        actualizarTablaTotales();
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'precio_m2_tela') {
+            const metros = parseFloat($('#total_tela').val()) || 0;
+            const precio = parseFloat($('#precio_m2_tela').val()) || 0;
+            const total = metros * precio;
+            $('#total_tela_final').val(total.toFixed(2));
+
+            const totalTergalFinal = parseFloat($('#total_tergal_final').val()) || 0;
+            $('#costo_total_tela_tergal').val((total + totalTergalFinal).toFixed(2));
+
+            actualizarTablaTotales();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'precio_m2_tergal') {
+            const metros = parseFloat($('#total_tergal').val()) || 0;
+            const precio = parseFloat($('#precio_m2_tergal').val()) || 0;
+            const total = metros * precio;
+            $('#total_tergal_final').val(total.toFixed(2));
+
+            // Actualiza costo total tela y tergal
+            const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
+            $('#costo_total_tela_tergal').val((totalTelaFinal + total).toFixed(2));
+
+            actualizarTablaTotales();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'total_tela') {
+            const metros = parseFloat($('#total_tela').val()) || 0;
+            const precio = parseFloat($('#precio_m2_tela').val()) || 0;
+            const total = metros * precio;
+            $('#total_tela_final').val(total.toFixed(2));
+
+            const totalTergalFinal = parseFloat($('#total_tergal_final').val()) || 0;
+            $('#costo_total_tela_tergal').val((total + totalTergalFinal).toFixed(2));
+
+            actualizarTablaTotales();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'total_tergal') {
+            const metros = parseFloat($('#total_tergal').val()) || 0;
+            const precio = parseFloat($('#precio_m2_tergal').val()) || 0;
+            const total = metros * precio;
+            $('#total_tergal_final').val(total.toFixed(2));
+
+            const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
+            $('#costo_total_tela_tergal').val((totalTelaFinal + total).toFixed(2));
+
+            actualizarTablaTotales();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'precio_m2_forro') {
+            const metros = parseFloat($('#total_forro').val()) || 0;
+            const precio = parseFloat($('#precio_m2_forro').val()) || 0;
+            const total = metros * precio;
+            $('[name="detalle[total_final_forro]"]').val(total.toFixed(2));
+
+            actualizarTablaTotales();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'total_forro') {
+            const metros = parseFloat($('#total_forro').val()) || 0;
+            const precio = parseFloat($('#precio_m2_forro').val()) || 0;
+            const total = metros * precio;
+            $('[name="detalle[total_final_forro]"]').val(total.toFixed(2));
+
+            actualizarTablaTotales();
         }
     });
 </script>

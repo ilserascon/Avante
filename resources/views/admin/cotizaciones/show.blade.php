@@ -79,8 +79,8 @@
                         @php
                             $cliente = $cotizacion->cliente;
                             $telefono = preg_replace('/[^0-9]/', '', $cliente->telefono ?? '');
-                            $urlCotizacion = route('admin.cotizaciones.show', $cotizacion->id);
-                            $mensaje = urlencode("Hola {$cliente->nombre}, te comparto el enlace con tu cotización: {$urlCotizacion}. ¡Haz clic para verla!");
+                            $urlPdf = asset('storage/pdfs/cotizacion_' . $cotizacion->id . '.pdf');
+                            $mensaje = urlencode("Hola {$cliente->nombre}, aquí puedes descargar tu cotización en PDF:\n{$urlPdf}");
                         @endphp
 
                         @if($telefono)

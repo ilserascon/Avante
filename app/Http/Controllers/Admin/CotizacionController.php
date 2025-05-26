@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Cotizacion;
 use App\Models\Insumo;
+use Barryvdh\DomPDF\Facade\Pdf; // Usa la facade de DomPDF
+use Illuminate\Support\Facades\Storage;
 
 class CotizacionController extends Controller
 {
@@ -32,14 +34,38 @@ class CotizacionController extends Controller
     {
         $insumos = Insumo::where('id_tipo_insumo', '=', 2)->get();
 
-        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])->get()->keyBy('nombre');
+        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
+            ->where('id_tipo_insumo', 2)
+            ->get()
+            ->keyBy('nombre');
 
-        return view('admin.cotizaciones.create', compact('insumos', 'insumosFijos'));
+        // Mano de obra
+        $manoObra = Insumo::whereIn('nombre', [
+            'Mano de Obra Cortina',
+            'Mano de Obra Tergal'
+        ])
+            ->where('id_tipo_insumo', 3)
+            ->get()
+            ->keyBy('nombre');
+
+        $telas = Insumo::where('id_tipo_insumo', 1)->get();
+
+        $tergales = Insumo::where('id_tipo_insumo', 4)->get();
+
+        $forros = Insumo::where('id_tipo_insumo', 5)->get();
+
+        return view('admin.cotizaciones.create', compact(
+            'insumos',
+            'insumosFijos',
+            'manoObra',
+            'telas',
+            'tergales',
+            'forros'
+        ));
     }
 
     public function store(Request $request)
     {
-        // Validación ajustada según la migración y el formulario
         $validated = $request->validate([
             'cliente_id'         => 'required|exists:clientes,id',
             'fecha'              => 'required|date',
@@ -61,13 +87,11 @@ class CotizacionController extends Controller
         $cotizacion->cliente_id   = $validated['cliente_id'];
         $cotizacion->fecha        = $validated['fecha'];
 
-        // Flags de tipo de cotización
         $tipos = $request->input('tipo', []);
         $cotizacion->lleva_cortina = in_array('cortina', $tipos);
         $cotizacion->lleva_tergal  = in_array('tergal', $tipos);
         $cotizacion->lleva_forro   = $request->has('lleva_forro');
 
-        // Totales y cálculos
         $cotizacion->total_lienzos     = $totales['total_lienzos'] ?? null;
         $cotizacion->total_m2_forro    = $totales['total_m2_forro'] ?? null;
         $cotizacion->total_m2_tela     = $totales['total_m2_tela'] ?? null;
@@ -77,7 +101,7 @@ class CotizacionController extends Controller
         $cotizacion->costo_decorador   = $totales['costo_decorador'] ?? null;
         $cotizacion->precio_publico    = $totales['precio_publico'] ?? null;
 
-        $cotizacion->estatus = $request->input('estatus', 'pendiente');
+        $cotizacion->estatus = $request->input('estatus', 'solicitada');
 
         $cotizacion->save();
 
@@ -86,20 +110,19 @@ class CotizacionController extends Controller
             $cotizacion->insumos()->attach($insumos);
         }
 
-        $insumosFijos = [
-            'ojillos' => Insumo::where('nombre', 'Ojillos')->first(),
-            'cortinero' => Insumo::where('nombre', 'Cortinero')->first(),
-            'puntas' => Insumo::where('nombre', 'Puntas')->first(),
-            'mensulas' => Insumo::where('nombre', 'Mensulas')->first(),
-        ];
+        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
+            ->where('id_tipo_insumo', 2)
+            ->get()
+            ->keyBy('nombre');
 
         $insumosAttach = [];
 
-        // Insumos fijos
-        foreach ($insumosFijos as $key => $insumo) {
+        foreach (['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'] as $nombre) {
+            $insumo = $insumosFijos->get($nombre);
             if ($insumo) {
+                $key = strtolower($nombre);
                 $cantidad = $detalle["{$key}_cantidad"] ?? 0;
-                $precio = $detalle["{$key}_precio"] ?? 0;
+                $precio = $insumo->precio_publico;
                 if ($cantidad > 0) {
                     $insumosAttach[$insumo->id] = [
                         'cantidad' => $cantidad,
@@ -110,11 +133,6 @@ class CotizacionController extends Controller
             }
         }
 
-        $ojillosId = $detalle['ojillos_id'] ?? null;
-        $cantidad = $detalle['ojillos_cantidad'] ?? 0;
-        $precio = $detalle['ojillos_precio'] ?? 0;
-
-        // Insumos dinámicos
         foreach ($detalle as $k => $v) {
             if (preg_match('/^otros(\d+)_nombre$/', $k, $matches)) {
                 $index = $matches[1];
@@ -152,4 +170,25 @@ class CotizacionController extends Controller
     public function edit($id) {}
     public function update(Request $request, $id) {}
     public function destroy($id) {}
+
+    public function cambiarEstatus(Request $request, Cotizacion $cotizacion)
+    {
+        $cotizacion->estatus = $request->estatus;
+        $cotizacion->save();
+        return redirect()->back()->with('success', 'Estatus actualizado correctamente.');
+    }
+
+    public function generarPdf($id)
+    {
+        $cotizacion = Cotizacion::findOrFail($id);
+
+        $pdf = Pdf::loadView('admin.cotizaciones.pdf', compact('cotizacion'));
+
+        $fileName = 'cotizacion_' . $cotizacion->id . '.pdf';
+        $filePath = 'pdfs/' . $fileName;
+
+        Storage::disk('public')->put($filePath, $pdf->output());
+
+        return response()->download(storage_path('app/public/pdfs/' . $fileName));
+    }
 }

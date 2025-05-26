@@ -13,10 +13,19 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::where('borrado', 0)->get();
-        return view('admin.users.index', compact('users'));
+        $query = User::query();
+
+        $estado = $request->get('estado', 'habilitado');
+        if ($estado === 'habilitado') {
+            $query->where('borrado', 0);
+        } elseif ($estado === 'inhabilitado') {
+            $query->where('borrado', 1);
+        }
+
+        $users = $query->get();
+        return view('admin.users.index', compact('users', 'estado'));
     }
 
     /**
@@ -116,6 +125,13 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id); 
         $user->update(['borrado' => 1]);
-        return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado.');
+        return redirect()->route('admin.users.index')->with('success', 'Usuario inhabilitado.');
+    }
+
+    public function habilitar($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update(['borrado' => 0]);
+        return redirect()->route('admin.users.index', ['estado' => 'inhabilitado'])->with('success', 'Usuario habilitado.');
     }
 }

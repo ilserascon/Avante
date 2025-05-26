@@ -16,9 +16,9 @@
             <div class="col">
                 <select name="estatus" class="form-control">
                     <option value="">Todos los estatus</option>
-                    <option value="pendiente" {{ request('estatus') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
-                    <option value="aprobada" {{ request('estatus') == 'aprobada' ? 'selected' : '' }}>Aprobada</option>
-                    <option value="cancelada" {{ request('estatus') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                    <option value="solicitada" {{ request('estatus') == 'solicitada' ? 'selected' : '' }}>Solicitada</option>
+                    <option value="aceptada" {{ request('estatus') == 'aceptada' ? 'selected' : '' }}>Aceptada</option>
+                    <option value="rechazada" {{ request('estatus') == 'rechazada' ? 'selected' : '' }}>Rechazada</option>
                 </select>
             </div>
             <div class="col">
@@ -88,10 +88,29 @@
                                 <td>${{ number_format($cotizacion->precio_publico, 2) }}</td>
                                 <td>{{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}</td>
                                 <td>{{ ucfirst($cotizacion->estatus) }}</td>
-                                <td>
-                                    <a href="{{ route('admin.cotizaciones.show', $cotizacion->id) }}" class="btn btn-info btn-sm">
-                                        Ver
+                                <td class="d-inline-flex align-items-center">
+                                    <a href="{{ route('admin.cotizaciones.show', $cotizacion->id) }}" class="btn btn-info btn-sm" style="margin-right: 0.5rem;" title="Ver detalles">
+                                        <i class="fas fa-eye"></i> Ver
                                     </a>
+                                    <a href="{{ route('admin.cotizaciones.pdf', $cotizacion->id) }}" class="btn btn-primary btn-sm" style="margin-right: 0.5rem;" target="_blank">
+                                        <i class="fas fa-file-pdf"></i> PDF
+                                    </a>
+                                    @if($cotizacion->estatus === 'solicitada')
+                                        <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="d-inline mb-0" style="margin-right: 0.5rem;">
+                                            @csrf
+                                            <input type="hidden" name="estatus" value="aceptada">
+                                            <button type="submit" class="btn btn-success btn-sm" title="Aceptar">
+                                                <i class="fas fa-check"></i> Aceptar
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="d-inline mb-0">
+                                            @csrf
+                                            <input type="hidden" name="estatus" value="rechazada">
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Rechazar">
+                                                <i class="fas fa-times"></i> Rechazar
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

@@ -11,7 +11,7 @@ class ClienteController extends Controller
     public function index(Request $request)
     {
         $query = Cliente::query();
-    
+
         if ($request->has('nombre') && $request->nombre != '') {
             $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
         }
@@ -20,9 +20,16 @@ class ClienteController extends Controller
             $query->where('rfc', 'LIKE', '%' . $request->rfc . '%');
         }
 
-        $clientes = $query->where('borrado', 0)->paginate(10);
+        $estado = $request->get('estado', 'habilitado');
+        if ($estado === 'habilitado') {
+            $query->where('borrado', 0);
+        } elseif ($estado === 'inhabilitado') {
+            $query->where('borrado', 1);
+        }
 
-        return view('admin.clientes.index', compact('clientes'));
+        $clientes = $query->paginate(10);
+
+        return view('admin.clientes.index', compact('clientes', 'estado'));
     }
 
     public function create()
@@ -104,7 +111,13 @@ class ClienteController extends Controller
     {
         $cliente = Cliente::findOrFail($id);
         $cliente->update(['borrado' => 1]);
+        return redirect()->route('admin.clientes.index')->with('success', 'Cliente inhabilitado exitosamente');
+    }
 
-        return redirect()->route('admin.clientes.index')->with('success', 'Cliente eliminado exitosamente');
+    public function habilitar($id)
+    {
+        $cliente = Cliente::findOrFail($id);
+        $cliente->update(['borrado' => 0]);
+        return redirect()->route('admin.clientes.index', ['estado' => 'inhabilitado'])->with('success', 'Cliente habilitado exitosamente');
     }
 }
