@@ -67,15 +67,13 @@ class ProductoController extends Controller
     {
         $producto = Producto::with('insumos')->findOrFail($id);
 
-        $insumos = Insumo::select(
-            'insumo.id',
-            DB::raw("TRIM(CONCAT_WS(' | ', 
-                COALESCE(insumo.nombre, ''), 
-                COALESCE(insumo.campo1, ''), 
-                COALESCE(insumo.campo2, ''), 
-                COALESCE((SELECT nombre FROM proveedores WHERE proveedores.id = insumo.id_proveedor), '')
-            )) AS nombre_completo")
-        )->get();
+        $insumos = DB::table('insumo')
+            ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor')
+            ->select(
+                'insumo.id',
+                DB::raw("TRIM(CONCAT_WS(' | ', insumo.nombre, insumo.campo1, insumo.campo2, proveedores.nombre)) AS nombre_completo")
+            )
+            ->get();
 
         return view('admin.productos.edit', compact('producto', 'insumos'));
     }

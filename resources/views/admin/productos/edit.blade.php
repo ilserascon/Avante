@@ -41,10 +41,10 @@
                                     <div class="form-row align-items-end mb-2 insumo-item">
                                         <div class="col-md-6">
                                             <label>Insumo</label>
-                                            <select name="insumos[{{ $index }}][id]" class="form-control" required>
+                                            <select name="insumos[{{$index}}][id]" class="form-control insumo-select">
                                                 <option value="">Seleccione un insumo</option>
                                                 @foreach ($insumos as $opcion)
-                                                    <option value="{{ $opcion->id }}" {{ $opcion->id == $insumo->id ? 'selected' : '' }}>
+                                                    <option value="{{ $opcion->id }}" {{ $insumo->id == $opcion->id ? 'selected' : '' }}>
                                                         {{ $opcion->nombre_completo }}
                                                     </option>
                                                 @endforeach
@@ -73,61 +73,67 @@
     </div>
 </div>
 
+{{-- Genera las opciones de insumos para JS --}}
+<script>
+    const insumoOptions = `
+        @foreach($insumos as $insumo)
+            <option value="{{ $insumo->id }}">{{ $insumo->nombre_completo }}</option>
+        @endforeach
+    `;
+</script>
+
 <script>
     document.getElementById('add-insumo').addEventListener('click', function () {
-    const container = document.getElementById('insumos-container');
-    const insumoIndex = container.querySelectorAll('.insumo-item').length;
+        const container = document.getElementById('insumos-container');
+        const insumoIndex = container.querySelectorAll('.insumo-item').length;
 
-    const insumoDiv = document.createElement('div');
-    insumoDiv.classList.add('form-row', 'align-items-end', 'mb-2', 'insumo-item');
-    insumoDiv.innerHTML = `
-        <div class="col-md-6">
-            <label>Insumo</label>
-            <select name="insumos[${insumoIndex}][id]" class="form-control insumo-select" required>
-                <option value="">Seleccione un insumo</option>
-                @foreach ($insumos as $insumo)
-                    <option value="{{ $insumo->id }}">{{ $insumo->nombre_completo }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-4">
-            <label>Cantidad</label>
-            <input type="number" name="insumos[${insumoIndex}][cantidad]" class="form-control" min="0" step="0.01" required>
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-danger btn-block remove-insumo">Eliminar</button>
-        </div>
-    `;
+        const insumoDiv = document.createElement('div');
+        insumoDiv.classList.add('form-row', 'align-items-end', 'mb-2', 'insumo-item');
+        insumoDiv.innerHTML = `
+            <div class="col-md-6">
+                <label>Insumo</label>
+                <select name="insumos[${insumoIndex}][id]" class="form-control insumo-select" required>
+                    <option value="">Seleccione un insumo</option>
+                    ${insumoOptions}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label>Cantidad</label>
+                <input type="number" name="insumos[${insumoIndex}][cantidad]" class="form-control" min="0" step="0.01" required>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-block remove-insumo">Eliminar</button>
+            </div>
+        `;
 
-    container.appendChild(insumoDiv);
+        container.appendChild(insumoDiv);
 
+        insumoDiv.querySelector('.insumo-select').addEventListener('change', function () {
+            const selectedValue = this.value;
+            const allSelects = document.querySelectorAll('.insumo-select');
+            let duplicate = false;
 
-    insumoDiv.querySelector('.insumo-select').addEventListener('change', function () {
-        const selectedValue = this.value;
-        const allSelects = document.querySelectorAll('.insumo-select');
-        let duplicate = false;
+            allSelects.forEach(select => {
+                if (select !== this && select.value === selectedValue) {
+                    duplicate = true;
+                }
+            });
 
-        allSelects.forEach(select => {
-            if (select !== this && select.value === selectedValue) {
-                duplicate = true;
+            if (duplicate) {
+                alert('No puedes repetir el mismo insumo');
+                this.value = '';
             }
         });
 
-        if (duplicate) {
-            alert('No puedes repetir el mismo insumo');
-            this.value = '';
-        }
+        insumoDiv.querySelector('.remove-insumo').addEventListener('click', function () {
+            insumoDiv.remove();
+        });
     });
 
-    insumoDiv.querySelector('.remove-insumo').addEventListener('click', function () {
-        insumoDiv.remove();
+    document.querySelectorAll('.remove-insumo').forEach(function (button) {
+        button.addEventListener('click', function () {
+            button.closest('.insumo-item').remove();
+        });
     });
-});
-
-document.querySelectorAll('.remove-insumo').forEach(function (button) {
-    button.addEventListener('click', function () {
-        button.closest('.insumo-item').remove();
-    });
-});
 </script>
 @endsection

@@ -44,7 +44,7 @@ Route::middleware(['auth', 'role:Administrador,Almacén,Almacen'])->prefix('admi
 });
 
 // Rutas para Administrador y Cotizador
-Route::middleware(['auth', 'role:Cotizador'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:Administrador,Cotizador'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('insumos', App\Http\Controllers\Admin\InsumoController::class)->except(['destroy']);
     Route::resource('productos', App\Http\Controllers\Admin\ProductoController::class)->parameters(['productos' => 'producto']);
     Route::get('productos/{id}/insumos', [ProductoController::class, 'verInsumos'])->name('productos.insumos');
