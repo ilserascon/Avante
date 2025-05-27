@@ -62,20 +62,22 @@ class CotizacionController extends Controller
             'tergales',
             'forros'
         ));
-
-
-        return view('admin.cotizaciones.create', compact('insumos', 'insumosFijos', 'manoObra', 'telas'));
     }
 
     public function store(Request $request)
     {
-        // Validación ajustada según la migración y el formulario
         $validated = $request->validate([
             'cliente_id'         => 'required|exists:clientes,id',
             'fecha'              => 'required|date',
-            // Los siguientes campos pueden ser opcionales según el formulario
             'detalle'            => 'array',
             'totales'            => 'array',
+        ], [
+            'cliente_id.required' => 'El campo cliente es obligatorio.',
+            'cliente_id.exists' => 'El cliente seleccionado no es válido.',
+            'fecha.required' => 'El campo fecha es obligatorio.',
+            'fecha.date' => 'La fecha debe ser válida.',
+            'detalle.array' => 'El detalle debe ser un arreglo.',
+            'totales.array' => 'Los totales deben ser un arreglo.',
         ]);
 
         $detalle = $request->input('detalle', []);
@@ -85,13 +87,11 @@ class CotizacionController extends Controller
         $cotizacion->cliente_id   = $validated['cliente_id'];
         $cotizacion->fecha        = $validated['fecha'];
 
-        // Flags de tipo de cotización
         $tipos = $request->input('tipo', []);
         $cotizacion->lleva_cortina = in_array('cortina', $tipos);
         $cotizacion->lleva_tergal  = in_array('tergal', $tipos);
         $cotizacion->lleva_forro   = $request->has('lleva_forro');
 
-        // Totales y cálculos
         $cotizacion->total_lienzos     = $totales['total_lienzos'] ?? null;
         $cotizacion->total_m2_forro    = $totales['total_m2_forro'] ?? null;
         $cotizacion->total_m2_tela     = $totales['total_m2_tela'] ?? null;
@@ -117,13 +117,12 @@ class CotizacionController extends Controller
 
         $insumosAttach = [];
 
-        // Insumos fijos
         foreach (['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'] as $nombre) {
             $insumo = $insumosFijos->get($nombre);
             if ($insumo) {
-                $key = strtolower($nombre); // para coincidir con tus campos detalle, ej: ojillos_cantidad
+                $key = strtolower($nombre);
                 $cantidad = $detalle["{$key}_cantidad"] ?? 0;
-                $precio = $insumo->precio_publico; // Usa el precio_publico de la BD
+                $precio = $insumo->precio_publico;
                 if ($cantidad > 0) {
                     $insumosAttach[$insumo->id] = [
                         'cantidad' => $cantidad,
@@ -134,11 +133,6 @@ class CotizacionController extends Controller
             }
         }
 
-        $ojillosId = $detalle['ojillos_id'] ?? null;
-        $cantidad = $detalle['ojillos_cantidad'] ?? 0;
-        $precio = $detalle['ojillos_precio'] ?? 0;
-
-        // Insumos dinámicos
         foreach ($detalle as $k => $v) {
             if (preg_match('/^otros(\d+)_nombre$/', $k, $matches)) {
                 $index = $matches[1];
@@ -193,11 +187,7 @@ class CotizacionController extends Controller
         $fileName = 'cotizacion_' . $cotizacion->id . '.pdf';
         $filePath = 'pdfs/' . $fileName;
 
-        // Guarda el PDF en storage/app/public/pdfs
         Storage::disk('public')->put($filePath, $pdf->output());
-
-        // Devuelve la URL pública para descargar
-        $url = Storage::url($filePath);
 
         return response()->download(storage_path('app/public/pdfs/' . $fileName));
     }
