@@ -74,6 +74,26 @@ class EntradaController extends Controller
 
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'id_almacen' => 'required|exists:almacenes,id',
+            'items' => 'required|array|min:1',
+            'items.*.cantidad' => 'required|numeric|min:1',
+            'items.*.id' => 'required',
+            'items.*.tipo' => 'required|in:producto,insumo',
+        ], [
+            'id_almacen.required' => 'El campo almacén es obligatorio.',
+            'id_almacen.exists' => 'El almacén seleccionado no es válido.',
+            'items.required' => 'Debe agregar al menos un producto o insumo.',
+            'items.array' => 'El formato de los items no es válido.',
+            'items.min' => 'Debe agregar al menos un producto o insumo.',
+            'items.*.cantidad.required' => 'La cantidad es obligatoria.',
+            'items.*.cantidad.numeric' => 'La cantidad debe ser un número.',
+            'items.*.cantidad.min' => 'La cantidad debe ser al menos 1.',
+            'items.*.id.required' => 'Debe seleccionar un producto o insumo.',
+            'items.*.tipo.required' => 'Debe indicar el tipo (producto o insumo).',
+            'items.*.tipo.in' => 'El tipo seleccionado no es válido.',
+        ]);
+
         $entrada = Entrada::findOrFail($id);
         $entrada->update([
             'id_almacen' => $request->id_almacen,
@@ -134,9 +154,28 @@ class EntradaController extends Controller
 
         return redirect()->route('admin.entradas.index')->with('success', 'Entrada actualizada correctamente.');
     }
-
+    
     public function store(Request $request)
     {
+        $request->validate([
+            'id_almacen' => 'required|exists:almacenes,id',
+            'items' => 'required|array|min:1',
+            'items.*.cantidad' => 'required|numeric|min:1',
+            'items.*.id_producto' => 'nullable|exists:productos,id',
+            'items.*.id_insumo' => 'nullable|exists:insumo,id',
+        ], [
+            'id_almacen.required' => 'El campo almacén es obligatorio.',
+            'id_almacen.exists' => 'El almacén seleccionado no es válido.',
+            'items.required' => 'Debe agregar al menos un producto o insumo.',
+            'items.array' => 'El formato de los items no es válido.',
+            'items.min' => 'Debe agregar al menos un producto o insumo.',
+            'items.*.cantidad.required' => 'La cantidad es obligatoria.',
+            'items.*.cantidad.numeric' => 'La cantidad debe ser un número.',
+            'items.*.cantidad.min' => 'La cantidad debe ser al menos 1.',
+            'items.*.id_producto.exists' => 'El producto seleccionado no es válido.',
+            'items.*.id_insumo.exists' => 'El insumo seleccionado no es válido.',
+        ]);
+
         $entrada = Entrada::create([
             'id_almacen' => $request->id_almacen,
             'id_usuario' => auth()->id(),
@@ -185,4 +224,5 @@ class EntradaController extends Controller
 
         return redirect()->route('admin.entradas.index')->with('success', 'Entrada registrada correctamente.');
     }
+
 }
