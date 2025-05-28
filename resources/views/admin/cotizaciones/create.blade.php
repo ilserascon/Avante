@@ -148,7 +148,12 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><input type="number" name="detalle[m2_1]" class="form-control" step="0.01"></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <label for="m2_2" class="me-2 mb-0" style="margin-right: 0.6rem;">Cortina</label>
+                                    <input type="number" name="detalle[m2_1]" class="form-control" step="0.01">
+                                </div>
+                            </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -168,7 +173,12 @@
                             </td>
                         </tr>
                         <tr>
-                            <td><input type="number" name="detalle[m2_2]" class="form-control" step="0.01"></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <label for="m2_2" class="me-2 mb-0" style="margin-right: 1rem;">Tergal</label>
+                                    <input type="number" name="detalle[m2_2]" id="m2_2" class="form-control" step="0.01">
+                                </div>
+                            </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -188,7 +198,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="2" class="text-end"><strong>Costo Mano de Obra:</strong></td>
+                            <td colspan="2" class="text-end"><strong>Costo Total Mano de Obra:</strong></td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -354,7 +364,9 @@
                                     <td><strong>Costo Decorador</strong></td>
                                     <td>
                                         <div class="input-group">
-                                            <span class="input-group-text">$</span>
+                                            <input type="number" id="decorador_porcentaje" class="form-control text-end" value="15" min="0" max="100" step="0.01" style="max-width: 100px;">
+                                            <span class="input-group-text">%</span>
+                                            <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
                                             <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" readonly>
                                         </div>
                                     </td>
@@ -497,7 +509,7 @@
                             	</td>
                             	<td class="text-center">
                                 	<div class="d-flex align-items-center justify-content-center">
-                                    	<input type="number" id="valor_bastilla" class="form-control" placeholder="+ cm" step="0.01" min="0">
+                                    	<input type="number" id="valor_bastilla" class="form-control" placeholder="Ej. 1.10m" step="0.01" min="0">
                                 	</div>
                             	</td>
                         	</tr>
@@ -575,7 +587,7 @@
                             	</td>
                             	<td class="text-center">
                                 	<div class="d-flex align-items-center justify-content-center">
-                                    	<input type="number" id="valor_bastilla_tergal" class="form-control" placeholder="+ cm" step="0.01" min="0">
+                                    	<input type="number" id="valor_bastilla_tergal" class="form-control" placeholder="Ej. 0.65m" step="0.01" min="0">
                                 	</div>
                             	</td>
                         	</tr>
@@ -726,7 +738,7 @@
                             	</td>
                             	<td class="text-center">
                                 	<div class="d-flex align-items-center justify-content-center">
-                                    	<input type="number" id="valor_bastilla_forro" class="form-control" placeholder="+ cm" step="0.01" min="0">
+                                    	<input type="number" id="valor_bastilla_forro" class="form-control" placeholder="Ej. 0.40m" step="0.01" min="0">
                                 	</div>
                             	</td>
                         	</tr>
@@ -1049,32 +1061,26 @@
         // Cálculo de Mano de Obra
         const m2CortinaInput = document.querySelector('[name="detalle[m2_1]"]');
         const m2TergalInput = document.querySelector('[name="detalle[m2_2]"]');
-        const m2ForroInput = document.querySelector('[name="detalle[m2_3]"]');
 
         const costoMO1 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_1]"]')?.value) || 0;
         const costoMO2 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_2]"]')?.value) || 0;
-        const costoMO3 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_3]"]')?.value) || 0;
 
         const totalMO1 = document.querySelector('[name="detalle[total_mano_obra_1]"]');
         const totalMO2 = document.querySelector('[name="detalle[total_mano_obra_2]"]');
-        const totalMO3 = document.querySelector('[name="detalle[total_mano_obra_3]"]');
         const costoTotalMO = document.querySelector('[name="detalle[costo_total_mano_obra]"]');
 
         // Actualizar m² en campos de mano de obra
         if (m2CortinaInput) m2CortinaInput.value = totalTela.toFixed(2);
         if (m2TergalInput) m2TergalInput.value = totalTergal.toFixed(2);
-        if (m2ForroInput) m2ForroInput.value = totalForro.toFixed(2);
 
         // Calcular totales de mano de obra
         const totalMano1 = totalTela * costoMO1;
         const totalMano2 = totalTergal * costoMO2;
-        const totalMano3 = totalForro * costoMO3;
 
         if (totalMO1) totalMO1.value = totalMano1.toFixed(2);
         if (totalMO2) totalMO2.value = totalMano2.toFixed(2);
-        if (totalMO3) totalMO3.value = totalMano3.toFixed(2);
 
-        if (costoTotalMO) costoTotalMO.value = (totalMano1 + totalMano2 + totalMano3).toFixed(2);
+        if (costoTotalMO) costoTotalMO.value = (totalMano1 + totalMano2).toFixed(2);
     });
 
     let contadorOtros = 1;
@@ -1194,7 +1200,8 @@
 
         const totalLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
         const totalLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
-        const totalLienzos = totalLienzosCortina + totalLienzosTergal;
+        const totalLienzosForro = parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0;
+        const totalLienzos = totalLienzosCortina + totalLienzosTergal + totalLienzosForro;
         document.getElementById('total_lienzos').value = totalLienzos > 0 ? totalLienzos : '';
 
         const totalForro = parseFloat(document.getElementById('total_forro')?.value) || 0;
@@ -1216,10 +1223,12 @@
         const costoCortina = costoTelaTergal + costoForro + costoManoObra + costoMateriales;
         document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
 
-        const utilidad = costoCortina * 0.15;
+        const utilidad = costoCortina * 2;
         document.getElementById('utilidad').value = utilidad > 0 ? utilidad.toFixed(2) : '';
 
-        const costoDecorador = costoCortina + utilidad;
+        const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
+        const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
+        const costoDecorador = costoCortina + (costoCortina * (decoradorPorcentaje / 100));
         document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
 
         const precioPublico = costoCortina * 2;
@@ -1419,5 +1428,7 @@
             actualizarTablaTotales();
         }
     });
+
+    document.getElementById('decorador_porcentaje').addEventListener('input', actualizarTablaTotales);
 </script>
 @endsection
