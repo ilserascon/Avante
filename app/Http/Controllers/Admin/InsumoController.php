@@ -45,10 +45,10 @@ class InsumoController extends Controller
     public function create()
     {
         $proveedores = Proveedor::all();
-        $tiposInsumo = TipoInsumo::all()->map(function($tipo) {
+        $tiposInsumo = TipoInsumo::all()->map(function ($tipo) {
             $campos = [];
             for ($i = 1; $i <= 15; $i++) {
-                $campo = 'campo'.$i;
+                $campo = 'campo' . $i;
                 if (!empty($tipo->$campo)) {
                     $campos[$campo] = $tipo->$campo;
                 }
@@ -56,10 +56,10 @@ class InsumoController extends Controller
             $tipo->campos_data = $campos;
             return $tipo;
         });
-        
+
         return view('admin.insumos.create', compact('proveedores', 'tiposInsumo'));
     }
-    
+
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -121,22 +121,20 @@ class InsumoController extends Controller
     {
         $insumo = Insumo::findOrFail($id);
         $proveedores = Proveedor::all();
-        $tipos = TipoInsumo::all();
-        $tipo = $insumo->tipoInsumo;
-
-        $camposDinamicos = [];
-
-        if ($tipo) {
-            foreach ($tipo->getAttributes() as $campo => $valor) {
-                if (str_starts_with($campo, 'campo') && !empty($valor)) {
-                    $camposDinamicos[$campo] = $valor;
+        $tiposInsumo = TipoInsumo::all()->map(function ($tipo) {
+            $campos = [];
+            for ($i = 1; $i <= 15; $i++) {
+                $campo = 'campo' . $i;
+                if (!empty($tipo->$campo)) {
+                    $campos[$campo] = $tipo->$campo;
                 }
             }
-        }
+            $tipo->campos_data = $campos;
+            return $tipo;
+        });
 
-        return view('admin.insumos.edit', compact('insumo', 'proveedores', 'tipos', 'camposDinamicos'));
+        return view('admin.insumos.edit', compact('insumo', 'proveedores', 'tiposInsumo'));
     }
-
 
     public function update(Request $request, Insumo $insumo)
     {
@@ -177,5 +175,20 @@ class InsumoController extends Controller
         $insumo->update($validated);
 
         return redirect()->route('admin.insumos.index')->with('success', 'Insumo actualizado correctamente');
+    }
+
+    public function camposDinamicosPorTipo(Request $request)
+    {
+        $tipo = TipoInsumo::find($request->id_tipo_insumo);
+        $campos = [];
+        if ($tipo) {
+            for ($i = 1; $i <= 15; $i++) {
+                $campo = 'campo' . $i;
+                if (!empty($tipo->$campo)) {
+                    $campos[$campo] = $tipo->$campo;
+                }
+            }
+        }
+        return response()->json($campos);
     }
 }
