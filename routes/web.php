@@ -29,6 +29,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::post('users/{user}/habilitar', [App\Http\Controllers\Admin\UserController::class, 'habilitar'])->name('users.habilitar');
     Route::resource('tipo-insumos', TiposInsumosController::class)->except(['destroy']);
     Route::resource('insumos', InsumoController::class)->except(['destroy']);
+    Route::get('insumos/campos-dinamicos', [InsumoController::class, 'camposDinamicosPorTipo'])->name('insumos.campos-dinamicos');
     Route::resource('productos', ProductoController::class)->parameters(['productos' => 'producto']);
     Route::get('productos/{id}/insumos', [ProductoController::class, 'verInsumos'])->name('productos.insumos');
     Route::resource('clientes', ClienteController::class);

@@ -23,12 +23,12 @@
           <div class="form-row">
             <div class="form-group col-md-4">
               <label for="rfc">RFC</label>
-              <input name="rfc" class="form-control @error('rfc') is-invalid @enderror" value="{{ old('rfc') }}" required>
+              <input name="rfc" class="form-control @error('rfc') is-invalid @enderror" value="{{ old('rfc') }}">
               @error('rfc') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="form-group col-md-4">
               <label for="razon_social">Razón Social</label>
-              <input name="razon_social" class="form-control @error('razon_social') is-invalid @enderror" value="{{ old('razon_social') }}" required>
+              <input name="razon_social" class="form-control @error('razon_social') is-invalid @enderror" value="{{ old('razon_social') }}">
               @error('razon_social') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="form-group col-md-4">

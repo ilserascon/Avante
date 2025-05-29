@@ -41,8 +41,8 @@ class ClienteController extends Controller
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
-            'rfc' => 'required|string|max:255|unique:clientes',
-            'razon_social' => 'required|string|max:255',
+            'rfc' => 'nullable|string|max:255|unique:clientes',
+            'razon_social' => 'nullable|string|max:255',
             'telefono' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:clientes',
             'direccion' => 'nullable|string|max:255',
@@ -50,10 +50,8 @@ class ClienteController extends Controller
         ], [
             'nombre.required' => 'El campo nombre es obligatorio.',
             'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
-            'rfc.required' => 'El campo RFC es obligatorio.',
             'rfc.unique' => 'El RFC ya está registrado.',
             'rfc.max' => 'El campo RFC no debe exceder 255 caracteres.',
-            'razon_social.required' => 'El campo razón social es obligatorio.',
             'razon_social.max' => 'El campo razón social no debe exceder 255 caracteres.',
             'telefono.max' => 'El campo teléfono no debe exceder 255 caracteres.',
             'email.email' => 'El correo electrónico debe ser válido.',
@@ -80,8 +78,8 @@ class ClienteController extends Controller
 
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
-            'rfc' => 'required|string|max:255|unique:clientes,rfc,' . $cliente->id,
-            'razon_social' => 'required|string|max:255',
+            'rfc' => 'nullable|string|max:255|unique:clientes,rfc,' . $cliente->id,
+            'razon_social' => 'nullable|string|max:255',
             'telefono' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:clientes,email,' . $cliente->id,
             'direccion' => 'nullable|string|max:255',
@@ -89,10 +87,8 @@ class ClienteController extends Controller
         ], [
             'nombre.required' => 'El campo nombre es obligatorio.',
             'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
-            'rfc.required' => 'El campo RFC es obligatorio.',
             'rfc.unique' => 'El RFC ya está registrado.',
             'rfc.max' => 'El campo RFC no debe exceder 255 caracteres.',
-            'razon_social.required' => 'El campo razón social es obligatorio.',
             'razon_social.max' => 'El campo razón social no debe exceder 255 caracteres.',
             'telefono.max' => 'El campo teléfono no debe exceder 255 caracteres.',
             'email.email' => 'El correo electrónico debe ser válido.',
