@@ -54,13 +54,16 @@ class CotizacionController extends Controller
 
         $forros = Insumo::where('id_tipo_insumo', 5)->get();
 
+        $cortineros = Insumo::where('id_tipo_insumo', 6)->get();
+
         return view('admin.cotizaciones.create', compact(
             'insumos',
             'insumosFijos',
             'manoObra',
             'telas',
             'tergales',
-            'forros'
+            'forros',
+            'cortineros'
         ));
     }
 

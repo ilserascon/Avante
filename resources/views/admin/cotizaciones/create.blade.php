@@ -241,16 +241,40 @@
                         <tr>
                             <td>
                                 Cortinero
-                                <input type="hidden" name="detalle[cortinero_id]" value="{{ $insumosFijos['Cortinero']->id ?? '' }}">
+                                <select name="detalle[cortinero_id]" id="cortinero_id" class="form-select">
+                                    <option value="">Seleccione tipo de cortinero</option>
+                                    @foreach($cortineros as $cortinero)
+                                    <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico }}">
+                                        {{ $cortinero->nombre }}
+                                    </option>
+                                    @endforeach
+                                </select>
                             </td>
                             <td>
-                                <input type="number" name="detalle[cortinero_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                                <input type="number" name="detalle[cortinero_cantidad]" id="cortinero_cantidad" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
                             </td>
                             <td>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" value="{{ $insumosFijos['Cortinero']->precio_publico ?? '' }}" step="0.01" readonly>
+                                    <input type="number" id="cortinero_precio" name="detalle[cortinero_precio]" class="form-control" step="0.01" readonly>
                                 </div>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const cortineroSelect = document.getElementById('cortinero_id');
+                                        const cortineroPrecio = document.getElementById('cortinero_precio');
+                                        if (cortineroSelect && cortineroPrecio) {
+                                            cortineroSelect.addEventListener('change', function() {
+                                                const selected = cortineroSelect.options[cortineroSelect.selectedIndex];
+                                                cortineroPrecio.value = selected.dataset.precio || '';
+                                                actualizarCostoTotal();
+                                                actualizarTablaTotales();
+                                            });
+                                            // Actualiza el precio al cargar si hay uno seleccionado
+                                            const selected = cortineroSelect.options[cortineroSelect.selectedIndex];
+                                            cortineroPrecio.value = selected && selected.dataset.precio ? selected.dataset.precio : '';
+                                        }
+                                    });
+                                </script>
                             </td>
                             <td></td>
                         </tr>
@@ -613,13 +637,17 @@
                     });
 
                     function calcularTergal() {
-                        let ancho = parseFloat(anchoTergal.value);
-                        let anchoTela = parseFloat(anchoTelaCortina.value);
+                        // Usa los campos de tergal, no los de cortina
+                        let ancho = parseFloat(document.getElementById('ancho_tergal_real')?.value);
+                        let anchoTela = parseFloat(document.getElementById('ancho_tergal')?.value);
 
                         if (!isNaN(ancho) && !isNaN(anchoTela) && anchoTela > 0) {
                             let lienzos = (ancho * 2.5) / anchoTela;
-                            noLienzosTergal.value = lienzos.toFixed(2);
-                            noLienzosRedondeadoTergal.value = Math.ceil(lienzos);
+                            document.getElementById('no_lienzos_tergal').value = lienzos.toFixed(2);
+                            document.getElementById('no_lienzos_redondeado_tergal').value = Math.ceil(lienzos);
+                        } else {
+                            document.getElementById('no_lienzos_tergal').value = '';
+                            document.getElementById('no_lienzos_redondeado_tergal').value = '';
                         }
                     }
                     const plantillaTergal = document.getElementById('plantilla_tergal');
@@ -804,27 +832,44 @@
                     });
 
                     function sincronizarForroConCortina() {
-                        if (anchoCortina?.value && anchoTelaCortina?.value) {
-                            let largoOriginal = largoCortina?.dataset?.original ?
-                                parseFloat(largoCortina.dataset.original) :
-                                parseFloat(largoCortina?.value);
+                        // Campos de cortina
+                        const anchoCortina = document.getElementById('ancho');
+                        const largoCortina = document.getElementById('largo');
+                        const anchoTelaCortina = document.getElementById('ancho_tela');
 
-                            anchoForro.value = anchoCortina.value;
+                        // Actualización para que también funcione con el tergal
 
+                        // Campos de tergal
+                        const anchoTergal = document.getElementById('ancho_tergal_real');
+                        const largoTergal = document.getElementById('largo_tergal');
+                        const anchoTelaTergal = document.getElementById('ancho_tergal');
+                        // Campos de forro
+                        const anchoForro = document.getElementById('ancho_forro_real');
+                        const largoForro = document.getElementById('largo_forro');
+                        const anchoTelaForro = document.getElementById('ancho_forro');
+
+                        // Intenta primero con cortina, si no, con tergal
+                        let anchoBase = anchoCortina?.value || anchoTergal?.value || '';
+                        let largoBase = largoCortina?.value || largoTergal?.value || '';
+                        let anchoTelaBase = anchoTelaCortina?.value || anchoTelaTergal?.value || '';
+
+                        if (anchoBase && anchoTelaBase) {
+                            anchoForro.value = anchoBase;
+                            anchoTelaForro.value = anchoTelaBase;
+
+                            // Bastilla forro
                             const bastillaForroInput = document.getElementById('valor_bastilla_forro');
-
+                            let largoOriginal = largoBase;
                             if (bastillaForroInput && (bastillaForroInput.value === '' || parseFloat(bastillaForroInput.value) === 0)) {
-                                if (!isNaN(largoOriginal)) {
-                                    largoForro.value = largoOriginal.toFixed(2);
-                                    largoForro.dataset.original = largoOriginal;
+                                if (!isNaN(parseFloat(largoOriginal))) {
+                                    largoForro.value = parseFloat(largoOriginal).toFixed(2);
+                                    largoForro.dataset.original = parseFloat(largoOriginal);
                                 } else {
                                     largoForro.value = '';
                                     largoForro.dataset.original = '';
                                 }
                             }
-
-                            anchoTelaForro.value = anchoTelaCortina.value;
-
+                            // Si hay bastilla, el script de bastilla ya la suma
                             calcularForro();
                         } else {
                             anchoForro.readOnly = false;
@@ -832,37 +877,22 @@
                             anchoTelaForro.readOnly = false;
                         }
 
-                        $(forroSelect).trigger('change');
+                        // Actualiza select2 y totales
+                        $(document.getElementById('forro_id')).trigger('change');
                     }
 
-                    ['ancho', 'largo', 'ancho_tela'].forEach(id => {
+                    // Escuchar cambios en inputs para actualizar forro si los datos de cortina cambian
+                    ['ancho', 'largo', 'ancho_tela', 'ancho_tergal_real', 'largo_tergal', 'ancho_tergal'].forEach(id => {
                         const input = document.getElementById(id);
                         if (input) {
                             input.addEventListener('input', sincronizarForroConCortina);
                         }
                     });
 
+                    // Escuchar cambios manuales para forro si se escriben directamente
                     [anchoForro, anchoTelaForro].forEach(input => {
                         input.addEventListener('input', calcularForro);
                     });
-
-                    const recalcular = () => {
-                        const forro = parseFloat(totalForro.value);
-                        const precio = parseFloat(precioM2.value);
-
-                        if (!isNaN(forro) && !isNaN(precio)) {
-                            const total = forro * precio;
-                            totalFinal.value = total.toFixed(2);
-                            if (costoTotal) costoTotal.value = total.toFixed(2);
-                        } else {
-                            totalFinal.value = "";
-                            if (costoTotal) costoTotal.value = "";
-                        }
-                        actualizarTablaTotales();
-                    };
-
-                    totalForro.addEventListener('input', recalcular);
-                    precioM2.addEventListener('input', recalcular);
 
                     sincronizarForroConCortina();
                 }, 500);
