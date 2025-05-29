@@ -111,6 +111,9 @@
                                             </button>
                                         </form>
                                     @endif
+                                    <a href="{{ route('admin.cotizaciones.edit', $cotizacion->id) }}" class="btn btn-warning btn-sm" style="margin-right: 0.5rem;" title="Editar">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach

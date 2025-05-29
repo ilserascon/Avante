@@ -31,8 +31,8 @@
                 <div class="col d-flex align-items-center gap-3">
                     <label class="mb-0 me-3 align-middle" style="vertical-align: middle;">Tipo de Cotización:</label>
                     <div class="form-check form-check-inline" style="margin-left: 0.5rem;">
-                        <input type="checkbox" id="cotinaCheck" name="tipo[]" value="cortina" class="form-check-input" autocomplete="off">
-                        <label class="form-check-label" for="cotinaCheck">Cortina</label>
+                        <input type="checkbox" id="cortinaCheck" name="tipo[]" value="cortina" class="form-check-input" autocomplete="off">
+                        <label class="form-check-label" for="cortinaCheck">Cortina</label>
                     </div>
                     <div class="form-check form-check-inline">
                         <input type="checkbox" id="tergalCheck" name="tipo[]" value="tergal" class="form-check-input" autocomplete="off">
@@ -462,7 +462,7 @@
 <script>
     //Script para mostrar y ocultar formularios dinámicos
     document.addEventListener('DOMContentLoaded', function() {
-        const cortina = document.getElementById('cotinaCheck');
+        const cortina = document.getElementById('cortinaCheck');
         const tergal = document.getElementById('tergalCheck');
         const forro = document.getElementById('forroCheck');
         const formDinamico = document.getElementById('form-dinamico');
@@ -1285,7 +1285,7 @@
     });
 
     document.addEventListener('DOMContentLoaded', function() {
-        const cortina = document.getElementById('cotinaCheck');
+        const cortina = document.getElementById('cortinaCheck');
         const tergal = document.getElementById('tergalCheck');
         const forro = document.getElementById('forroCheck');
 
