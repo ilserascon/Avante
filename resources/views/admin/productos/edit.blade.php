@@ -38,26 +38,26 @@
                         <div id="insumos-container">
                             @if ($producto->insumos && $producto->insumos->isNotEmpty())
                                 @foreach ($producto->insumos as $index => $insumo)
-                                    <div class="form-row align-items-end mb-2 insumo-item">
-                                        <div class="col-md-6">
-                                            <label>Insumo</label>
-                                            <select name="insumos[{{$index}}][id]" class="form-control insumo-select">
-                                                <option value="">Seleccione un insumo</option>
-                                                @foreach ($insumos as $opcion)
-                                                    <option value="{{ $opcion->id }}" {{ $insumo->id == $opcion->id ? 'selected' : '' }}>
-                                                        {{ $opcion->nombre_completo }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label>Cantidad</label>
-                                            <input type="number" name="insumos[{{ $index }}][cantidad]" class="form-control" min="0" step="0.01" value="{{ $insumo->pivot->cantidad }}" required>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button type="button" class="btn btn-danger btn-block remove-insumo">Eliminar</button>
-                                        </div>
+                                <div class="row mb-3 insumo-row">
+                                    <div class="col-md-6">
+                                        <label>Insumo</label>
+                                        <select name="insumos[{{ $index }}][id]" class="form-control insumo-select" required>
+                                            <option value="">Seleccione un insumo</option>
+                                            @foreach ($insumos as $opcion)
+                                                <option value="{{ $opcion->id }}" {{ $insumo->id == $opcion->id ? 'selected' : '' }}>
+                                                    {{ $opcion->nombre_completo }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
+                                    <div class="col-md-4">
+                                        <label>Cantidad</label>
+                                        <input type="number" name="insumos[{{ $index }}][cantidad]" class="form-control" min="0" step="0.01" value="{{ $insumo->pivot->cantidad ?? '' }}" required>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button type="button" class="btn btn-danger btn-remove-insumo">Eliminar</button>
+                                    </div>
+                                </div>
                                 @endforeach
                             @else
                                 <p>No hay insumos asociados a este producto.</p>
@@ -72,68 +72,73 @@
         </div>
     </div>
 </div>
+@endsection
 
-{{-- Genera las opciones de insumos para JS --}}
-<script>
-    const insumoOptions = `
-        @foreach($insumos as $insumo)
-            <option value="{{ $insumo->id }}">{{ $insumo->nombre_completo }}</option>
-        @endforeach
-    `;
-</script>
+@section('styles')
+    {{-- Select2 Styles --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+@endsection
 
-<script>
-    document.getElementById('add-insumo').addEventListener('click', function () {
-        const container = document.getElementById('insumos-container');
-        const insumoIndex = container.querySelectorAll('.insumo-item').length;
+@section('scripts')
+    {{-- jQuery y Select2 --}}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-        const insumoDiv = document.createElement('div');
-        insumoDiv.classList.add('form-row', 'align-items-end', 'mb-2', 'insumo-item');
-        insumoDiv.innerHTML = `
-            <div class="col-md-6">
-                <label>Insumo</label>
-                <select name="insumos[${insumoIndex}][id]" class="form-control insumo-select" required>
-                    <option value="">Seleccione un insumo</option>
-                    ${insumoOptions}
-                </select>
-            </div>
-            <div class="col-md-4">
-                <label>Cantidad</label>
-                <input type="number" name="insumos[${insumoIndex}][cantidad]" class="form-control" min="0" step="0.01" required>
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-danger btn-block remove-insumo">Eliminar</button>
-            </div>
+    {{-- Opciones de insumos para clonado --}}
+    <script>
+        const insumoOptions = `
+            @foreach($insumos as $insumo)
+                <option value="{{ $insumo->id }}">{{ $insumo->nombre_completo }}</option>
+            @endforeach
         `;
+    </script>
 
-        container.appendChild(insumoDiv);
+    <script>
+        $(document).ready(function () {
+            function initSelect2(container) {
+                container.find('.insumo-select').select2({
+                    placeholder: 'Seleccione un insumo',
+                    width: '100%',
+                    allowClear: true
+                });
+            }
 
-        insumoDiv.querySelector('.insumo-select').addEventListener('change', function () {
-            const selectedValue = this.value;
-            const allSelects = document.querySelectorAll('.insumo-select');
-            let duplicate = false;
+            // Inicializa Select2 en insumos existentes
+            initSelect2($('#insumos-container'));
 
-            allSelects.forEach(select => {
-                if (select !== this && select.value === selectedValue) {
-                    duplicate = true;
-                }
+            $('#add-insumo').click(function () {
+                const container = $('#insumos-container');
+                const index = container.find('.insumo-row').length;
+
+                const newRow = $(`
+                    <div class="row mb-3 insumo-row">
+                        <div class="col-md-6">
+                            <label>Insumo</label>
+                            <select name="insumos[${index}][id]" class="form-control insumo-select" required>
+                                <option value="">Seleccione un insumo</option>
+                                ${insumoOptions}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Cantidad</label>
+                            <input type="number" name="insumos[${index}][cantidad]" class="form-control" min="0" step="0.01" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-remove-insumo">Eliminar</button>
+                        </div>
+                    </div>
+                `);
+
+                container.append(newRow);
+                initSelect2(newRow);
             });
 
-            if (duplicate) {
-                alert('No puedes repetir el mismo insumo');
-                this.value = '';
-            }
+            // Delegación para eventos de eliminación
+            $(document).on('click', '.btn-remove-insumo', function () {
+                const row = $(this).closest('.insumo-row');
+                row.find('.insumo-select').select2('destroy');
+                row.remove();
+            });
         });
-
-        insumoDiv.querySelector('.remove-insumo').addEventListener('click', function () {
-            insumoDiv.remove();
-        });
-    });
-
-    document.querySelectorAll('.remove-insumo').forEach(function (button) {
-        button.addEventListener('click', function () {
-            button.closest('.insumo-item').remove();
-        });
-    });
-</script>
+    </script>
 @endsection

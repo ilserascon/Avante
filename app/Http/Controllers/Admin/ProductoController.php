@@ -26,13 +26,14 @@ class ProductoController extends Controller
 
     public function create()
     {
-    $insumos = DB::table('insumo')
-        ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor')
-        ->select(
-            'insumo.id',
-            DB::raw("TRIM(CONCAT_WS(' | ', insumo.nombre, insumo.campo1, insumo.campo2, proveedores.nombre)) AS nombre_completo")
-        )
-        ->get();
+        $insumos = DB::table('insumo')
+            ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor')
+            ->select(
+                'insumo.id',
+                DB::raw("TRIM(CONCAT_WS(' | ', insumo.nombre, insumo.campo1, insumo.campo2, proveedores.nombre)) AS nombre_completo")
+            )
+            ->get();
+
         return view('admin.productos.create', compact('insumos'));
     }
 
@@ -44,22 +45,11 @@ class ProductoController extends Controller
             'insumos' => 'required|array',
             'insumos.*.id' => 'required|exists:insumo,id',
             'insumos.*.cantidad' => 'required|numeric|min:0',
-        ], [
-            'nombre.required' => 'El campo nombre es obligatorio.',
-            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
-            'descripcion.string' => 'La descripción debe ser texto.',
-            'insumos.required' => 'Debe agregar al menos un insumo.',
-            'insumos.array' => 'El formato de insumos no es válido.',
-            'insumos.*.id.required' => 'Debe seleccionar un insumo.',
-            'insumos.*.id.exists' => 'El insumo seleccionado no es válido.',
-            'insumos.*.cantidad.required' => 'La cantidad del insumo es obligatoria.',
-            'insumos.*.cantidad.numeric' => 'La cantidad del insumo debe ser numérica.',
-            'insumos.*.cantidad.min' => 'La cantidad del insumo no puede ser negativa.',
         ]);
 
         $producto = Producto::create([
             'nombre' => $validated['nombre'],
-            'descripcion' => $validated['descripcion']
+            'descripcion' => $validated['descripcion'] ?? null,
         ]);
 
         foreach ($validated['insumos'] as $insumo) {
@@ -73,10 +63,9 @@ class ProductoController extends Controller
         return redirect()->route('admin.productos.index')->with('success', 'Producto creado correctamente.');
     }
 
-
     public function edit($id)
     {
-        $producto = Producto::with('insumos')->findOrFail($id);
+        $producto = Producto::with('insumos.proveedor')->findOrFail($id);
 
         $insumos = DB::table('insumo')
             ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor')
@@ -97,35 +86,27 @@ class ProductoController extends Controller
             'insumos' => 'sometimes|array',
             'insumos.*.id' => 'required|exists:insumo,id',
             'insumos.*.cantidad' => 'required|numeric|min:0',
-        ], [
-            'nombre.required' => 'El campo nombre es obligatorio.',
-            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
-            'descripcion.string' => 'La descripción debe ser texto.',
-            'insumos.array' => 'El formato de insumos no es válido.',
-            'insumos.*.id.required' => 'Debe seleccionar un insumo.',
-            'insumos.*.id.exists' => 'El insumo seleccionado no es válido.',
-            'insumos.*.cantidad.required' => 'La cantidad del insumo es obligatoria.',
-            'insumos.*.cantidad.numeric' => 'La cantidad del insumo debe ser numérica.',
-            'insumos.*.cantidad.min' => 'La cantidad del insumo no puede ser negativa.',
         ]);
 
         DB::transaction(function () use ($request, $producto) {
             $producto->update($request->only('nombre', 'descripcion'));
-            $this->syncInsumos($producto, $request->insumos);
+            $this->syncInsumos($producto, $request->input('insumos', []));
         });
 
         return redirect()->route('admin.productos.index')->with('success', 'Producto actualizado correctamente.');
     }
-    
+
     private function syncInsumos(Producto $producto, $insumos)
     {
         $insumoIds = collect($insumos)->pluck('id')->toArray();
 
+        // Eliminar insumos que ya no están
         ProductoInsumo::where('id_producto', $producto->id)
             ->whereNotIn('id_insumo', $insumoIds)
             ->delete();
 
-        foreach ($insumos ?? [] as $insumo) {
+        // Insertar o actualizar insumos
+        foreach ($insumos as $insumo) {
             ProductoInsumo::updateOrInsert(
                 [
                     'id_producto' => $producto->id,
@@ -141,15 +122,9 @@ class ProductoController extends Controller
 
     public function verInsumos($id)
     {
-        $producto = Producto::with(['insumos' => function ($query) {
-            $query->select(
-                'insumo.*',
-                DB::raw("TRIM(CONCAT_WS(' | ', insumo.nombre, insumo.campo1, insumo.campo2, proveedores.nombre)) AS nombre_completo")
-            )
-            ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor');
-        }])->findOrFail($id);
+        // Carga el producto con insumos y el proveedor de cada insumo
+        $producto = Producto::with('insumos.proveedor')->findOrFail($id);
 
         return view('admin.productos.insumos', compact('producto'));
     }
-
 }

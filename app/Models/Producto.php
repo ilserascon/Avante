@@ -22,8 +22,10 @@ class Producto extends Model
     public function insumos()
     {
         return $this->belongsToMany(Insumo::class, 'producto_insumo', 'id_producto', 'id_insumo')
-                    ->withPivot('cantidad', 'created_at', 'updated_at');
+            ->withPivot('cantidad', 'created_at', 'updated_at');
     }
+
+
     
     public function entradas()
     {
@@ -31,5 +33,15 @@ class Producto extends Model
                     ->withPivot('cantidad', 'precio_unitario')
                     ->withTimestamps();
     }
-    
+    private function syncInsumos(Producto $producto, $insumos)
+    {
+        $datosParaSync = [];
+
+        foreach ($insumos ?? [] as $insumo) {
+            $datosParaSync[$insumo['id']] = ['cantidad' => $insumo['cantidad']];
+        }
+
+        // Esto actualiza, elimina e inserta según sea necesario
+        $producto->insumos()->sync($datosParaSync);
+    }
 }

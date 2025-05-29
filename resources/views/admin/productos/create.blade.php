@@ -42,14 +42,27 @@
   </div>
 </div>
 
+{{-- Incluir CSS y JS de Select2 --}}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
-  // Guardamos las opciones en una variable para reusarlas dinámicamente
+  // Opciones de insumos para agregar dinámicamente
   const insumosOptions = `
     <option value="">Seleccione un insumo</option>
     @foreach ($insumos as $insumo)
       <option value="{{ $insumo->id }}">{{ $insumo->nombre_completo }}</option>
     @endforeach
   `;
+
+  function initializeSelect2(element) {
+    $(element).select2({
+      placeholder: "Seleccione un insumo",
+      width: '100%',
+      allowClear: true,
+      dropdownParent: $(element).parent()
+    });
+  }
 
   document.getElementById('add-insumo').addEventListener('click', function () {
     const container = document.getElementById('insumos-container');
@@ -60,7 +73,7 @@
 
     insumoDiv.innerHTML = `
       <div class="col-md-5">
-        <select name="insumos[${insumoIndex}][id]" class="form-control" required>
+        <select name="insumos[${insumoIndex}][id]" class="form-control insumo-select" required>
           ${insumosOptions}
         </select>
       </div>
@@ -74,9 +87,18 @@
 
     container.appendChild(insumoDiv);
 
+    // Inicializar Select2 en el nuevo select
+    initializeSelect2(insumoDiv.querySelector('select'));
+
+    // Evento para eliminar insumo
     insumoDiv.querySelector('.remove-insumo').addEventListener('click', function () {
       insumoDiv.remove();
     });
+  });
+
+  // Inicializar Select2 en selects existentes (por si hay alguno en el futuro)
+  document.querySelectorAll('.insumo-select').forEach(function(select) {
+    initializeSelect2(select);
   });
 </script>
 @endsection
