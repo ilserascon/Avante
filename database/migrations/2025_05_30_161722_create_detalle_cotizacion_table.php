@@ -39,6 +39,34 @@ return new class extends Migration
             $table->integer('no_lienzos_redondeado_forro')->nullable();
             $table->string('bastilla_forro')->nullable();
             $table->timestamps();
+
+            $table->double('total_tela')->nullable();
+            $table->double('precio_m2_tela')->nullable();
+            $table->text('descripcion_tela')->nullable();
+            $table->double('total_tela_final')->nullable();
+
+            $table->double('total_tergal')->nullable();
+            $table->double('precio_m2_tergal')->nullable();
+            $table->text('descripcion_tergal')->nullable();
+            $table->double('total_tergal_final')->nullable();
+
+            $table->double('total_forro')->nullable();
+            $table->double('precio_m2_forro')->nullable();
+            $table->text('descripcion_forro')->nullable();
+            $table->double('total_final_forro')->nullable();
+
+            $table->double('costo_total_tela_tergal_forro')->nullable();
+
+            // Mano de obra
+            $table->double('m2_1')->nullable();
+            $table->double('costo_mano_obra_1')->nullable();
+            $table->double('total_mano_obra_1')->nullable();
+
+            $table->double('m2_2')->nullable();
+            $table->double('costo_mano_obra_2')->nullable();
+            $table->double('total_mano_obra_2')->nullable();
+
+            $table->double('costo_total_mano_obra')->nullable();
         });
     }
 

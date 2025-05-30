@@ -143,6 +143,35 @@ class CotizacionController extends Controller
             $dataDetalle['bastilla_forro'] = $detalle['valor_bastilla_forro'] ?? null;
         }
 
+        // Datos de la tabla "Total Tela, Tergal y Forro"
+        $dataDetalle['total_tela'] = $detalle['total_tela'] ?? null;
+        $dataDetalle['precio_m2_tela'] = $detalle['precio_m2_tela'] ?? null;
+        $dataDetalle['descripcion_tela'] = $detalle['descripcion_tela'] ?? null;
+        $dataDetalle['total_tela_final'] = $detalle['total_tela_final'] ?? null;
+
+        $dataDetalle['total_tergal'] = $detalle['total_tergal'] ?? null;
+        $dataDetalle['precio_m2_tergal'] = $detalle['precio_m2_tergal'] ?? null;
+        $dataDetalle['descripcion_tergal'] = $detalle['descripcion_tergal'] ?? null;
+        $dataDetalle['total_tergal_final'] = $detalle['total_tergal_final'] ?? null;
+
+        $dataDetalle['total_forro'] = $detalle['total_forro'] ?? null;
+        $dataDetalle['precio_m2_forro'] = $detalle['precio_m2_forro'] ?? null;
+        $dataDetalle['descripcion_forro'] = $detalle['descripcion_forro'] ?? null;
+        $dataDetalle['total_final_forro'] = $detalle['total_final_forro'] ?? null;
+
+        $dataDetalle['costo_total_tela_tergal_forro'] = $detalle['costo_total_tela_tergal_forro'] ?? null;
+
+        // Datos de la tabla "Mano de Obra"
+        $dataDetalle['m2_1'] = $detalle['m2_1'] ?? null;
+        $dataDetalle['costo_mano_obra_1'] = $detalle['costo_mano_obra_1'] ?? null;
+        $dataDetalle['total_mano_obra_1'] = $detalle['total_mano_obra_1'] ?? null;
+
+        $dataDetalle['m2_2'] = $detalle['m2_2'] ?? null;
+        $dataDetalle['costo_mano_obra_2'] = $detalle['costo_mano_obra_2'] ?? null;
+        $dataDetalle['total_mano_obra_2'] = $detalle['total_mano_obra_2'] ?? null;
+
+        $dataDetalle['costo_total_mano_obra'] = $detalle['costo_total_mano_obra'] ?? null;
+
         if (!empty($dataDetalle)) {
             $cotizacion->detalleCotizacion()->create($dataDetalle);
         }
@@ -367,6 +396,35 @@ class CotizacionController extends Controller
         ) {
             $detalleCotizacion->delete();
         }
+
+        $dataDetalle['total_tela'] = $detalle['total_tela'] ?? null;
+        $dataDetalle['precio_m2_tela'] = $detalle['precio_m2_tela'] ?? null;
+        $dataDetalle['descripcion_tela'] = $detalle['descripcion_tela'] ?? null;
+        $dataDetalle['total_tela_final'] = $detalle['total_tela_final'] ?? null;
+
+        $dataDetalle['total_tergal'] = $detalle['total_tergal'] ?? null;
+        $dataDetalle['precio_m2_tergal'] = $detalle['precio_m2_tergal'] ?? null;
+        $dataDetalle['descripcion_tergal'] = $detalle['descripcion_tergal'] ?? null;
+        $dataDetalle['total_tergal_final'] = $detalle['total_tergal_final'] ?? null;
+
+        $dataDetalle['total_forro'] = $detalle['total_forro'] ?? null;
+        $dataDetalle['precio_m2_forro'] = $detalle['precio_m2_forro'] ?? null;
+        $dataDetalle['descripcion_forro'] = $detalle['descripcion_forro'] ?? null;
+        $dataDetalle['total_final_forro'] = $detalle['total_final_forro'] ?? null;
+
+        $dataDetalle['costo_total_tela_tergal_forro'] = $detalle['costo_total_tela_tergal_forro'] ?? null;
+
+        $dataDetalle['m2_1'] = $detalle['m2_1'] ?? null;
+        $dataDetalle['costo_mano_obra_1'] = $detalle['costo_mano_obra_1'] ?? null;
+        $dataDetalle['total_mano_obra_1'] = $detalle['total_mano_obra_1'] ?? null;
+
+        $dataDetalle['m2_2'] = $detalle['m2_2'] ?? null;
+        $dataDetalle['costo_mano_obra_2'] = $detalle['costo_mano_obra_2'] ?? null;
+        $dataDetalle['total_mano_obra_2'] = $detalle['total_mano_obra_2'] ?? null;
+
+        $dataDetalle['costo_total_mano_obra'] = $detalle['costo_total_mano_obra'] ?? null;
+
+        $detalleCotizacion->update($dataDetalle);
 
         // Limpiar todos los insumos relacionados
         $cotizacion->insumos()->detach();

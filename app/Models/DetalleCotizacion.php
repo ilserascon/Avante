@@ -35,6 +35,34 @@ class DetalleCotizacion extends Model
         'no_lienzos_forro',
         'no_lienzos_redondeado_forro',
         'bastilla_forro',
+
+        'total_tela',
+        'precio_m2_tela',
+        'descripcion_tela',
+        'total_tela_final',
+
+        'total_tergal',
+        'precio_m2_tergal',
+        'descripcion_tergal',
+        'total_tergal_final',
+
+        'total_forro',
+        'precio_m2_forro',
+        'descripcion_forro',
+        'total_final_forro',
+
+        'costo_total_tela_tergal_forro',
+
+        'm2_1',
+        'costo_mano_obra_1',
+        'total_mano_obra_1',
+
+        'm2_2',
+        'costo_mano_obra_2',
+        'total_mano_obra_2',
+
+        'costo_total_mano_obra',
+
     ];
 
     public function cotizacion()
