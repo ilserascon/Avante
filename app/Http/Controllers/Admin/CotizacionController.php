@@ -176,61 +176,89 @@ class CotizacionController extends Controller
             $cotizacion->detalleCotizacion()->create($dataDetalle);
         }
 
-        // Adjuntar insumos seleccionados
-        $insumos = $request->input('insumos', []);
-        if (!empty($insumos)) {
-            $cotizacion->insumos()->attach($insumos);
+        // ===== LÓGICA CORREGIDA PARA MANEJO DE INSUMOS =====
+
+        // 1. Limpiar todos los insumos relacionados primero
+        $cotizacion->insumos()->detach();
+
+        // 2. Preparar array para todos los insumos que se van a adjuntar
+        $todosLosInsumos = [];
+
+        // 3. Adjuntar insumos seleccionados básicos (sin cantidad/precio personalizado)
+        $insumosBasicos = $request->input('insumos', []);
+        foreach ($insumosBasicos as $insumoId) {
+            $todosLosInsumos[$insumoId] = [
+                'cantidad' => 1,
+                'precio_unitario' => 0,
+                'subtotal' => 0,
+            ];
         }
 
-        // Adjuntar insumos fijos y otros insumos con cantidades y precios personalizados
+        // 4. Obtener insumos fijos para procesar cantidades y precios
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
             ->get()
             ->keyBy('nombre');
 
-        $insumosAttach = [];
-
+        // 5. Procesar insumos fijos con cantidades y precios
         foreach (['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'] as $nombre) {
             $insumo = $insumosFijos->get($nombre);
             if ($insumo) {
                 $key = strtolower($nombre);
                 $cantidad = $detalle["{$key}_cantidad"] ?? 0;
                 $precio = $insumo->precio_publico;
-                if ($cantidad > 0) {
-                    $insumosAttach[$insumo->id] = [
-                        'cantidad' => $cantidad,
-                        'precio_unitario' => $precio,
-                        'subtotal' => $cantidad * $precio,
-                    ];
-                }
-            }
-        }
 
-        foreach ($detalle as $k => $v) {
-            if (preg_match('/^otros(\d+)_nombre$/', $k, $matches)) {
-                $index = $matches[1];
-                $insumoId = $v;
-                $cantidad = $detalle["otros{$index}_cantidad"] ?? 0;
-                $precio = $detalle["otros{$index}_precio"] ?? 0;
-                if ($insumoId && $cantidad > 0) {
-                    if (isset($insumosAttach[$insumoId])) {
-                        $insumosAttach[$insumoId]['cantidad'] += $cantidad;
-                        $insumosAttach[$insumoId]['subtotal'] += $cantidad * $precio;
+                if ($cantidad > 0) {
+                    $subtotal = $cantidad * $precio;
+
+                    // Si ya existe en el array, actualizar; si no, agregar
+                    if (isset($todosLosInsumos[$insumo->id])) {
+                        $todosLosInsumos[$insumo->id]['cantidad'] += $cantidad;
+                        $todosLosInsumos[$insumo->id]['precio_unitario'] = $precio;
+                        $todosLosInsumos[$insumo->id]['subtotal'] += $subtotal;
                     } else {
-                        $insumosAttach[$insumoId] = [
+                        $todosLosInsumos[$insumo->id] = [
                             'cantidad' => $cantidad,
                             'precio_unitario' => $precio,
-                            'subtotal' => $cantidad * $precio,
+                            'subtotal' => $subtotal,
                         ];
                     }
                 }
             }
         }
 
-        if (!empty($insumosAttach)) {
-            $cotizacion->insumos()->attach($insumosAttach);
+        // 6. Procesar "otros insumos" dinámicos
+        foreach ($detalle as $key => $value) {
+            if (preg_match('/^otros(\d+)_nombre$/', $key, $matches)) {
+                $index = $matches[1];
+                $insumoId = $value;
+                $cantidad = $detalle["otros{$index}_cantidad"] ?? 0;
+                $precio = $detalle["otros{$index}_precio"] ?? 0;
+
+                if ($insumoId && $cantidad > 0 && $precio > 0) {
+                    $subtotal = $cantidad * $precio;
+
+                    // Si ya existe en el array, actualizar; si no, agregar
+                    if (isset($todosLosInsumos[$insumoId])) {
+                        $todosLosInsumos[$insumoId]['cantidad'] += $cantidad;
+                        $todosLosInsumos[$insumoId]['subtotal'] += $subtotal;
+                        // Para "otros insumos", mantenemos el precio que se ingresó
+                        $todosLosInsumos[$insumoId]['precio_unitario'] = $precio;
+                    } else {
+                        $todosLosInsumos[$insumoId] = [
+                            'cantidad' => $cantidad,
+                            'precio_unitario' => $precio,
+                            'subtotal' => $subtotal,
+                        ];
+                    }
+                }
+            }
         }
 
+        // 7. Adjuntar todos los insumos de una sola vez
+        if (!empty($todosLosInsumos)) {
+            $cotizacion->insumos()->attach($todosLosInsumos);
+        }
         return redirect()->route('admin.cotizaciones.index')->with('success', 'Cotización creada exitosamente.');
     }
 
@@ -426,22 +454,25 @@ class CotizacionController extends Controller
 
         $detalleCotizacion->update($dataDetalle);
 
-        // Limpiar todos los insumos relacionados
-        $cotizacion->insumos()->detach();
+        $todosLosInsumos = [];
 
-        // Adjuntar insumos seleccionados
-        $insumos = $request->input('insumos', []);
-        if (!empty($insumos)) {
-            $cotizacion->insumos()->attach($insumos);
+        // 1. Insumos seleccionados (sin cantidades específicas)
+        $insumosSeleccionados = $request->input('insumos', []);
+        foreach ($insumosSeleccionados as $insumoId) {
+            if (!isset($todosLosInsumos[$insumoId])) {
+                $todosLosInsumos[$insumoId] = [
+                    'cantidad' => 1,
+                    'precio_unitario' => 0,
+                    'subtotal' => 0,
+                ];
+            }
         }
 
-        // Adjuntar insumos fijos y otros insumos con cantidades y precios personalizados
+        // 2. Insumos fijos con cantidades y precios
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
             ->get()
             ->keyBy('nombre');
-
-        $insumosAttach = [];
 
         foreach (['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'] as $nombre) {
             $insumo = $insumosFijos->get($nombre);
@@ -450,7 +481,7 @@ class CotizacionController extends Controller
                 $cantidad = $detalle["{$key}_cantidad"] ?? 0;
                 $precio = $insumo->precio_publico;
                 if ($cantidad > 0) {
-                    $insumosAttach[$insumo->id] = [
+                    $todosLosInsumos[$insumo->id] = [
                         'cantidad' => $cantidad,
                         'precio_unitario' => $precio,
                         'subtotal' => $cantidad * $precio,
@@ -459,6 +490,7 @@ class CotizacionController extends Controller
             }
         }
 
+        // 3. Otros insumos dinámicos
         foreach ($detalle as $k => $v) {
             if (preg_match('/^otros(\d+)_nombre$/', $k, $matches)) {
                 $index = $matches[1];
@@ -466,11 +498,11 @@ class CotizacionController extends Controller
                 $cantidad = $detalle["otros{$index}_cantidad"] ?? 0;
                 $precio = $detalle["otros{$index}_precio"] ?? 0;
                 if ($insumoId && $cantidad > 0) {
-                    if (isset($insumosAttach[$insumoId])) {
-                        $insumosAttach[$insumoId]['cantidad'] += $cantidad;
-                        $insumosAttach[$insumoId]['subtotal'] += $cantidad * $precio;
+                    if (isset($todosLosInsumos[$insumoId])) {
+                        $todosLosInsumos[$insumoId]['cantidad'] += $cantidad;
+                        $todosLosInsumos[$insumoId]['subtotal'] += $cantidad * $precio;
                     } else {
-                        $insumosAttach[$insumoId] = [
+                        $todosLosInsumos[$insumoId] = [
                             'cantidad' => $cantidad,
                             'precio_unitario' => $precio,
                             'subtotal' => $cantidad * $precio,
@@ -480,8 +512,11 @@ class CotizacionController extends Controller
             }
         }
 
-        if (!empty($insumosAttach)) {
-            $cotizacion->insumos()->attach($insumosAttach);
+        // Sincronizar todos los insumos (esto reemplaza completamente la relación)
+        if (!empty($todosLosInsumos)) {
+            $cotizacion->insumos()->sync($todosLosInsumos);
+        } else {
+            $cotizacion->insumos()->detach();
         }
 
         return redirect()->route('admin.cotizaciones.index')->with('success', 'Cotización actualizada exitosamente.');

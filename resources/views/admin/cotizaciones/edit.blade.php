@@ -212,7 +212,7 @@
                         <div class="col-md-2 mb-3">
                             <label for="no_lienzos_forro">No. Lienzos</label>
                             <input type="number" name="detalle[no_lienzos_forro]" id="no_lienzos_forro" class="form-control"
-                                value="{{ old('detalle.no_lienzos_forro', $detalleCotizacion->no_lienzos_forro ?? '') }}">
+                                value="{{ old('detalle.no_lienzas_forro', $detalleCotizacion->no_lienzos_forro ?? '') }}">
                         </div>
                         <div class="col-md-2 mb-3">
                             <label for="no_lienzos_redondeado_forro">No. Lienzos Redondeados</label>
@@ -425,6 +425,171 @@
                 </div>
             </div>
 
+            <!-- Tabla Materiales Varios -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4>Materiales Varios</h4>
+                    <div class="card-header-action">
+                        <button type="button" class="btn btn-success btn-sm" onclick="agregarOtroInsumo()">
+                            <i class="fas fa-plus"></i> Añadir otro
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Materiales Varios</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materiales-tbody">
+                                <!-- Insumos fijos -->
+                                @php
+                                    $insumosFijosData = ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'];
+                                    $insumosRelacionados = $cotizacion->insumos->keyBy('nombre');
+                                @endphp
+                                @foreach($insumosFijosData as $nombreInsumo)
+                                    @php
+                                        $insumoFijo = $insumosFijos->get($nombreInsumo);
+                                        $insumoRelacionado = $insumosRelacionados->get($nombreInsumo);
+                                        $cantidad = old('detalle.' . strtolower($nombreInsumo) . '_cantidad', $insumoRelacionado ? $insumoRelacionado->pivot->cantidad : '');
+                                        $precio = $insumoFijo ? $insumoFijo->precio_publico : '';
+                                    @endphp
+                                    <tr>
+                                        <td>
+                                            {{ $nombreInsumo }}
+                                            <input type="hidden" name="detalle[{{ strtolower($nombreInsumo) }}_id]" value="{{ $insumoFijo->id ?? '' }}">
+                                        </td>
+                                        <td>
+                                            <input type="number" name="detalle[{{ strtolower($nombreInsumo) }}_cantidad]" class="form-control" value="{{ $cantidad }}" autocomplete="off">
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" value="{{ $precio }}" step="0.01" readonly>
+                                            </div>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                @endforeach
+
+                                <!-- Otros insumos existentes -->
+                                @php
+                                    $otrosInsumosExistentes = $cotizacion->insumos->filter(function($insumo) use ($insumosFijosData) {
+                                        return !in_array($insumo->nombre, $insumosFijosData);
+                                    });
+                                    $contador = 0;
+                                @endphp
+                                @foreach($otrosInsumosExistentes as $insumoExistente)
+                                    @php $contador++; @endphp
+                                    <tr class="otro-insumo-row">
+                                        <td>
+                                            <select name="detalle[otros{{ $contador }}_nombre]" id="otros{{ $contador }}_nombre" class="form-control">
+                                                <option value="">Seleccionar insumo...</option>
+                                                @foreach($insumos as $insumo)
+                                                <option value="{{ $insumo->id }}" {{ $insumoExistente->id == $insumo->id ? 'selected' : '' }}>
+                                                    {{ $insumo->nombre }}
+                                                </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="detalle[otros{{ $contador }}_cantidad]" class="form-control" min="0" step="0.01" value="{{ $insumoExistente->pivot->cantidad }}">
+                                        </td>
+                                        <td>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" name="detalle[otros{{ $contador }}_precio]" class="form-control" min="0" step="0.01" value="{{ $insumoExistente->pivot->precio_unitario }}">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarInsumo(this)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Costo Total Materiales:</strong></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" name="detalle[costo_total_materiales]" id="costo_total_materiales" class="form-control" value="{{ old('detalle.costo_total_materiales', $detalleCotizacion->costo_total_materiales ?? '') }}" readonly>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+<script>
+let contadorOtrosInsumos = {{ $contador ?? 0 }};
+
+function agregarOtroInsumo() {
+    contadorOtrosInsumos++;
+    const tbody = document.getElementById('materiales-tbody');
+    const fila = document.createElement('tr');
+    fila.className = 'otro-insumo-row';
+    fila.innerHTML = `
+        <td>
+            <select name="detalle[otros${contadorOtrosInsumos}_nombre]" class="form-control">
+                <option value="">Seleccionar insumo...</option>
+                @foreach($insumos as $insumo)
+                    <option value="{{ $insumo->id }}">{{ $insumo->nombre }}</option>
+                @endforeach
+            </select>
+        </td>
+        <td>
+            <input type="number" name="detalle[otros${contadorOtrosInsumos}_cantidad]" class="form-control" min="0" step="0.01">
+        </td>
+        <td>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" name="detalle[otros${contadorOtrosInsumos}_precio]" class="form-control" min="0" step="0.01">
+            </div>
+        </td>
+        <td>
+            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarInsumo(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(fila);
+}
+
+function eliminarInsumo(button) {
+    button.closest('.otro-insumo-row').remove();
+    actualizarCostoTotalMateriales();
+}
+
+function actualizarCostoTotalMateriales() {
+    let total = 0;
+    document.querySelectorAll('#materiales-tbody tr').forEach(fila => {
+        const cantidadInput = fila.querySelector('input[name*="_cantidad"]');
+        const precioInput = fila.querySelector('input[name*="_precio"]');
+        const cantidad = parseFloat(cantidadInput?.value) || 0;
+        const precio = parseFloat(precioInput?.value) || 0;
+        total += cantidad * precio;
+    });
+    document.getElementById('costo_total_materiales').value = total.toFixed(2);
+}
+
+// Actualiza el total cuando cambian cantidades o precios
+document.addEventListener('input', function(e) {
+    if (e.target && (e.target.name?.includes('_cantidad') || e.target.name?.includes('_precio'))) {
+        actualizarCostoTotalMateriales();
+    }
+});
+</script>
+
             <!-- Script para cálculos automáticos-->
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
@@ -451,99 +616,7 @@
                     anchoTelaInput.addEventListener('input', calcularLienzas);
                 });
             </script>
-
-            <!-- Insumos Fijos -->
-            <div class="card">
-                <div class="card-header">
-                    <h4>Insumos Fijos</h4>
-                </div>
-                <div class="card-body">
-                    @php
-                    $insumosFijosData = ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'];
-                    $insumosRelacionados = $cotizacion->insumos->keyBy('nombre');
-                    @endphp
-
-                    @foreach($insumosFijosData as $nombreInsumo)
-                    @php
-                    $insumoFijo = $insumosFijos->get($nombreInsumo);
-                    $insumoRelacionado = $insumosRelacionados->get($nombreInsumo);
-                    $cantidad = $insumoRelacionado ? $insumoRelacionado->pivot->cantidad : 0;
-                    @endphp
-                    <div class="row mb-3 align-items-end">
-                        <div class="col-md-6">
-                            <label>{{ $nombreInsumo }}</label>
-                            <input type="text" class="form-control" value="{{ $nombreInsumo }}" readonly>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="{{ strtolower($nombreInsumo) }}_cantidad">Cantidad</label>
-                            <input type="number" name="detalle[{{ strtolower($nombreInsumo) }}_cantidad]"
-                                id="{{ strtolower($nombreInsumo) }}_cantidad" class="form-control"
-                                min="0" step="0.01" value="{{ $cantidad }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label>Precio Unitario</label>
-                            <input type="text" class="form-control"
-                                value="${{ $insumoFijo ? number_format($insumoFijo->precio_publico, 2) : '0.00' }}" readonly>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Otros Insumos -->
-            <div class="card">
-                <div class="card-header">
-                    <h4>Otros Insumos</h4>
-                    <div class="card-header-action">
-                        <button type="button" class="btn btn-success btn-sm" onclick="agregarOtroInsumo()">
-                            <i class="fas fa-plus"></i> Agregar Insumo
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div id="otros-insumos-container">
-                        @php
-                        $otrosInsumosExistentes = $cotizacion->insumos->whereNotIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas']);
-                        $contador = 0;
-                        @endphp
-
-                        @foreach($otrosInsumosExistentes as $insumoExistente)
-                        @php $contador++; @endphp
-                        <div class="row mb-3 align-items-end otro-insumo-row">
-                            <div class="col-md-5">
-                                <label for="otros{{ $contador }}_nombre">Insumo</label>
-                                <select name="detalle[otros{{ $contador }}_nombre]" id="otros{{ $contador }}_nombre" class="form-control">
-                                    <option value="">Seleccionar insumo...</option>
-                                    @foreach($insumos as $insumo)
-                                    <option value="{{ $insumo->id }}" {{ $insumoExistente->id == $insumo->id ? 'selected' : '' }}>
-                                        {{ $insumo->nombre }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="otros{{ $contador }}_cantidad">Cantidad</label>
-                                <input type="number" name="detalle[otros{{ $contador }}_cantidad]"
-                                    id="otros{{ $contador }}_cantidad" class="form-control"
-                                    min="0" step="0.01" value="{{ $insumoExistente->pivot->cantidad }}">
-                            </div>
-                            <div class="col-md-3">
-                                <label for="otros{{ $contador }}_precio">Precio Unitario</label>
-                                <input type="number" name="detalle[otros{{ $contador }}_precio]"
-                                    id="otros{{ $contador }}_precio" class="form-control"
-                                    min="0" step="0.01" value="{{ $insumoExistente->pivot->precio_unitario }}">
-                            </div>
-                            <div class="col-md-2">
-                                <button type="button" class="btn btn-danger btn-sm" onclick="eliminarInsumo(this)">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
+            
             <!-- Totales -->
             <div class="card">
                 <div class="card-header">
