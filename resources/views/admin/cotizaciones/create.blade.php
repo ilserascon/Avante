@@ -533,7 +533,7 @@
                             	</td>
                             	<td class="text-center">
                                 	<div class="d-flex align-items-center justify-content-center">
-                                    	<input type="number" id="valor_bastilla" class="form-control" placeholder="Ej. 1.10m" step="0.01" min="0">
+                                    	<input type="number" name="detalle[valor_bastilla]" id="valor_bastilla" class="form-control" placeholder="Ej. 1.10m" step="0.01" min="0">
                                 	</div>
                             	</td>
                         	</tr>

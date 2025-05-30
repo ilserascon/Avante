@@ -107,6 +107,18 @@ class CotizacionController extends Controller
         $cotizacion->estatus = $request->input('estatus', 'solicitada');
 
         $cotizacion->save();
+        // Detalles de cortina
+        if ($cotizacion->lleva_cortina && isset($detalle['ancho'])) {
+            $cotizacion->detalleCotizacion()->create([
+                'tela_id' => $detalle['tela_id'] ?? null,
+                'ancho_tela' => $detalle['ancho_tela'] ?? null,
+                'ancho' => $detalle['ancho'] ?? null,
+                'largo' => $detalle['largo'] ?? null,
+                'no_lienzos' => $detalle['no_lienzos'] ?? null,
+                'no_lienzos_redondeado' => $detalle['no_lienzos_redondeado'] ?? null,
+                'bastilla' => $detalle['valor_bastilla'] ?? null,
+            ]);
+        }
 
         $insumos = $request->input('insumos', []);
         if (!empty($insumos)) {
@@ -170,8 +182,10 @@ class CotizacionController extends Controller
         return view('admin.cotizaciones.show', compact('cotizacion'));
     }
 
-    public function edit($id) {
-        $cotizacion = Cotizacion::with(['insumos'])->findOrFail($id);
+    public function edit($id)
+    {
+        $cotizacion = Cotizacion::with(['insumos', 'detalleCotizacion'])->findOrFail($id);
+        $detalleCotizacion = $cotizacion->detalleCotizacion;
 
         // Obtener insumos para los selects y campos del formulario
         $insumos = Insumo::where('id_tipo_insumo', '=', 2)->get();
@@ -196,6 +210,7 @@ class CotizacionController extends Controller
 
         return view('admin.cotizaciones.edit', compact(
             'cotizacion',
+            'detalleCotizacion',
             'insumos',
             'insumosFijos',
             'manoObra',
@@ -206,7 +221,8 @@ class CotizacionController extends Controller
         ));
     }
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         $cotizacion = Cotizacion::findOrFail($id);
 
         $validated = $request->validate([
@@ -247,7 +263,30 @@ class CotizacionController extends Controller
 
         $cotizacion->save();
 
-        // Primero, limpiar todos los insumos relacionados
+        // Actualizar o crear detalle de cortina
+        if ($cotizacion->lleva_cortina && isset($detalle['ancho'])) {
+            $dataDetalle = [
+                'tela_id' => $detalle['tela_id'] ?? null,
+                'ancho_tela' => $detalle['ancho_tela'] ?? null,
+                'ancho' => $detalle['ancho'] ?? null,
+                'largo' => $detalle['largo'] ?? null,
+                'no_lienzos' => $detalle['no_lienzos'] ?? null,
+                'no_lienzos_redondeado' => $detalle['no_lienzos_redondeado'] ?? null,
+                'bastilla' => $detalle['valor_bastilla'] ?? null,
+            ];
+            if ($cotizacion->detalleCotizacion) {
+                $cotizacion->detalleCotizacion->update($dataDetalle);
+            } else {
+                $cotizacion->detalleCotizacion()->create($dataDetalle);
+            }
+        } else {
+            // Si no lleva cortina, eliminar detalle si existe
+            if ($cotizacion->detalleCotizacion) {
+                $cotizacion->detalleCotizacion->delete();
+            }
+        }
+
+        // Limpiar todos los insumos relacionados
         $cotizacion->insumos()->detach();
 
         // Adjuntar insumos seleccionados
@@ -276,6 +315,27 @@ class CotizacionController extends Controller
                         'precio_unitario' => $precio,
                         'subtotal' => $cantidad * $precio,
                     ];
+                }
+            }
+        }
+
+        foreach ($detalle as $k => $v) {
+            if (preg_match('/^otros(\d+)_nombre$/', $k, $matches)) {
+                $index = $matches[1];
+                $insumoId = $v;
+                $cantidad = $detalle["otros{$index}_cantidad"] ?? 0;
+                $precio = $detalle["otros{$index}_precio"] ?? 0;
+                if ($insumoId && $cantidad > 0) {
+                    if (isset($insumosAttach[$insumoId])) {
+                        $insumosAttach[$insumoId]['cantidad'] += $cantidad;
+                        $insumosAttach[$insumoId]['subtotal'] += $cantidad * $precio;
+                    } else {
+                        $insumosAttach[$insumoId] = [
+                            'cantidad' => $cantidad,
+                            'precio_unitario' => $precio,
+                            'subtotal' => $cantidad * $precio,
+                        ];
+                    }
                 }
             }
         }

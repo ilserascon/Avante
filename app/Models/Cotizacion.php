@@ -11,10 +11,19 @@ class Cotizacion extends Model
     protected $table = 'cotizaciones';
 
     protected $fillable = [
-        'cliente_id', 'fecha',
-        'lleva_cortina', 'lleva_tergal', 'lleva_forro',
-        'total_lienzos', 'total_m2_forro', 'total_m2_tela', 'total_m2_tergal',
-        'costo_cortina', 'utilidad', 'costo_decorador', 'precio_publico',
+        'cliente_id',
+        'fecha',
+        'lleva_cortina',
+        'lleva_tergal',
+        'lleva_forro',
+        'total_lienzos',
+        'total_m2_forro',
+        'total_m2_tela',
+        'total_m2_tergal',
+        'costo_cortina',
+        'utilidad',
+        'costo_decorador',
+        'precio_publico',
         'estatus'
     ];
 
@@ -26,9 +35,12 @@ class Cotizacion extends Model
     public function insumos()
     {
         return $this->belongsToMany(Insumo::class, 'cotizacion_insumo')
-                    ->withPivot('cantidad', 'precio_unitario', 'subtotal')
-                    ->withTimestamps();
+            ->withPivot('cantidad', 'precio_unitario', 'subtotal')
+            ->withTimestamps();
+    }
+
+    public function detalleCotizacion()
+    {
+        return $this->hasOne(DetalleCotizacion::class);
     }
 }
-
-
