@@ -107,24 +107,53 @@ class CotizacionController extends Controller
         $cotizacion->estatus = $request->input('estatus', 'solicitada');
 
         $cotizacion->save();
-        // Detalles de cortina
+
+        $dataDetalle = [];
+
+        // Datos de cortina
         if ($cotizacion->lleva_cortina && isset($detalle['ancho'])) {
-            $cotizacion->detalleCotizacion()->create([
-                'tela_id' => $detalle['tela_id'] ?? null,
-                'ancho_tela' => $detalle['ancho_tela'] ?? null,
-                'ancho' => $detalle['ancho'] ?? null,
-                'largo' => $detalle['largo'] ?? null,
-                'no_lienzos' => $detalle['no_lienzos'] ?? null,
-                'no_lienzos_redondeado' => $detalle['no_lienzos_redondeado'] ?? null,
-                'bastilla' => $detalle['valor_bastilla'] ?? null,
-            ]);
+            $dataDetalle['tela_id'] = $detalle['tela_id'] ?? null;
+            $dataDetalle['ancho_tela'] = $detalle['ancho_tela'] ?? null;
+            $dataDetalle['ancho'] = $detalle['ancho'] ?? null;
+            $dataDetalle['largo'] = $detalle['largo'] ?? null;
+            $dataDetalle['no_lienzos'] = $detalle['no_lienzos'] ?? null;
+            $dataDetalle['no_lienzos_redondeado'] = $detalle['no_lienzos_redondeado'] ?? null;
+            $dataDetalle['bastilla'] = $detalle['valor_bastilla'] ?? null;
         }
 
+        // Datos de tergal
+        if ($cotizacion->lleva_tergal && isset($detalle['ancho_tergal'])) {
+            $dataDetalle['tergal_id'] = $detalle['tergal_id'] ?? null;
+            $dataDetalle['ancho_tergal'] = $detalle['ancho_tergal'] ?? null;
+            $dataDetalle['ancho_tergal_real'] = $detalle['ancho_tergal_real'] ?? null;
+            $dataDetalle['largo_tergal'] = $detalle['largo_tergal'] ?? null;
+            $dataDetalle['no_lienzos_tergal'] = $detalle['no_lienzos_tergal'] ?? null;
+            $dataDetalle['no_lienzos_redondeado_tergal'] = $detalle['no_lienzos_redondeado_tergal'] ?? null;
+            $dataDetalle['bastilla_tergal'] = $detalle['valor_bastilla_tergal'] ?? null;
+        }
+
+        // Datos de forro
+        if ($cotizacion->lleva_forro && isset($detalle['ancho_forro'])) {
+            $dataDetalle['forro_id'] = $detalle['forro_id'] ?? null;
+            $dataDetalle['ancho_forro'] = $detalle['ancho_forro'] ?? null;
+            $dataDetalle['ancho_forro_real'] = $detalle['ancho_forro_real'] ?? null;
+            $dataDetalle['largo_forro'] = $detalle['largo_forro'] ?? null;
+            $dataDetalle['no_lienzos_forro'] = $detalle['no_lienzos_forro'] ?? null;
+            $dataDetalle['no_lienzos_redondeado_forro'] = $detalle['no_lienzos_redondeado_forro'] ?? null;
+            $dataDetalle['bastilla_forro'] = $detalle['valor_bastilla_forro'] ?? null;
+        }
+
+        if (!empty($dataDetalle)) {
+            $cotizacion->detalleCotizacion()->create($dataDetalle);
+        }
+
+        // Adjuntar insumos seleccionados
         $insumos = $request->input('insumos', []);
         if (!empty($insumos)) {
             $cotizacion->insumos()->attach($insumos);
         }
 
+        // Adjuntar insumos fijos y otros insumos con cantidades y precios personalizados
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
             ->get()
@@ -263,27 +292,80 @@ class CotizacionController extends Controller
 
         $cotizacion->save();
 
-        // Actualizar o crear detalle de cortina
+        $detalleCotizacion = $cotizacion->detalleCotizacion;
+
+        if (!$detalleCotizacion) {
+            $detalleCotizacion = $cotizacion->detalleCotizacion()->create([]);
+        }
+
+        $dataDetalle = [];
+
+        // Cortina
         if ($cotizacion->lleva_cortina && isset($detalle['ancho'])) {
-            $dataDetalle = [
-                'tela_id' => $detalle['tela_id'] ?? null,
-                'ancho_tela' => $detalle['ancho_tela'] ?? null,
-                'ancho' => $detalle['ancho'] ?? null,
-                'largo' => $detalle['largo'] ?? null,
-                'no_lienzos' => $detalle['no_lienzos'] ?? null,
-                'no_lienzos_redondeado' => $detalle['no_lienzos_redondeado'] ?? null,
-                'bastilla' => $detalle['valor_bastilla'] ?? null,
-            ];
-            if ($cotizacion->detalleCotizacion) {
-                $cotizacion->detalleCotizacion->update($dataDetalle);
-            } else {
-                $cotizacion->detalleCotizacion()->create($dataDetalle);
-            }
+            $dataDetalle['tela_id'] = $detalle['tela_id'] ?? null;
+            $dataDetalle['ancho_tela'] = $detalle['ancho_tela'] ?? null;
+            $dataDetalle['ancho'] = $detalle['ancho'] ?? null;
+            $dataDetalle['largo'] = $detalle['largo'] ?? null;
+            $dataDetalle['no_lienzos'] = $detalle['no_lienzos'] ?? null;
+            $dataDetalle['no_lienzos_redondeado'] = $detalle['no_lienzos_redondeado'] ?? null;
+            $dataDetalle['bastilla'] = $detalle['valor_bastilla'] ?? null;
         } else {
-            // Si no lleva cortina, eliminar detalle si existe
-            if ($cotizacion->detalleCotizacion) {
-                $cotizacion->detalleCotizacion->delete();
-            }
+            $dataDetalle['tela_id'] = null;
+            $dataDetalle['ancho_tela'] = null;
+            $dataDetalle['ancho'] = null;
+            $dataDetalle['largo'] = null;
+            $dataDetalle['no_lienzos'] = null;
+            $dataDetalle['no_lienzos_redondeado'] = null;
+            $dataDetalle['bastilla'] = null;
+        }
+
+        // Tergal
+        if ($cotizacion->lleva_tergal && isset($detalle['ancho_tergal'])) {
+            $dataDetalle['tergal_id'] = $detalle['tergal_id'] ?? null;
+            $dataDetalle['ancho_tergal'] = $detalle['ancho_tergal'] ?? null;
+            $dataDetalle['ancho_tergal_real'] = $detalle['ancho_tergal_real'] ?? null;
+            $dataDetalle['largo_tergal'] = $detalle['largo_tergal'] ?? null;
+            $dataDetalle['no_lienzos_tergal'] = $detalle['no_lienzos_tergal'] ?? null;
+            $dataDetalle['no_lienzos_redondeado_tergal'] = $detalle['no_lienzos_redondeado_tergal'] ?? null;
+            $dataDetalle['bastilla_tergal'] = $detalle['valor_bastilla_tergal'] ?? null;
+        } else {
+            $dataDetalle['tergal_id'] = null;
+            $dataDetalle['ancho_tergal'] = null;
+            $dataDetalle['ancho_tergal_real'] = null;
+            $dataDetalle['largo_tergal'] = null;
+            $dataDetalle['no_lienzos_tergal'] = null;
+            $dataDetalle['no_lienzos_redondeado_tergal'] = null;
+            $dataDetalle['bastilla_tergal'] = null;
+        }
+
+        // Forro
+        if ($cotizacion->lleva_forro && isset($detalle['ancho_forro'])) {
+            $dataDetalle['forro_id'] = $detalle['forro_id'] ?? null;
+            $dataDetalle['ancho_forro'] = $detalle['ancho_forro'] ?? null;
+            $dataDetalle['ancho_forro_real'] = $detalle['ancho_forro_real'] ?? null;
+            $dataDetalle['largo_forro'] = $detalle['largo_forro'] ?? null;
+            $dataDetalle['no_lienzos_forro'] = $detalle['no_lienzos_forro'] ?? null;
+            $dataDetalle['no_lienzos_redondeado_forro'] = $detalle['no_lienzos_redondeado_forro'] ?? null;
+            $dataDetalle['bastilla_forro'] = $detalle['valor_bastilla_forro'] ?? null;
+        } else {
+            $dataDetalle['forro_id'] = null;
+            $dataDetalle['ancho_forro'] = null;
+            $dataDetalle['ancho_forro_real'] = null;
+            $dataDetalle['largo_forro'] = null;
+            $dataDetalle['no_lienzos_forro'] = null;
+            $dataDetalle['no_lienzos_redondeado_forro'] = null;
+            $dataDetalle['bastilla_forro'] = null;
+        }
+
+        $detalleCotizacion->update($dataDetalle);
+
+        if (
+            !$cotizacion->lleva_cortina &&
+            !$cotizacion->lleva_tergal &&
+            !$cotizacion->lleva_forro &&
+            $detalleCotizacion
+        ) {
+            $detalleCotizacion->delete();
         }
 
         // Limpiar todos los insumos relacionados

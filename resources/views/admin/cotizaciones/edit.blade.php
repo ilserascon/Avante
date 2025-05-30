@@ -110,6 +110,66 @@
             </div>
             @endif
 
+            <!-- Sección de Tergal -->
+            @if(isset($cotizacion) && $cotizacion->lleva_tergal)
+            <div class="card mt-4">
+                <div class="card-header pb-1">
+                    <h4 class="mb-1">Detalle de Tergal</h4>
+                </div>
+                <div class="card-body pt-2">
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <label for="tergal_id" class="mb-1">Tergal</label>
+                            <select id="tergal_id" name="detalle[tergal_id]" class="form-control select2" required
+                                oninvalid="this.setCustomValidity('Por favor selecciona un tergal')"
+                                oninput="this.setCustomValidity('')">
+                                <option value="">Seleccione un tergal</option>
+                                @foreach($tergales as $tergal)
+                                    <option value="{{ $tergal->id }}"
+                                        {{ old('detalle.tergal_id', $detalleCotizacion->tergal_id ?? '') == $tergal->id ? 'selected' : '' }}>
+                                        {{ $tergal->nombre }} - {{ $tergal->campo1 ?? '' }} - {{ $tergal->campo2 ?? '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2 mb-3">
+                            <label for="ancho_tergal">Ancho tela tergal</label>
+                            <input type="text" name="detalle[ancho_tergal]" id="ancho_tergal" class="form-control"
+                                value="{{ old('detalle.ancho_tergal', $detalleCotizacion->ancho_tergal ?? '') }}">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="ancho_tergal_real">Ancho</label>
+                            <input type="text" name="detalle[ancho_tergal_real]" id="ancho_tergal_real" class="form-control"
+                                value="{{ old('detalle.ancho_tergal_real', $detalleCotizacion->ancho_tergal_real ?? '') }}">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="largo_tergal">Largo</label>
+                            <input type="text" name="detalle[largo_tergal]" id="largo_tergal" class="form-control"
+                                value="{{ old('detalle.largo_tergal', $detalleCotizacion->largo_tergal ?? '') }}">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="no_lienzos_tergal">No. Lienzos</label>
+                            <input type="number" name="detalle[no_lienzos_tergal]" id="no_lienzos_tergal" class="form-control"
+                                value="{{ old('detalle.no_lienzos_tergal', $detalleCotizacion->no_lienzos_tergal ?? '') }}">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="no_lienzos_redondeado_tergal">No. Lienzos Redondeados</label>
+                            <input type="number" name="detalle[no_lienzos_redondeado_tergal]" id="no_lienzos_redondeado_tergal" class="form-control"
+                                value="{{ old('detalle.no_lienzos_redondeado_tergal', $detalleCotizacion->no_lienzos_redondeado_tergal ?? '') }}">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="valor_bastilla_tergal">Bastilla</label>
+                            <input type="number" id="valor_bastilla_tergal" name="detalle[valor_bastilla_tergal]" class="form-control"
+                                value="{{ old('detalle.valor_bastilla_tergal', $detalleCotizacion->bastilla_tergal ?? '') }}"
+                                placeholder="Ej. 1.10" step="0.01" min="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Script para cálculos automáticos (opcional) -->
             <script>
                 document.addEventListener('DOMContentLoaded', function() {

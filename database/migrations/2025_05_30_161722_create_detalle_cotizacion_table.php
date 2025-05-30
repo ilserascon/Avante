@@ -14,13 +14,30 @@ return new class extends Migration
         Schema::create('detalle_cotizacion', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cotizacion_id')->constrained('cotizaciones')->onDelete('cascade');
+
+            $table->foreignId('tela_id')->nullable()->constrained('insumo');
             $table->string('ancho_tela')->nullable();
             $table->string('ancho')->nullable();
             $table->string('largo')->nullable();
             $table->double('no_lienzos')->nullable();
             $table->integer('no_lienzos_redondeado')->nullable();
             $table->string('bastilla')->nullable();
-            $table->foreignId('tela_id')->constrained('insumo');
+
+            $table->foreignId('tergal_id')->nullable()->constrained('insumo');
+            $table->string('ancho_tergal')->nullable();
+            $table->string('ancho_tergal_real')->nullable();
+            $table->string('largo_tergal')->nullable();
+            $table->double('no_lienzos_tergal')->nullable();
+            $table->integer('no_lienzos_redondeado_tergal')->nullable();
+            $table->string('bastilla_tergal')->nullable();
+
+            $table->foreignId('forro_id')->nullable()->constrained('insumo');
+            $table->string('ancho_forro')->nullable();
+            $table->string('ancho_forro_real')->nullable();
+            $table->string('largo_forro')->nullable();
+            $table->double('no_lienzos_forro')->nullable();
+            $table->integer('no_lienzos_redondeado_forro')->nullable();
+            $table->string('bastilla_forro')->nullable();
             $table->timestamps();
         });
     }
