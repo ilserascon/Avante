@@ -170,7 +170,67 @@
             </div>
             @endif
 
-            <!-- Script para cálculos automáticos (opcional) -->
+            <!-- Sección de Forro -->
+            @if(isset($cotizacion) && $cotizacion->lleva_forro)
+            <div class="card mt-4">
+                <div class="card-header pb-1">
+                    <h4 class="mb-1">Detalle de Forro</h4>
+                </div>
+                <div class="card-body pt-2">
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <label for="forro_id" class="mb-1">Forro</label>
+                            <select id="forro_id" name="detalle[forro_id]" class="form-control select2" required
+                                oninvalid="this.setCustomValidity('Por favor selecciona un forro')"
+                                oninput="this.setCustomValidity('')">
+                                <option value="">Seleccione un forro</option>
+                                @foreach($forros as $forro)
+                                    <option value="{{ $forro->id }}"
+                                        {{ old('detalle.forro_id', $detalleCotizacion->forro_id ?? '') == $forro->id ? 'selected' : '' }}>
+                                        {{ $forro->nombre }} - {{ $forro->campo1 ?? '' }} - {{ $forro->campo2 ?? '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2 mb-3">
+                            <label for="ancho_forro">Ancho tela forro</label>
+                            <input type="text" name="detalle[ancho_forro]" id="ancho_forro" class="form-control"
+                                value="{{ old('detalle.ancho_forro', $detalleCotizacion->ancho_forro ?? '') }}">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="ancho_forro_real">Ancho</label>
+                            <input type="text" name="detalle[ancho_forro_real]" id="ancho_forro_real" class="form-control"
+                                value="{{ old('detalle.ancho_forro_real', $detalleCotizacion->ancho_forro_real ?? '') }}">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="largo_forro">Largo</label>
+                            <input type="text" name="detalle[largo_forro]" id="largo_forro" class="form-control"
+                                value="{{ old('detalle.largo_forro', $detalleCotizacion->largo_forro ?? '') }}">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="no_lienzos_forro">No. Lienzos</label>
+                            <input type="number" name="detalle[no_lienzos_forro]" id="no_lienzos_forro" class="form-control"
+                                value="{{ old('detalle.no_lienzos_forro', $detalleCotizacion->no_lienzos_forro ?? '') }}">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="no_lienzos_redondeado_forro">No. Lienzos Redondeados</label>
+                            <input type="number" name="detalle[no_lienzos_redondeado_forro]" id="no_lienzos_redondeado_forro" class="form-control"
+                                value="{{ old('detalle.no_lienzos_redondeado_forro', $detalleCotizacion->no_lienzos_redondeado_forro ?? '') }}">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="valor_bastilla_forro">Bastilla</label>
+                            <input type="number" id="valor_bastilla_forro" name="detalle[valor_bastilla_forro]" class="form-control"
+                                value="{{ old('detalle.valor_bastilla_forro', $detalleCotizacion->bastilla_forro ?? '') }}"
+                                placeholder="Ej. 1.10" step="0.01" min="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <!-- Script para cálculos automáticos-->
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const anchoInput = document.getElementById('ancho');

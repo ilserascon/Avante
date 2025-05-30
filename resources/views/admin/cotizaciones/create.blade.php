@@ -766,7 +766,7 @@
                             	</td>
                             	<td class="text-center">
                                 	<div class="d-flex align-items-center justify-content-center">
-                                    	<input type="number" id="valor_bastilla_forro" class="form-control" placeholder="Ej. 0.40m" step="0.01" min="0">
+                                    	<input type="number" name="detalle[valor_bastilla_forro]" id="valor_bastilla_forro" class="form-control" placeholder="Ej. 0.40m" step="0.01" min="0">
                                 	</div>
                             	</td>
                         	</tr>
