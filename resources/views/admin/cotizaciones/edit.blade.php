@@ -51,8 +51,7 @@
             </div>
 
             <!-- Sección de Cortina -->
-            @if(isset($cotizacion) && $cotizacion->lleva_cortina)
-            <div class="card mt-4">
+            <div class="card mt-4" id="seccion-cortina" style="display: none;">
                 <div class="card-header pb-1">
                     <h4 class="mb-1">Detalle de Cortina</h4>
                 </div>
@@ -109,7 +108,7 @@
                                     <td>
                                         <input type="number" id="valor_bastilla" name="detalle[valor_bastilla]" class="form-control" 
                                             value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? '') }}" 
-                                            placeholder="Ej. 1.10" step="0.01" min="0">
+                                            placeholder="Ej. 1.10m" step="0.01" min="0">
                                     </td>
                                 </tr>
                             </tbody>
@@ -117,11 +116,9 @@
                     </div>
                 </div>
             </div>
-            @endif
-
+            
             <!-- Sección de Tergal -->
-            @if(isset($cotizacion) && $cotizacion->lleva_tergal)
-            <div class="card mt-4">
+            <div class="card mt-4" id="seccion-tergal" style="display: none;">
                 <div class="card-header pb-1">
                     <h4 class="mb-1">Detalle de Tergal</h4>
                 </div>
@@ -178,7 +175,7 @@
                                     <td>
                                         <input type="number" id="valor_bastilla_tergal" name="detalle[valor_bastilla_tergal]" class="form-control"
                                             value="{{ old('detalle.valor_bastilla_tergal', $detalleCotizacion->bastilla_tergal ?? '') }}"
-                                            placeholder="Ej. 1.10" step="0.01" min="0">
+                                            placeholder="Ej. 0.65m" step="0.01" min="0">
                                     </td>
                                 </tr>
                             </tbody>
@@ -186,11 +183,9 @@
                     </div>
                 </div>
             </div>
-            @endif
 
             <!-- Sección de Forro -->
-            @if(isset($cotizacion) && $cotizacion->lleva_forro)
-            <div class="card mt-4">
+            <div class="card mt-4" id="seccion-forro" style="display: none;">
                 <div class="card-header pb-1">
                     <h4 class="mb-1">Detalle de Forro</h4>
                 </div>
@@ -247,7 +242,7 @@
                                     <td>
                                         <input type="number" id="valor_bastilla_forro" name="detalle[valor_bastilla_forro]" class="form-control"
                                             value="{{ old('detalle.valor_bastilla_forro', $detalleCotizacion->bastilla_forro ?? '') }}"
-                                            placeholder="Ej. 1.10" step="0.01" min="0">
+                                            placeholder="Ej. 0.40m" step="0.01" min="0">
                                     </td>
                                 </tr>
                             </tbody>
@@ -255,7 +250,6 @@
                     </div>
                 </div>
             </div>
-            @endif
 
             <!-- Tabla Totales Tela, Tergal y Forro -->
             <div class="card mt-4">
@@ -797,6 +791,32 @@ document.addEventListener('input', function(e) {
                     <i class="fas fa-times"></i> Cancelar
                 </a>
             </div>
+
+            <script>
+                // Listener de los checkbox
+                document.addEventListener('DOMContentLoaded', function() {
+                    const cortinaCheck = document.getElementById('cortinaCheck');
+                    const tergalCheck = document.getElementById('tergalCheck');
+                    const forroCheck = document.getElementById('forroCheck');
+
+                    const seccionCortina = document.getElementById('seccion-cortina');
+                    const seccionTergal = document.getElementById('seccion-tergal');
+                    const seccionForro = document.getElementById('seccion-forro');
+
+                    function mostrarOcultarSecciones() {
+                        if (seccionCortina) seccionCortina.style.display = cortinaCheck.checked ? '' : 'none';
+                        if (seccionTergal) seccionTergal.style.display = tergalCheck.checked ? '' : 'none';
+                        if (seccionForro) seccionForro.style.display = forroCheck.checked ? '' : 'none';
+                    }
+
+                    cortinaCheck.addEventListener('change', mostrarOcultarSecciones);
+                    tergalCheck.addEventListener('change', mostrarOcultarSecciones);
+                    forroCheck.addEventListener('change', mostrarOcultarSecciones);
+
+                    // Ejecutar al cargar
+                    mostrarOcultarSecciones();
+                });
+            </script>
         </form>
     </div>
 </div>
@@ -849,6 +869,191 @@ document.addEventListener('input', function(e) {
     function eliminarInsumo(button) {
         button.closest('.otro-insumo-row').remove();
     }
+</script>
+
+<script>
+    // Cálculos automáticos para Cortina, Tergal y Forro
+    // Cortina
+    document.addEventListener('change', function(e) {
+        if (['ancho', 'ancho_tela'].includes(e.target.id)) {
+            const ancho = parseFloat(document.getElementById('ancho')?.value) || 0;
+            const anchoTela = parseFloat(document.getElementById('ancho_tela')?.value) || 0;
+            if (ancho > 0 && anchoTela > 0) {
+                const lienzos = (ancho * 2.5) / anchoTela;
+                document.getElementById('no_lienzos').value = lienzos.toFixed(2);
+                document.getElementById('no_lienzos_redondeado').value = Math.ceil(lienzos);
+            } else {
+                document.getElementById('no_lienzos').value = '';
+                document.getElementById('no_lienzos_redondeado').value = '';
+            }
+        }
+    });
+
+    // Tergal
+    document.addEventListener('change', function(e) {
+        if (['ancho_tergal_real', 'ancho_tergal'].includes(e.target.id)) {
+            const ancho = parseFloat(document.getElementById('ancho_tergal_real')?.value) || 0;
+            const anchoTela = parseFloat(document.getElementById('ancho_tergal')?.value) || 0;
+            if (ancho > 0 && anchoTela > 0) {
+                const lienzos = (ancho * 2.5) / anchoTela;
+                document.getElementById('no_lienzos_tergal').value = lienzos.toFixed(2);
+                document.getElementById('no_lienzos_redondeado_tergal').value = Math.ceil(lienzos);
+            } else {
+                document.getElementById('no_lienzos_tergal').value = '';
+                document.getElementById('no_lienzos_redondeado_tergal').value = '';
+            }
+        }
+    });
+
+    // Forro
+    document.addEventListener('change', function(e) {
+        if (['ancho_forro_real', 'ancho_forro'].includes(e.target.id)) {
+            const ancho = parseFloat(document.getElementById('ancho_forro_real')?.value) || 0;
+            const anchoTela = parseFloat(document.getElementById('ancho_forro')?.value) || 0;
+            if (ancho > 0 && anchoTela > 0) {
+                const lienzos = (ancho * 2.5) / anchoTela;
+                document.getElementById('no_lienzos_forro').value = lienzos.toFixed(2);
+                document.getElementById('no_lienzos_redondeado_forro').value = Math.ceil(lienzos);
+            } else {
+                document.getElementById('no_lienzos_forro').value = '';
+                document.getElementById('no_lienzos_redondeado_forro').value = '';
+            }
+        }
+    });
+
+    // --- Copiar valores de Cortina a Tergal ---
+    function copiarCortinaATergal() {
+        const anchoCortina = document.getElementById('ancho');
+        const largoCortina = document.getElementById('largo');
+        const anchoTelaCortina = document.getElementById('ancho_tela');
+        const anchoTergal = document.getElementById('ancho_tergal_real');
+        const largoTergal = document.getElementById('largo_tergal');
+        const anchoTelaTergal = document.getElementById('ancho_tergal');
+
+        if (anchoCortina && anchoCortina.value) anchoTergal.value = anchoCortina.value;
+        if (largoCortina && largoCortina.value) largoTergal.value = largoCortina.value;
+        if (anchoTelaCortina && anchoTelaCortina.value) anchoTelaTergal.value = anchoTelaCortina.value;
+
+        const event = new Event('change', { bubbles: true });
+        anchoTergal.dispatchEvent(event);
+        anchoTelaTergal.dispatchEvent(event);
+    }
+
+    // --- Copiar valores de Cortina a Forro si existen, sino, de Tergal ---
+    function copiarCortinaOTergalAForro() {
+        const cortinaCheck = document.getElementById('cortinaCheck');
+        const anchoCortina = document.getElementById('ancho');
+        const largoCortina = document.getElementById('largo');
+        const anchoTelaCortina = document.getElementById('ancho_tela');
+        const anchoTergal = document.getElementById('ancho_tergal_real');
+        const largoTergal = document.getElementById('largo_tergal');
+        const anchoTelaTergal = document.getElementById('ancho_tergal');
+        const anchoForro = document.getElementById('ancho_forro_real');
+        const largoForro = document.getElementById('largo_forro');
+        const anchoTelaForro = document.getElementById('ancho_forro');
+
+        if (cortinaCheck && cortinaCheck.checked && anchoCortina && anchoCortina.value) {
+            anchoForro.value = anchoCortina.value;
+            if (largoCortina && largoCortina.value) largoForro.value = largoCortina.value;
+            if (anchoTelaCortina && anchoTelaCortina.value) anchoTelaForro.value = anchoTelaCortina.value;
+        } else {
+            if (anchoTergal && anchoTergal.value) anchoForro.value = anchoTergal.value;
+            if (largoTergal && largoTergal.value) largoForro.value = largoTergal.value;
+            if (anchoTelaTergal && anchoTelaTergal.value) anchoTelaForro.value = anchoTelaTergal.value;
+        }
+
+        const event = new Event('change', { bubbles: true });
+        anchoForro.dispatchEvent(event);
+        anchoTelaForro.dispatchEvent(event);
+    }
+
+    // --- Listeners para copiar valores cuando se muestra la sección o cambian los campos base ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const cortinaCheck = document.getElementById('cortinaCheck');
+        const tergalCheck = document.getElementById('tergalCheck');
+        const forroCheck = document.getElementById('forroCheck');
+
+        if (cortinaCheck) {
+            cortinaCheck.addEventListener('change', function() {
+                if (tergalCheck && tergalCheck.checked) copiarCortinaATergal();
+                if (forroCheck && forroCheck.checked) copiarCortinaOTergalAForro();
+            });
+        }
+
+        if (tergalCheck) {
+            tergalCheck.addEventListener('change', function() {
+                if (tergalCheck.checked) copiarCortinaATergal();
+            });
+        }
+
+        if (forroCheck) {
+            forroCheck.addEventListener('change', function() {
+                if (forroCheck.checked) copiarCortinaOTergalAForro();
+            });
+        }
+
+        ['ancho', 'largo', 'ancho_tela'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', function() {
+                    if (tergalCheck && tergalCheck.checked) copiarCortinaATergal();
+                    if (forroCheck && forroCheck.checked) copiarCortinaOTergalAForro();
+                });
+            }
+        });
+
+        ['ancho_tergal_real', 'largo_tergal', 'ancho_tergal'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', function() {
+                    const cortinaCheck = document.getElementById('cortinaCheck');
+                    const forroCheck = document.getElementById('forroCheck');
+                    if (forroCheck && forroCheck.checked && (!cortinaCheck || !cortinaCheck.checked)) {
+                        copiarCortinaOTergalAForro();
+                    }
+                });
+            }
+        });
+    });
+
+    // Actualiza el largo según la bastilla
+    function actualizarLargoConBastilla(idLargo, idBastilla) {
+        const largoInput = document.getElementById(idLargo);
+        const bastillaInput = document.getElementById(idBastilla);
+
+        if (!largoInput || !bastillaInput) return;
+
+        // Al cargar, calcula el largo base restando la bastilla actual
+        if (!largoInput.dataset.original) {
+            const largoActual = parseFloat(largoInput.value) || 0;
+            const bastillaActual = parseFloat(bastillaInput.value) || 0;
+            largoInput.dataset.original = (largoActual - bastillaActual).toFixed(2);
+        }
+
+        bastillaInput.addEventListener('input', function() {
+            let largoBase = parseFloat(largoInput.dataset.original) || 0;
+            let bastilla = parseFloat(bastillaInput.value) || 0;
+
+            if (largoBase > 0 && bastilla >= 0) {
+                largoInput.value = (largoBase + bastilla).toFixed(2);
+            } else if (largoBase > 0) {
+                largoInput.value = largoBase.toFixed(2);
+            }
+        });
+
+        // Si el usuario edita el largo manualmente, actualiza el original restando la bastilla actual
+        largoInput.addEventListener('input', function() {
+            const bastilla = parseFloat(bastillaInput.value) || 0;
+            const largoActual = parseFloat(largoInput.value) || 0;
+            largoInput.dataset.original = (largoActual - bastilla).toFixed(2);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        actualizarLargoConBastilla('largo', 'valor_bastilla');
+        actualizarLargoConBastilla('largo_tergal', 'valor_bastilla_tergal');
+        actualizarLargoConBastilla('largo_forro', 'valor_bastilla_forro');
+    });
 </script>
 
 @endsection
