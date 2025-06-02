@@ -57,54 +57,63 @@
                     <h4 class="mb-1">Detalle de Cortina</h4>
                 </div>
                 <div class="card-body pt-2">
-                    <div class="row mb-2">
-                        <div class="col-md-6">
-                            <label for="tela_id" class="mb-1">Tela</label>
-                            <select id="tela_id" name="detalle[tela_id]" class="form-control select2" required
-                                oninvalid="this.setCustomValidity('Por favor selecciona una tela')"
-                                oninput="this.setCustomValidity('')">
-                                <option value="">Seleccione una tela</option>
-                                @foreach($telas as $tela)
-                                    <option value="{{ $tela->id }}"
-                                        {{ old('detalle.tela_id', $detalleCotizacion->tela_id ?? '') == $tela->id ? 'selected' : '' }}>
-                                        {{ $tela->nombre }} - {{ $tela->campo1 }} - {{ $tela->campo2 }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                    <!-- Select Tela fuera de la tabla -->
+                    <div class="mb-3">
+                        <label for="tela_id" class="form-label">Tela</label>
+                        <select id="tela_id" name="detalle[tela_id]" class="form-control select2" required
+                            oninvalid="this.setCustomValidity('Por favor selecciona una tela')"
+                            oninput="this.setCustomValidity('')">
+                            <option value="">Seleccione una tela</option>
+                            @foreach($telas as $tela)
+                                <option value="{{ $tela->id }}"
+                                    {{ old('detalle.tela_id', $detalleCotizacion->tela_id ?? '') == $tela->id ? 'selected' : '' }}>
+                                    {{ $tela->nombre }} - {{ $tela->campo1 }} - {{ $tela->campo2 }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div class="row">
-                        <div class="col-md-2 mb-3">
-                            <label for="ancho_tela">Ancho tela cortina</label>
-                            <input type="text" name="detalle[ancho_tela]" id="ancho_tela" class="form-control"
-                                value="{{ old('detalle.ancho_tela', $detalleCotizacion->ancho_tela ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="ancho">Ancho</label>
-                            <input type="text" name="detalle[ancho]" id="ancho" class="form-control"
-                                value="{{ old('detalle.ancho', $detalleCotizacion->ancho ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="largo">Largo</label>
-                            <input type="text" name="detalle[largo]" id="largo" class="form-control"
-                                value="{{ old('detalle.largo', $detalleCotizacion->largo ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="no_lienzos">No. Lienzos</label>
-                            <input type="number" name="detalle[no_lienzos]" id="no_lienzos" class="form-control"
-                                value="{{ old('detalle.no_lienzas', $detalleCotizacion->no_lienzos ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="no_lienzos_redondeado">No. Lienzos Redondeados</label>
-                            <input type="number" name="detalle[no_lienzos_redondeado]" id="no_lienzos_redondeado" class="form-control"
-                                value="{{ old('detalle.no_lienzos_redondeado', $detalleCotizacion->no_lienzos_redondeado ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="valor_bastilla">Bastilla</label>
-                            <input type="number" id="valor_bastilla" name="detalle[valor_bastilla]" class="form-control" 
-                                value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? '') }}" 
-                                placeholder="Ej. 1.10" step="0.01" min="0">
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ancho tela cortina</th>
+                                    <th>Ancho</th>
+                                    <th>Largo</th>
+                                    <th>No. Lienzos</th>
+                                    <th>No. Lienzos Redondeados</th>
+                                    <th>Bastilla</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <input type="text" name="detalle[ancho_tela]" id="ancho_tela" class="form-control"
+                                            value="{{ old('detalle.ancho_tela', $detalleCotizacion->ancho_tela ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="detalle[ancho]" id="ancho" class="form-control"
+                                            value="{{ old('detalle.ancho', $detalleCotizacion->ancho ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="detalle[largo]" id="largo" class="form-control"
+                                            value="{{ old('detalle.largo', $detalleCotizacion->largo ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[no_lienzos]" id="no_lienzos" class="form-control"
+                                            value="{{ old('detalle.no_lienzos', $detalleCotizacion->no_lienzos ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[no_lienzos_redondeado]" id="no_lienzos_redondeado" class="form-control"
+                                            value="{{ old('detalle.no_lienzos_redondeado', $detalleCotizacion->no_lienzos_redondeado ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" id="valor_bastilla" name="detalle[valor_bastilla]" class="form-control" 
+                                            value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? '') }}" 
+                                            placeholder="Ej. 1.10" step="0.01" min="0">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -117,54 +126,63 @@
                     <h4 class="mb-1">Detalle de Tergal</h4>
                 </div>
                 <div class="card-body pt-2">
-                    <div class="row mb-2">
-                        <div class="col-md-6">
-                            <label for="tergal_id" class="mb-1">Tergal</label>
-                            <select id="tergal_id" name="detalle[tergal_id]" class="form-control select2" required
-                                oninvalid="this.setCustomValidity('Por favor selecciona un tergal')"
-                                oninput="this.setCustomValidity('')">
-                                <option value="">Seleccione un tergal</option>
-                                @foreach($tergales as $tergal)
-                                    <option value="{{ $tergal->id }}"
-                                        {{ old('detalle.tergal_id', $detalleCotizacion->tergal_id ?? '') == $tergal->id ? 'selected' : '' }}>
-                                        {{ $tergal->nombre }} - {{ $tergal->campo1 ?? '' }} - {{ $tergal->campo2 ?? '' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                    <!-- Select Tergal fuera de la tabla -->
+                    <div class="mb-3">
+                        <label for="tergal_id" class="form-label">Tergal</label>
+                        <select id="tergal_id" name="detalle[tergal_id]" class="form-control select2" required
+                            oninvalid="this.setCustomValidity('Por favor selecciona un tergal')"
+                            oninput="this.setCustomValidity('')">
+                            <option value="">Seleccione un tergal</option>
+                            @foreach($tergales as $tergal)
+                                <option value="{{ $tergal->id }}"
+                                    {{ old('detalle.tergal_id', $detalleCotizacion->tergal_id ?? '') == $tergal->id ? 'selected' : '' }}>
+                                    {{ $tergal->nombre }} - {{ $tergal->campo1 ?? '' }} - {{ $tergal->campo2 ?? '' }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div class="row">
-                        <div class="col-md-2 mb-3">
-                            <label for="ancho_tergal">Ancho tela tergal</label>
-                            <input type="text" name="detalle[ancho_tergal]" id="ancho_tergal" class="form-control"
-                                value="{{ old('detalle.ancho_tergal', $detalleCotizacion->ancho_tergal ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="ancho_tergal_real">Ancho</label>
-                            <input type="text" name="detalle[ancho_tergal_real]" id="ancho_tergal_real" class="form-control"
-                                value="{{ old('detalle.ancho_tergal_real', $detalleCotizacion->ancho_tergal_real ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="largo_tergal">Largo</label>
-                            <input type="text" name="detalle[largo_tergal]" id="largo_tergal" class="form-control"
-                                value="{{ old('detalle.largo_tergal', $detalleCotizacion->largo_tergal ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="no_lienzos_tergal">No. Lienzos</label>
-                            <input type="number" name="detalle[no_lienzos_tergal]" id="no_lienzos_tergal" class="form-control"
-                                value="{{ old('detalle.no_lienzos_tergal', $detalleCotizacion->no_lienzos_tergal ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="no_lienzos_redondeado_tergal">No. Lienzos Redondeados</label>
-                            <input type="number" name="detalle[no_lienzos_redondeado_tergal]" id="no_lienzos_redondeado_tergal" class="form-control"
-                                value="{{ old('detalle.no_lienzos_redondeado_tergal', $detalleCotizacion->no_lienzos_redondeado_tergal ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="valor_bastilla_tergal">Bastilla</label>
-                            <input type="number" id="valor_bastilla_tergal" name="detalle[valor_bastilla_tergal]" class="form-control"
-                                value="{{ old('detalle.valor_bastilla_tergal', $detalleCotizacion->bastilla_tergal ?? '') }}"
-                                placeholder="Ej. 1.10" step="0.01" min="0">
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ancho tela tergal</th>
+                                    <th>Ancho</th>
+                                    <th>Largo</th>
+                                    <th>No. Lienzos</th>
+                                    <th>No. Lienzos Redondeados</th>
+                                    <th>Bastilla</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <input type="text" name="detalle[ancho_tergal]" id="ancho_tergal" class="form-control"
+                                            value="{{ old('detalle.ancho_tergal', $detalleCotizacion->ancho_tergal ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="detalle[ancho_tergal_real]" id="ancho_tergal_real" class="form-control"
+                                            value="{{ old('detalle.ancho_tergal_real', $detalleCotizacion->ancho_tergal_real ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="detalle[largo_tergal]" id="largo_tergal" class="form-control"
+                                            value="{{ old('detalle.largo_tergal', $detalleCotizacion->largo_tergal ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[no_lienzos_tergal]" id="no_lienzos_tergal" class="form-control"
+                                            value="{{ old('detalle.no_lienzos_tergal', $detalleCotizacion->no_lienzos_tergal ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[no_lienzos_redondeado_tergal]" id="no_lienzos_redondeado_tergal" class="form-control"
+                                            value="{{ old('detalle.no_lienzos_redondeado_tergal', $detalleCotizacion->no_lienzos_redondeado_tergal ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" id="valor_bastilla_tergal" name="detalle[valor_bastilla_tergal]" class="form-control"
+                                            value="{{ old('detalle.valor_bastilla_tergal', $detalleCotizacion->bastilla_tergal ?? '') }}"
+                                            placeholder="Ej. 1.10" step="0.01" min="0">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -177,54 +195,63 @@
                     <h4 class="mb-1">Detalle de Forro</h4>
                 </div>
                 <div class="card-body pt-2">
-                    <div class="row mb-2">
-                        <div class="col-md-6">
-                            <label for="forro_id" class="mb-1">Forro</label>
-                            <select id="forro_id" name="detalle[forro_id]" class="form-control select2" required
-                                oninvalid="this.setCustomValidity('Por favor selecciona un forro')"
-                                oninput="this.setCustomValidity('')">
-                                <option value="">Seleccione un forro</option>
-                                @foreach($forros as $forro)
-                                    <option value="{{ $forro->id }}"
-                                        {{ old('detalle.forro_id', $detalleCotizacion->forro_id ?? '') == $forro->id ? 'selected' : '' }}>
-                                        {{ $forro->nombre }} - {{ $forro->campo1 ?? '' }} - {{ $forro->campo2 ?? '' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                    <!-- Select Forro fuera de la tabla -->
+                    <div class="mb-3">
+                        <label for="forro_id" class="form-label">Forro</label>
+                        <select id="forro_id" name="detalle[forro_id]" class="form-control select2" required
+                            oninvalid="this.setCustomValidity('Por favor selecciona un forro')"
+                            oninput="this.setCustomValidity('')">
+                            <option value="">Seleccione un forro</option>
+                            @foreach($forros as $forro)
+                                <option value="{{ $forro->id }}"
+                                    {{ old('detalle.forro_id', $detalleCotizacion->forro_id ?? '') == $forro->id ? 'selected' : '' }}>
+                                    {{ $forro->nombre }} - {{ $forro->campo1 ?? '' }} - {{ $forro->campo2 ?? '' }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div class="row">
-                        <div class="col-md-2 mb-3">
-                            <label for="ancho_forro">Ancho tela forro</label>
-                            <input type="text" name="detalle[ancho_forro]" id="ancho_forro" class="form-control"
-                                value="{{ old('detalle.ancho_forro', $detalleCotizacion->ancho_forro ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="ancho_forro_real">Ancho</label>
-                            <input type="text" name="detalle[ancho_forro_real]" id="ancho_forro_real" class="form-control"
-                                value="{{ old('detalle.ancho_forro_real', $detalleCotizacion->ancho_forro_real ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="largo_forro">Largo</label>
-                            <input type="text" name="detalle[largo_forro]" id="largo_forro" class="form-control"
-                                value="{{ old('detalle.largo_forro', $detalleCotizacion->largo_forro ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="no_lienzos_forro">No. Lienzos</label>
-                            <input type="number" name="detalle[no_lienzos_forro]" id="no_lienzos_forro" class="form-control"
-                                value="{{ old('detalle.no_lienzas_forro', $detalleCotizacion->no_lienzos_forro ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="no_lienzos_redondeado_forro">No. Lienzos Redondeados</label>
-                            <input type="number" name="detalle[no_lienzos_redondeado_forro]" id="no_lienzos_redondeado_forro" class="form-control"
-                                value="{{ old('detalle.no_lienzos_redondeado_forro', $detalleCotizacion->no_lienzos_redondeado_forro ?? '') }}">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="valor_bastilla_forro">Bastilla</label>
-                            <input type="number" id="valor_bastilla_forro" name="detalle[valor_bastilla_forro]" class="form-control"
-                                value="{{ old('detalle.valor_bastilla_forro', $detalleCotizacion->bastilla_forro ?? '') }}"
-                                placeholder="Ej. 1.10" step="0.01" min="0">
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ancho tela forro</th>
+                                    <th>Ancho</th>
+                                    <th>Largo</th>
+                                    <th>No. Lienzos</th>
+                                    <th>No. Lienzos Redondeados</th>
+                                    <th>Bastilla</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <input type="text" name="detalle[ancho_forro]" id="ancho_forro" class="form-control"
+                                            value="{{ old('detalle.ancho_forro', $detalleCotizacion->ancho_forro ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="detalle[ancho_forro_real]" id="ancho_forro_real" class="form-control"
+                                            value="{{ old('detalle.ancho_forro_real', $detalleCotizacion->ancho_forro_real ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="detalle[largo_forro]" id="largo_forro" class="form-control"
+                                            value="{{ old('detalle.largo_forro', $detalleCotizacion->largo_forro ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[no_lienzos_forro]" id="no_lienzos_forro" class="form-control"
+                                            value="{{ old('detalle.no_lienzos_forro', $detalleCotizacion->no_lienzos_forro ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[no_lienzos_redondeado_forro]" id="no_lienzos_redondeado_forro" class="form-control"
+                                            value="{{ old('detalle.no_lienzos_redondeado_forro', $detalleCotizacion->no_lienzos_redondeado_forro ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" id="valor_bastilla_forro" name="detalle[valor_bastilla_forro]" class="form-control"
+                                            value="{{ old('detalle.valor_bastilla_forro', $detalleCotizacion->bastilla_forro ?? '') }}"
+                                            placeholder="Ej. 1.10" step="0.01" min="0">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -429,21 +456,16 @@
             <div class="card mt-4">
                 <div class="card-header">
                     <h4>Materiales Varios</h4>
-                    <div class="card-header-action">
-                        <button type="button" class="btn btn-success btn-sm" onclick="agregarOtroInsumo()">
-                            <i class="fas fa-plus"></i> Añadir otro
-                        </button>
-                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered mb-0">
+                        <table class="table table-bordered mb-0 align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Materiales Varios</th>
-                                    <th>Cantidad</th>
-                                    <th>Precio Unitario</th>
-                                    <th>Acciones</th>
+                                    <th style="min-width: 180px;">Materiales Varios</th>
+                                    <th style="min-width: 120px;">Cantidad</th>
+                                    <th style="min-width: 150px;">Precio Unitario</th>
+                                    <th style="min-width: 100px;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="materiales-tbody">
@@ -515,6 +537,11 @@
                                 @endforeach
                             </tbody>
                             <tfoot>
+                                <tr id="row-boton-otro-insumo">
+                                    <td colspan="4" class="text-start">
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="agregarOtroInsumo()">Añadir otro</button>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td colspan="3" class="text-end"><strong>Costo Total Materiales:</strong></td>
                                     <td>
@@ -618,59 +645,149 @@ document.addEventListener('input', function(e) {
             </script>
             
             <!-- Totales -->
-            <div class="card">
-                <div class="card-header">
-                    <h4>Totales</h4>
+            <div class="card mt-4" id="tabla-totales">
+                <div class="card-header pb-1">
+                    <h4 class="mb-1">Totales</h4>
                 </div>
-                <div class="card-body">
+                <div class="card-body pt-2">
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="total_lienzos">Total Lienzos</label>
-                            <input type="number" name="totales[total_lienzos]" id="total_lienzos"
-                                class="form-control" step="0.01" value="{{ $cotizacion->total_lienzos }}">
+                        <div class="col-md-6">
+                            <table class="table table-bordered mb-0 align-middle">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Total No. Lienzos</strong></td>
+                                        <td>
+                                            <input type="number" class="form-control" id="total_lienzos" name="totales[total_lienzos]" value="{{ $cotizacion->total_lienzos }}" readonly>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total m² Forro</strong></td>
+                                        <td>
+                                            <input type="number" class="form-control" id="total_m2_forro" name="totales[total_m2_forro]" value="{{ $cotizacion->total_m2_forro }}" readonly>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total m² Tela</strong></td>
+                                        <td>
+                                            <input type="number" class="form-control" id="total_m2_tela" name="totales[total_m2_tela]" value="{{ $cotizacion->total_m2_tela }}" readonly>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total m² Tergal</strong></td>
+                                        <td>
+                                            <input type="number" class="form-control" id="total_m2_tergal" name="totales[total_m2_tergal]" value="{{ $cotizacion->total_m2_tergal }}" readonly>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="total_m2_forro">Total M² Forro</label>
-                            <input type="number" name="totales[total_m2_forro]" id="total_m2_forro"
-                                class="form-control" step="0.01" value="{{ $cotizacion->total_m2_forro }}">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="total_m2_tela">Total M² Tela</label>
-                            <input type="number" name="totales[total_m2_tela]" id="total_m2_tela"
-                                class="form-control" step="0.01" value="{{ $cotizacion->total_m2_tela }}">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="total_m2_tergal">Total M² Tergal</label>
-                            <input type="number" name="totales[total_m2_tergal]" id="total_m2_tergal"
-                                class="form-control" step="0.01" value="{{ $cotizacion->total_m2_tergal }}">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="costo_cortina">Costo Cortina</label>
-                            <input type="number" name="totales[costo_cortina]" id="costo_cortina"
-                                class="form-control" step="0.01" value="{{ $cotizacion->costo_cortina }}">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="utilidad">Utilidad</label>
-                            <input type="number" name="totales[utilidad]" id="utilidad"
-                                class="form-control" step="0.01" value="{{ $cotizacion->utilidad }}">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="costo_decorador">Costo Decorador</label>
-                            <input type="number" name="totales[costo_decorador]" id="costo_decorador"
-                                class="form-control" step="0.01" value="{{ $cotizacion->costo_decorador }}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="precio_publico">Precio Público</label>
-                            <input type="number" name="totales[precio_publico]" id="precio_publico"
-                                class="form-control" step="0.01" value="{{ $cotizacion->precio_publico }}">
+                        <div class="col-md-6">
+                            <table class="table table-bordered mb-0 align-middle">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Costo Cortina</strong></td>
+                                        <td>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="costo_cortina" name="totales[costo_cortina]" value="{{ $cotizacion->costo_cortina }}" readonly>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Utilidad</strong></td>
+                                        <td>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="utilidad" name="totales[utilidad]" value="{{ $cotizacion->utilidad }}" readonly>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Costo Decorador</strong></td>
+                                        <td>
+                                            <div class="input-group">
+                                                <input type="number" id="decorador_porcentaje" class="form-control text-end" value="15" min="0" max="100" step="0.01" style="max-width: 100px;">
+                                                <span class="input-group-text">%</span>
+                                                <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
+                                                <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" value="{{ $cotizacion->costo_decorador }}" readonly>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Precio Público</strong></td>
+                                        <td>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="precio_publico" name="totales[precio_publico]" value="{{ $cotizacion->precio_publico }}" readonly>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
+            {{-- Cálculo de telas de la tabla totales --}}
+            <script>
+                function calcularTotales() {
+                    const totalLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
+                    const totalLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
+                    const totalLienzosForro = parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0;
+                    const totalLienzos = totalLienzosCortina + totalLienzosTergal + totalLienzosForro;
+                    document.getElementById('total_lienzos').value = totalLienzos > 0 ? totalLienzos : '';
+
+                    const totalForro = parseFloat(document.getElementById('total_forro')?.value) || 0;
+                    document.getElementById('total_m2_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
+
+                    const totalTela = parseFloat(document.getElementById('total_tela')?.value) || 0;
+                    document.getElementById('total_m2_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
+
+                    const totalTergal = parseFloat(document.getElementById('total_tergal')?.value) || 0;
+                    document.getElementById('total_m2_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
+
+                    // Cálculos monetarios de la tabla totales
+
+                    const costoTelaTergal = parseFloat(document.getElementById('costo_total_tela_tergal_forro')?.value) || 0;
+                    const costoForro = parseFloat(document.querySelector('[name="detalle[total_final_forro]"]')?.value) || 0;
+                    const costoManoObra = parseFloat(document.querySelector('[name="detalle[costo_total_mano_obra]"]')?.value) || 0;
+                    const costoMateriales = parseFloat(document.getElementById('costo_total_materiales')?.value) || 0;
+
+                    const costoCortina = costoTelaTergal + costoForro + costoManoObra + costoMateriales;
+                    document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
+
+                    const utilidad = costoCortina * 2;
+                    document.getElementById('utilidad').value = utilidad > 0 ? utilidad.toFixed(2) : '';
+
+                    const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
+                    const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
+                    const costoDecorador = costoCortina + (costoCortina * (decoradorPorcentaje / 100));
+                    document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
+
+                    const precioPublico = costoCortina * 2;
+                    document.getElementById('precio_publico').value = precioPublico > 0 ? precioPublico.toFixed(2) : '';
+                }
+
+                // Ejecutar al cargar y cuando cambien los campos relevantes
+                document.addEventListener('DOMContentLoaded', calcularTotales);
+                document.addEventListener('input', function(e) {
+                    const ids = [
+                        'no_lienzos_redondeado', 'no_lienzos_redondeado_tergal', 'no_lienzos_redondeado_forro',
+                        'total_forro', 'total_tela', 'total_tergal',
+                        'costo_total_tela_tergal_forro', 'costo_total_materiales',
+                        'decorador_porcentaje'
+                    ];
+                    if (
+                        ids.includes(e.target.id) ||
+                        (e.target.name && [
+                            'detalle[total_final_forro]',
+                            'detalle[costo_total_mano_obra]'
+                        ].includes(e.target.name))
+                    ) {
+                        calcularTotales();
+                    }
+                });
+            </script>
 
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">
