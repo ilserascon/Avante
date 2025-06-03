@@ -6,6 +6,12 @@
         <h1>Editar Cotización</h1>
     </div>
     <div class="section-body">
+        @php
+            // Encuentra el insumo cortinero seleccionado (id_tipo_insumo = 6)
+            $cortineroSeleccionado = $cotizacion->insumos->first(function($insumo) {
+                return $insumo->id_tipo_insumo == 6;
+            });
+        @endphp
         <form method="POST" action="{{ route('admin.cotizaciones.update', $cotizacion->id) }}">
             @csrf
             @method('PUT')
@@ -504,40 +510,111 @@
                                 </tr>
                             </thead>
                             <tbody id="materiales-tbody">
-                                <!-- Insumos fijos -->
-                                @php
-                                    $insumosFijosData = ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'];
-                                    $insumosRelacionados = $cotizacion->insumos->keyBy('nombre');
-                                @endphp
-                                @foreach($insumosFijosData as $nombreInsumo)
-                                    @php
-                                        $insumoFijo = $insumosFijos->get($nombreInsumo);
-                                        $insumoRelacionado = $insumosRelacionados->get($nombreInsumo);
-                                        $cantidad = old('detalle.' . strtolower($nombreInsumo) . '_cantidad', $insumoRelacionado ? $insumoRelacionado->pivot->cantidad : '');
-                                        $precio = $insumoFijo ? $insumoFijo->precio_publico : '';
-                                    @endphp
-                                    <tr>
-                                        <td>
-                                            {{ $nombreInsumo }}
-                                            <input type="hidden" name="detalle[{{ strtolower($nombreInsumo) }}_id]" value="{{ $insumoFijo->id ?? '' }}">
-                                        </td>
-                                        <td>
-                                            <input type="number" name="detalle[{{ strtolower($nombreInsumo) }}_cantidad]" class="form-control" value="{{ $cantidad }}" autocomplete="off">
-                                        </td>
-                                        <td>
-                                            <div class="input-group">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" class="form-control" value="{{ $precio }}" step="0.01" readonly>
-                                            </div>
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                @endforeach
-
+                                <!-- Ojillos -->
+                                <tr>
+                                    <td>
+                                        Ojillos
+                                        <input type="hidden" name="detalle[ojillos_id]" value="{{ $insumosFijos['Ojillos']->id ?? '' }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[ojillos_cantidad]" class="form-control" min="0" step="0.01"
+                                            value="{{ old('detalle.ojillos_cantidad', $cotizacion->insumos->where('nombre', 'Ojillos')->first()->pivot->cantidad ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" value="{{ $insumosFijos['Ojillos']->precio_publico ?? '' }}" step="0.01" readonly>
+                                        </div>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <!-- Cortinero -->
+                                <tr>
+                                    <td>
+                                        Cortinero
+                                        <select name="detalle[cortinero_id]" id="cortinero_id" class="form-select">
+                                            <option value="">Seleccione tipo de cortinero</option>
+                                            @foreach($cortineros as $cortinero)
+                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico }}"
+                                                {{ old('detalle.cortinero_id', $cortineroSeleccionado->id ?? '') == $cortinero->id ? 'selected' : '' }}>
+                                                {{ $cortinero->nombre }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[cortinero_cantidad]" id="cortinero_cantidad" class="form-control" min="0" step="0.01"
+                                            value="{{ old('detalle.cortinero_cantidad', $cortineroSeleccionado->pivot->cantidad ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" id="cortinero_precio" name="detalle[cortinero_precio]" class="form-control" step="0.01" readonly
+                                                value="{{ old('detalle.cortinero_precio', $cortineroSeleccionado->pivot->precio_unitario ?? '') }}">
+                                        </div>
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                const cortineroSelect = document.getElementById('cortinero_id');
+                                                const cortineroPrecio = document.getElementById('cortinero_precio');
+                                                if (cortineroSelect && cortineroPrecio) {
+                                                    function setPrecioCortinero() {
+                                                        const selected = cortineroSelect.options[cortineroSelect.selectedIndex];
+                                                        cortineroPrecio.value = selected && selected.dataset.precio ? selected.dataset.precio : '';
+                                                        if (typeof actualizarCostoTotalMateriales === 'function') {
+                                                            actualizarCostoTotalMateriales();
+                                                        }
+                                                    }
+                                                    cortineroSelect.addEventListener('change', setPrecioCortinero);
+                                                    // Al cargar, actualiza el precio según el seleccionado
+                                                    setPrecioCortinero();
+                                                }
+                                            });
+                                        </script>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <!-- Puntas -->
+                                <tr>
+                                    <td>
+                                        Puntas
+                                        <input type="hidden" name="detalle[puntas_id]" value="{{ $insumosFijos['Puntas']->id ?? '' }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[puntas_cantidad]" class="form-control" min="0" step="0.01"
+                                            value="{{ old('detalle.puntas_cantidad', $cotizacion->insumos->where('nombre', 'Puntas')->first()->pivot->cantidad ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" value="{{ $insumosFijos['Puntas']->precio_publico ?? '' }}" step="0.01" readonly>
+                                        </div>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <!-- Mensulas -->
+                                <tr>
+                                    <td>
+                                        Mensulas
+                                        <input type="hidden" name="detalle[mensulas_id]" value="{{ $insumosFijos['Mensulas']->id ?? '' }}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[mensulas_cantidad]" class="form-control" min="0" step="0.01"
+                                            value="{{ old('detalle.mensulas_cantidad', $cotizacion->insumos->where('nombre', 'Mensulas')->first()->pivot->cantidad ?? '') }}">
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" value="{{ $insumosFijos['Mensulas']->precio_publico ?? '' }}" step="0.01" readonly>
+                                        </div>
+                                    </td>
+                                    <td></td>
+                                </tr>
                                 <!-- Otros insumos existentes -->
                                 @php
+                                    $insumosFijosData = ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'];
+                                    // Excluir también los insumos de tipo cortinero (id_tipo_insumo == 6)
                                     $otrosInsumosExistentes = $cotizacion->insumos->filter(function($insumo) use ($insumosFijosData) {
-                                        return !in_array($insumo->nombre, $insumosFijosData);
+                                        return !in_array($insumo->nombre, $insumosFijosData) && $insumo->id_tipo_insumo != 6;
                                     });
                                     $contador = 0;
                                 @endphp
@@ -591,67 +668,6 @@
                     </div>
                 </div>
             </div>
-            
-
-<script>
-let contadorOtrosInsumos = {{ $contador ?? 0 }};
-
-function agregarOtroInsumo() {
-    contadorOtrosInsumos++;
-    const tbody = document.getElementById('materiales-tbody');
-    const fila = document.createElement('tr');
-    fila.className = 'otro-insumo-row';
-    fila.innerHTML = `
-        <td>
-            <select name="detalle[otros${contadorOtrosInsumos}_nombre]" class="form-control">
-                <option value="">Seleccionar insumo...</option>
-                @foreach($insumos as $insumo)
-                    <option value="{{ $insumo->id }}">{{ $insumo->nombre }}</option>
-                @endforeach
-            </select>
-        </td>
-        <td>
-            <input type="number" name="detalle[otros${contadorOtrosInsumos}_cantidad]" class="form-control" min="0" step="0.01">
-        </td>
-        <td>
-            <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" name="detalle[otros${contadorOtrosInsumos}_precio]" class="form-control" min="0" step="0.01">
-            </div>
-        </td>
-        <td>
-            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarInsumo(this)">
-                <i class="fas fa-trash"></i>
-            </button>
-        </td>
-    `;
-    tbody.appendChild(fila);
-}
-
-function eliminarInsumo(button) {
-    button.closest('.otro-insumo-row').remove();
-    actualizarCostoTotalMateriales();
-}
-
-function actualizarCostoTotalMateriales() {
-    let total = 0;
-    document.querySelectorAll('#materiales-tbody tr').forEach(fila => {
-        const cantidadInput = fila.querySelector('input[name*="_cantidad"]');
-        const precioInput = fila.querySelector('input[name*="_precio"]');
-        const cantidad = parseFloat(cantidadInput?.value) || 0;
-        const precio = parseFloat(precioInput?.value) || 0;
-        total += cantidad * precio;
-    });
-    document.getElementById('costo_total_materiales').value = total.toFixed(2);
-}
-
-// Actualiza el total cuando cambian cantidades o precios
-document.addEventListener('input', function(e) {
-    if (e.target && (e.target.name?.includes('_cantidad') || e.target.name?.includes('_precio'))) {
-        actualizarCostoTotalMateriales();
-    }
-});
-</script>
 
             <!-- Script para cálculos automáticos-->
             <script>
@@ -1272,5 +1288,105 @@ document.addEventListener('input', function(e) {
             });
         }
     });
+</script>
+
+{{-- Script para insumos --}}
+<script>
+    let contadorOtrosInsumos = {{ $contador ?? 0 }};
+
+    function agregarOtroInsumo() {
+        contadorOtrosInsumos++;
+        const tbody = document.getElementById('materiales-tbody');
+        const fila = document.createElement('tr');
+        fila.className = 'otro-insumo-row';
+        fila.innerHTML = `
+            <td>
+                <select name="detalle[otros${contadorOtrosInsumos}_nombre]" class="form-control">
+                    <option value="">Seleccionar insumo...</option>
+                    @foreach($insumos as $insumo)
+                        <option value="{{ $insumo->id }}">{{ $insumo->nombre }}</option>
+                    @endforeach
+                </select>
+            </td>
+            <td>
+                <input type="number" name="detalle[otros${contadorOtrosInsumos}_cantidad]" class="form-control" min="0" step="0.01">
+            </td>
+            <td>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="detalle[otros${contadorOtrosInsumos}_precio]" class="form-control" min="0" step="0.01">
+                </div>
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" onclick="eliminarInsumo(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(fila);
+    }
+
+    function eliminarInsumo(button) {
+        button.closest('.otro-insumo-row').remove();
+        actualizarCostoTotalMateriales();
+    }
+
+    function actualizarCostoTotalMateriales() {
+        let total = 0;
+
+        // Sumar insumos fijos
+        const insumosFijos = [
+            { cantidad: 'ojillos_cantidad', precio: '{{ $insumosFijos["Ojillos"]->precio_publico ?? 0 }}' },
+            { cantidad: 'cortinero_cantidad', precio: document.getElementById('cortinero_precio') ? document.getElementById('cortinero_precio').value : 0 },
+            { cantidad: 'puntas_cantidad', precio: '{{ $insumosFijos["Puntas"]->precio_publico ?? 0 }}' },
+            { cantidad: 'mensulas_cantidad', precio: '{{ $insumosFijos["Mensulas"]->precio_publico ?? 0 }}' }
+        ];
+
+        insumosFijos.forEach(insumo => {
+            const cantidadInput = document.querySelector(`[name="detalle[${insumo.cantidad}]"]`);
+            const cantidad = parseFloat(cantidadInput?.value) || 0;
+            const precio = parseFloat(insumo.precio) || 0;
+            total += cantidad * precio;
+        });
+
+        // Sumar insumos dinámicos (otros insumos)
+        document.querySelectorAll('#materiales-tbody tr.otro-insumo-row').forEach(fila => {
+            const cantidadInput = fila.querySelector('input[name*="_cantidad"]');
+            const precioInput = fila.querySelector('input[name*="_precio"]');
+            const cantidad = parseFloat(cantidadInput?.value) || 0;
+            const precio = parseFloat(precioInput?.value) || 0;
+            total += cantidad * precio;
+        });
+
+        document.getElementById('costo_total_materiales').value = total.toFixed(2);
+    }
+
+    // Escuchar cambios en insumos fijos y dinámicos
+    document.addEventListener('input', function(e) {
+        // Insumos fijos
+        if (
+            e.target.name === 'detalle[ojillos_cantidad]' ||
+            e.target.name === 'detalle[cortinero_cantidad]' ||
+            e.target.name === 'detalle[puntas_cantidad]' ||
+            e.target.name === 'detalle[mensulas_cantidad]' ||
+            e.target.name?.includes('_cantidad') ||
+            e.target.name?.includes('_precio')
+        ) {
+            actualizarCostoTotalMateriales();
+        }
+    });
+
+    // Escuchar cambio de cortinero para actualizar el precio y el total
+    document.addEventListener('change', function(e) {
+        if (e.target.id === 'cortinero_id') {
+            const cortineroPrecio = document.getElementById('cortinero_precio');
+            const selected = e.target.options[e.target.selectedIndex];
+            cortineroPrecio.value = selected.dataset.precio || '';
+            actualizarCostoTotalMateriales();
+        }
+    });
+
+    // Ejecutar al cargar
+    document.addEventListener('DOMContentLoaded', actualizarCostoTotalMateriales);
 </script>
 @endsection

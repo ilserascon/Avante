@@ -479,6 +479,23 @@ class CotizacionController extends Controller
             if ($insumo) {
                 $key = strtolower($nombre);
                 $cantidad = $detalle["{$key}_cantidad"] ?? 0;
+
+                // --- CORRECCIÓN SOLO PARA CORTINERO ---
+                if ($nombre === 'Cortinero') {
+                    // Usar el ID y precio seleccionados en el formulario
+                    $cortineroId = $detalle['cortinero_id'] ?? null;
+                    $precio = $detalle['cortinero_precio'] ?? 0;
+                    if ($cortineroId && $cantidad > 0) {
+                        $todosLosInsumos[$cortineroId] = [
+                            'cantidad' => $cantidad,
+                            'precio_unitario' => $precio,
+                            'subtotal' => $cantidad * $precio,
+                        ];
+                    }
+                    continue; // Saltar el resto del ciclo para 'Cortinero'
+                }
+                // --- FIN CORRECCIÓN ---
+
                 $precio = $insumo->precio_publico;
                 if ($cantidad > 0) {
                     $todosLosInsumos[$insumo->id] = [
