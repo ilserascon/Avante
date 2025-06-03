@@ -1070,13 +1070,18 @@ document.addEventListener('input', function(e) {
         const totalForroFinal = totalForro * precioForro;
 
         // Actualizar campos de la tabla
-        if (document.getElementById('total_tela')) document.getElementById('total_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
-        if (document.getElementById('total_tergal')) document.getElementById('total_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
-        if (document.getElementById('total_forro')) document.getElementById('total_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
-
-        if (document.getElementById('total_tela_final')) document.getElementById('total_tela_final').value = totalTelaFinal > 0 ? totalTelaFinal.toFixed(2) : '';
-        if (document.getElementById('total_tergal_final')) document.getElementById('total_tergal_final').value = totalTergalFinal > 0 ? totalTergalFinal.toFixed(2) : '';
-        if (document.getElementById('total_final_forro')) document.getElementById('total_final_forro').value = totalForroFinal > 0 ? totalForroFinal.toFixed(2) : '';
+        if (document.getElementById('total_tela')) {
+            document.getElementById('total_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
+            document.getElementById('total_tela').dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (document.getElementById('total_tergal')) {
+            document.getElementById('total_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
+            document.getElementById('total_tergal').dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (document.getElementById('total_forro')) {
+            document.getElementById('total_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
+            document.getElementById('total_forro').dispatchEvent(new Event('input', { bubbles: true }));
+        }
 
         // Total general incluyendo forro
         if (document.getElementById('costo_total_tela_tergal_forro')) {
@@ -1163,13 +1168,18 @@ document.addEventListener('input', function(e) {
             const totalForroFinal = totalForro * precioForro;
 
             // Actualizar campos de la tabla
-            if (document.getElementById('total_tela')) document.getElementById('total_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
-            if (document.getElementById('total_tergal')) document.getElementById('total_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
-            if (document.getElementById('total_forro')) document.getElementById('total_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
-
-            if (document.getElementById('total_tela_final')) document.getElementById('total_tela_final').value = totalTelaFinal > 0 ? totalTelaFinal.toFixed(2) : '';
-            if (document.getElementById('total_tergal_final')) document.getElementById('total_tergal_final').value = totalTergalFinal > 0 ? totalTergalFinal.toFixed(2) : '';
-            if (document.getElementById('total_final_forro')) document.getElementById('total_final_forro').value = totalForroFinal > 0 ? totalForroFinal.toFixed(2) : '';
+            if (document.getElementById('total_tela')) {
+                document.getElementById('total_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
+                document.getElementById('total_tela').dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            if (document.getElementById('total_tergal')) {
+                document.getElementById('total_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
+                document.getElementById('total_tergal').dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            if (document.getElementById('total_forro')) {
+                document.getElementById('total_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
+                document.getElementById('total_forro').dispatchEvent(new Event('input', { bubbles: true }));
+            }
 
             // Total general incluyendo forro
             if (document.getElementById('costo_total_tela_tergal_forro')) {
@@ -1198,6 +1208,69 @@ document.addEventListener('input', function(e) {
                 }
             }
         });
+    });
+</script>
+
+{{-- Script tabla mano de obra --}}
+<script>
+    function calcularManoObraDesdeTotales() {
+        const m2Cortina = parseFloat(document.getElementById('total_tela')?.value) || 0;
+        const m2Tergal = parseFloat(document.getElementById('total_tergal')?.value) || 0;
+
+        const precioMO1 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_1]"]')?.value) || 0;
+        const precioMO2 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_2]"]')?.value) || 0;
+
+        const totalMO1 = m2Cortina * precioMO1;
+        const totalMO2 = m2Tergal * precioMO2;
+        const totalMO = totalMO1 + totalMO2;
+
+        const m2CortinaInput = document.querySelector('[name="detalle[m2_1]"]');
+        const m2TergalInput = document.querySelector('[name="detalle[m2_2]"]');
+        const totalMO1Input = document.querySelector('[name="detalle[total_mano_obra_1]"]');
+        const totalMO2Input = document.querySelector('[name="detalle[total_mano_obra_2]"]');
+        const totalMOInput = document.querySelector('[name="detalle[costo_total_mano_obra]"]');
+
+        if (m2CortinaInput) m2CortinaInput.value = m2Cortina.toFixed(2);
+        if (m2TergalInput) m2TergalInput.value = m2Tergal.toFixed(2);
+        if (totalMO1Input) totalMO1Input.value = totalMO1.toFixed(2);
+        if (totalMO2Input) totalMO2Input.value = totalMO2.toFixed(2);
+        if (totalMOInput) totalMOInput.value = totalMO.toFixed(2);
+    }
+
+    document.addEventListener('DOMContentLoaded', calcularManoObraDesdeTotales);
+
+    // Escuchar cambios en total_tela y total_tergal para recalcular automáticamente
+    ['total_tela', 'total_tergal'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', calcularManoObraDesdeTotales);
+            el.addEventListener('change', calcularManoObraDesdeTotales);
+        }
+    });
+
+    // Escuchar cambios manuales en los campos de m2 para recalcular totales de mano de obra
+    ['detalle[m2_1]', 'detalle[m2_2]'].forEach(function(name) {
+        const input = document.querySelector('[name="' + name + '"]');
+        if (input) {
+            input.addEventListener('input', function() {
+                const m2CortinaManual = parseFloat(document.querySelector('[name="detalle[m2_1]"]')?.value) || 0;
+                const m2TergalManual = parseFloat(document.querySelector('[name="detalle[m2_2]"]')?.value) || 0;
+                const precioMO1 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_1]"]')?.value) || 0;
+                const precioMO2 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_2]"]')?.value) || 0;
+
+                const totalMO1 = m2CortinaManual * precioMO1;
+                const totalMO2 = m2TergalManual * precioMO2;
+                const totalMO = totalMO1 + totalMO2;
+
+                const totalMO1Input = document.querySelector('[name="detalle[total_mano_obra_1]"]');
+                const totalMO2Input = document.querySelector('[name="detalle[total_mano_obra_2]"]');
+                const totalMOInput = document.querySelector('[name="detalle[costo_total_mano_obra]"]');
+
+                if (totalMO1Input) totalMO1Input.value = totalMO1.toFixed(2);
+                if (totalMO2Input) totalMO2Input.value = totalMO2.toFixed(2);
+                if (totalMOInput) totalMOInput.value = totalMO.toFixed(2);
+            });
+        }
     });
 </script>
 @endsection
