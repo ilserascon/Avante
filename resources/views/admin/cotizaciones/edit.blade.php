@@ -50,6 +50,14 @@
                 </div>
             </div>
 
+            @php
+            function limpiarPrecio($valor) {
+                $valor = str_replace(['$', ' '], '', $valor);
+                $valor = str_replace(',', '.', $valor);
+                return floatval($valor);
+            }
+            @endphp
+
             <!-- Sección de Cortina -->
             <div class="card mt-4" id="seccion-cortina" style="display: none;">
                 <div class="card-header pb-1">
@@ -64,7 +72,18 @@
                             oninput="this.setCustomValidity('')">
                             <option value="">Seleccione una tela</option>
                             @foreach($telas as $tela)
-                                <option value="{{ $tela->id }}"
+                                @php
+                                if(limpiarPrecio($tela->precio_publico) > 0) {
+                                    $precio = limpiarPrecio($tela->precio_publico);
+                                } elseif(limpiarPrecio($tela->campo6) > 0) {
+                                    $precio = limpiarPrecio($tela->campo6);
+                                } elseif(limpiarPrecio($tela->campo13) > 0) {
+                                    $precio = limpiarPrecio($tela->campo13);
+                                } else {
+                                    $precio = 100;
+                                }
+                                @endphp
+                                <option value="{{ $tela->id }}" data-precio="{{ $precio }}"
                                     {{ old('detalle.tela_id', $detalleCotizacion->tela_id ?? '') == $tela->id ? 'selected' : '' }}>
                                     {{ $tela->nombre }} - {{ $tela->campo1 }} - {{ $tela->campo2 }}
                                 </option>
@@ -131,7 +150,18 @@
                             oninput="this.setCustomValidity('')">
                             <option value="">Seleccione un tergal</option>
                             @foreach($tergales as $tergal)
-                                <option value="{{ $tergal->id }}"
+                                @php
+                                if(limpiarPrecio($tergal->precio_publico) > 0) {
+                                    $precio = limpiarPrecio($tergal->precio_publico);
+                                } elseif(limpiarPrecio($tergal->campo6) > 0) {
+                                    $precio = limpiarPrecio($tergal->campo6);
+                                } elseif(limpiarPrecio($tergal->campo13) > 0) {
+                                    $precio = limpiarPrecio($tergal->campo13);
+                                } else {
+                                    $precio = 50;
+                                }
+                                @endphp
+                                <option value="{{ $tergal->id }}" data-precio="{{ $precio }}"
                                     {{ old('detalle.tergal_id', $detalleCotizacion->tergal_id ?? '') == $tergal->id ? 'selected' : '' }}>
                                     {{ $tergal->nombre }} - {{ $tergal->campo1 ?? '' }} - {{ $tergal->campo2 ?? '' }}
                                 </option>
@@ -198,7 +228,18 @@
                             oninput="this.setCustomValidity('')">
                             <option value="">Seleccione un forro</option>
                             @foreach($forros as $forro)
-                                <option value="{{ $forro->id }}"
+                                @php
+                                if(limpiarPrecio($forro->precio_publico) > 0) {
+                                    $precio = limpiarPrecio($forro->precio_publico);
+                                } elseif(limpiarPrecio($forro->campo6) > 0) {
+                                    $precio = limpiarPrecio($forro->campo6);
+                                } elseif(limpiarPrecio($forro->campo13) > 0) {
+                                    $precio = limpiarPrecio($forro->campo13);
+                                } else {
+                                    $precio = 30;
+                                }
+                                @endphp
+                                <option value="{{ $forro->id }}" data-precio="{{ $precio }}"
                                     {{ old('detalle.forro_id', $detalleCotizacion->forro_id ?? '') == $forro->id ? 'selected' : '' }}>
                                     {{ $forro->nombre }} - {{ $forro->campo1 ?? '' }} - {{ $forro->campo2 ?? '' }}
                                 </option>
@@ -550,6 +591,7 @@
                     </div>
                 </div>
             </div>
+            
 
 <script>
 let contadorOtrosInsumos = {{ $contador ?? 0 }};
@@ -817,109 +859,57 @@ document.addEventListener('input', function(e) {
                     mostrarOcultarSecciones();
                 });
             </script>
-        </form>
-    </div>
-</div>
 
-<script>
-    let contadorOtrosInsumos = {
-        {
-            $otrosInsumosExistentes - > count()
-        }
-    };
-
-    function agregarOtroInsumo() {
-        contadorOtrosInsumos++;
-        const container = document.getElementById('otros-insumos-container');
-
-        const insumoDiv = document.createElement('div');
-        insumoDiv.className = 'row mb-3 align-items-end otro-insumo-row';
-        insumoDiv.innerHTML = `
-        <div class="col-md-5">
-            <label for="otros${contadorOtrosInsumos}_nombre">Insumo</label>
-            <select name="detalle[otros${contadorOtrosInsumos}_nombre]" id="otros${contadorOtrosInsumos}_nombre" class="form-control">
-                <option value="">Seleccionar insumo...</option>
-                @foreach($insumos as $insumo)
-                    <option value="{{ $insumo->id }}">{{ $insumo->nombre }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label for="otros${contadorOtrosInsumos}_cantidad">Cantidad</label>
-            <input type="number" name="detalle[otros${contadorOtrosInsumos}_cantidad]" 
-                    id="otros${contadorOtrosInsumos}_cantidad" class="form-control" 
-                    min="0" step="0.01">
-        </div>
-        <div class="col-md-3">
-            <label for="otros${contadorOtrosInsumos}_precio">Precio Unitario</label>
-            <input type="number" name="detalle[otros${contadorOtrosInsumos}_precio]" 
-                    id="otros${contadorOtrosInsumos}_precio" class="form-control" 
-                    min="0" step="0.01">
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarInsumo(this)">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-
-        container.appendChild(insumoDiv);
-    }
-
-    function eliminarInsumo(button) {
-        button.closest('.otro-insumo-row').remove();
-    }
-</script>
-
+{{-- Scripts generales --}}
 <script>
     // Cálculos automáticos para Cortina, Tergal y Forro
-    // Cortina
-    document.addEventListener('change', function(e) {
-        if (['ancho', 'ancho_tela'].includes(e.target.id)) {
-            const ancho = parseFloat(document.getElementById('ancho')?.value) || 0;
-            const anchoTela = parseFloat(document.getElementById('ancho_tela')?.value) || 0;
-            if (ancho > 0 && anchoTela > 0) {
-                const lienzos = (ancho * 2.5) / anchoTela;
-                document.getElementById('no_lienzos').value = lienzos.toFixed(2);
-                document.getElementById('no_lienzos_redondeado').value = Math.ceil(lienzos);
-            } else {
-                document.getElementById('no_lienzos').value = '';
-                document.getElementById('no_lienzos_redondeado').value = '';
+        // Cortina
+        document.addEventListener('change', function(e) {
+            if (['ancho', 'ancho_tela'].includes(e.target.id)) {
+                const ancho = parseFloat(document.getElementById('ancho')?.value) || 0;
+                const anchoTela = parseFloat(document.getElementById('ancho_tela')?.value) || 0;
+                if (ancho > 0 && anchoTela > 0) {
+                    const lienzos = (ancho * 2.5) / anchoTela;
+                    document.getElementById('no_lienzos').value = lienzos.toFixed(2);
+                    document.getElementById('no_lienzos_redondeado').value = Math.ceil(lienzos);
+                } else {
+                    document.getElementById('no_lienzos').value = '';
+                    document.getElementById('no_lienzos_redondeado').value = '';
+                }
             }
-        }
-    });
+        });
 
-    // Tergal
-    document.addEventListener('change', function(e) {
-        if (['ancho_tergal_real', 'ancho_tergal'].includes(e.target.id)) {
-            const ancho = parseFloat(document.getElementById('ancho_tergal_real')?.value) || 0;
-            const anchoTela = parseFloat(document.getElementById('ancho_tergal')?.value) || 0;
-            if (ancho > 0 && anchoTela > 0) {
-                const lienzos = (ancho * 2.5) / anchoTela;
-                document.getElementById('no_lienzos_tergal').value = lienzos.toFixed(2);
-                document.getElementById('no_lienzos_redondeado_tergal').value = Math.ceil(lienzos);
-            } else {
-                document.getElementById('no_lienzos_tergal').value = '';
-                document.getElementById('no_lienzos_redondeado_tergal').value = '';
+        // Tergal
+        document.addEventListener('change', function(e) {
+            if (['ancho_tergal_real', 'ancho_tergal'].includes(e.target.id)) {
+                const ancho = parseFloat(document.getElementById('ancho_tergal_real')?.value) || 0;
+                const anchoTela = parseFloat(document.getElementById('ancho_tergal')?.value) || 0;
+                if (ancho > 0 && anchoTela > 0) {
+                    const lienzos = (ancho * 2.5) / anchoTela;
+                    document.getElementById('no_lienzos_tergal').value = lienzos.toFixed(2);
+                    document.getElementById('no_lienzos_redondeado_tergal').value = Math.ceil(lienzos);
+                } else {
+                    document.getElementById('no_lienzos_tergal').value = '';
+                    document.getElementById('no_lienzos_redondeado_tergal').value = '';
+                }
             }
-        }
-    });
+        });
 
-    // Forro
-    document.addEventListener('change', function(e) {
-        if (['ancho_forro_real', 'ancho_forro'].includes(e.target.id)) {
-            const ancho = parseFloat(document.getElementById('ancho_forro_real')?.value) || 0;
-            const anchoTela = parseFloat(document.getElementById('ancho_forro')?.value) || 0;
-            if (ancho > 0 && anchoTela > 0) {
-                const lienzos = (ancho * 2.5) / anchoTela;
-                document.getElementById('no_lienzos_forro').value = lienzos.toFixed(2);
-                document.getElementById('no_lienzos_redondeado_forro').value = Math.ceil(lienzos);
-            } else {
-                document.getElementById('no_lienzos_forro').value = '';
-                document.getElementById('no_lienzos_redondeado_forro').value = '';
+        // Forro
+        document.addEventListener('change', function(e) {
+            if (['ancho_forro_real', 'ancho_forro'].includes(e.target.id)) {
+                const ancho = parseFloat(document.getElementById('ancho_forro_real')?.value) || 0;
+                const anchoTela = parseFloat(document.getElementById('ancho_forro')?.value) || 0;
+                if (ancho > 0 && anchoTela > 0) {
+                    const lienzos = (ancho * 2.5) / anchoTela;
+                    document.getElementById('no_lienzos_forro').value = lienzos.toFixed(2);
+                    document.getElementById('no_lienzos_redondeado_forro').value = Math.ceil(lienzos);
+                } else {
+                    document.getElementById('no_lienzos_forro').value = '';
+                    document.getElementById('no_lienzos_redondeado_forro').value = '';
+                }
             }
-        }
-    });
+        });
 
     // --- Copiar valores de Cortina a Tergal ---
     function copiarCortinaATergal() {
@@ -1023,7 +1013,6 @@ document.addEventListener('input', function(e) {
 
         if (!largoInput || !bastillaInput) return;
 
-        // Al cargar, calcula el largo base restando la bastilla actual
         if (!largoInput.dataset.original) {
             const largoActual = parseFloat(largoInput.value) || 0;
             const bastillaActual = parseFloat(bastillaInput.value) || 0;
@@ -1041,7 +1030,6 @@ document.addEventListener('input', function(e) {
             }
         });
 
-        // Si el usuario edita el largo manualmente, actualiza el original restando la bastilla actual
         largoInput.addEventListener('input', function() {
             const bastilla = parseFloat(bastillaInput.value) || 0;
             const largoActual = parseFloat(largoInput.value) || 0;
@@ -1054,6 +1042,162 @@ document.addEventListener('input', function(e) {
         actualizarLargoConBastilla('largo_tergal', 'valor_bastilla_tergal');
         actualizarLargoConBastilla('largo_forro', 'valor_bastilla_forro');
     });
-</script>
 
+    function calcularTotalesTelaTergalForro() {
+        // Cortina
+        const noLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
+        const largoCortina = parseFloat(document.getElementById('largo')?.value) || 0;
+        const precioTela = parseFloat(document.getElementById('precio_m2_tela')?.value) || 0;
+
+        // Tergal
+        const noLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
+        const largoTergal = parseFloat(document.getElementById('largo_tergal')?.value) || 0;
+        const precioTergal = parseFloat(document.getElementById('precio_m2_tergal')?.value) || 0;
+
+        // Forro
+        const noLienzosForro = parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0;
+        const largoForro = parseFloat(document.getElementById('largo_forro')?.value) || 0;
+        const precioForro = parseFloat(document.getElementById('precio_m2_forro')?.value) || 0;
+
+        // Cálculos de totales
+        const totalTela = noLienzosCortina * largoCortina;
+        const totalTergal = noLienzosTergal * largoTergal;
+        const totalForro = noLienzosForro * largoForro;
+
+        // Cálculos de totales finales
+        const totalTelaFinal = totalTela * precioTela;
+        const totalTergalFinal = totalTergal * precioTergal;
+        const totalForroFinal = totalForro * precioForro;
+
+        // Actualizar campos de la tabla
+        if (document.getElementById('total_tela')) document.getElementById('total_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
+        if (document.getElementById('total_tergal')) document.getElementById('total_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
+        if (document.getElementById('total_forro')) document.getElementById('total_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
+
+        if (document.getElementById('total_tela_final')) document.getElementById('total_tela_final').value = totalTelaFinal > 0 ? totalTelaFinal.toFixed(2) : '';
+        if (document.getElementById('total_tergal_final')) document.getElementById('total_tergal_final').value = totalTergalFinal > 0 ? totalTergalFinal.toFixed(2) : '';
+        if (document.getElementById('total_final_forro')) document.getElementById('total_final_forro').value = totalForroFinal > 0 ? totalForroFinal.toFixed(2) : '';
+
+        // Total general incluyendo forro
+        if (document.getElementById('costo_total_tela_tergal_forro')) {
+            document.getElementById('costo_total_tela_tergal_forro').value = (totalTelaFinal + totalTergalFinal + totalForroFinal).toFixed(2);
+        }
+    }
+
+    // Escuchar cambios en bastillas para recalcular totales
+    document.addEventListener('DOMContentLoaded', function() {
+        ['valor_bastilla', 'valor_bastilla_tergal', 'valor_bastilla_forro'].forEach(function(id) {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', function() {
+                    calcularTotalesTelaTergalForro();
+                });
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', calcularTotalesTelaTergalForro);
+    document.addEventListener('input', function(e) {
+        const ids = [
+            'no_lienzos_redondeado', 'largo', 'precio_m2_tela',
+            'no_lienzos_redondeado_tergal', 'largo_tergal', 'precio_m2_tergal',
+            'no_lienzos_redondeado_forro', 'largo_forro', 'precio_m2_forro'
+        ];
+        if (ids.includes(e.target.id)) {
+            calcularTotalesTelaTergalForro();
+        }
+    });
+
+    // Script para cálculos automáticos de los selects
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectConfigs = [
+            {
+                selectId: 'tela_id',
+                precioInputId: 'precio_m2_tela'
+            },
+            {
+                selectId: 'tergal_id',
+                precioInputId: 'precio_m2_tergal'
+            },
+            {
+                selectId: 'forro_id',
+                precioInputId: 'precio_m2_forro'
+            }
+        ];
+
+        function actualizarPrecio(selectElement, precioInputElement) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                const precio = selectedOption.getAttribute('data-precio');
+                if (precio && precioInputElement) {
+                    precioInputElement.value = parseFloat(precio).toFixed(2);
+                    precioInputElement.dispatchEvent(new Event('input'));
+                }
+            }
+        }
+
+        function recalcularTotalesTelaTergalForro() {
+            // Cortina
+            const noLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
+            const largoCortina = parseFloat(document.getElementById('largo')?.value) || 0;
+            const precioTela = parseFloat(document.getElementById('precio_m2_tela')?.value) || 0;
+
+            // Tergal
+            const noLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
+            const largoTergal = parseFloat(document.getElementById('largo_tergal')?.value) || 0;
+            const precioTergal = parseFloat(document.getElementById('precio_m2_tergal')?.value) || 0;
+
+            // Forro
+            const noLienzosForro = parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0;
+            const largoForro = parseFloat(document.getElementById('largo_forro')?.value) || 0;
+            const precioForro = parseFloat(document.getElementById('precio_m2_forro')?.value) || 0;
+
+            // Cálculos de totales
+            const totalTela = noLienzosCortina * largoCortina;
+            const totalTergal = noLienzosTergal * largoTergal;
+            const totalForro = noLienzosForro * largoForro;
+
+            // Cálculos de totales finales
+            const totalTelaFinal = totalTela * precioTela;
+            const totalTergalFinal = totalTergal * precioTergal;
+            const totalForroFinal = totalForro * precioForro;
+
+            // Actualizar campos de la tabla
+            if (document.getElementById('total_tela')) document.getElementById('total_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
+            if (document.getElementById('total_tergal')) document.getElementById('total_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
+            if (document.getElementById('total_forro')) document.getElementById('total_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
+
+            if (document.getElementById('total_tela_final')) document.getElementById('total_tela_final').value = totalTelaFinal > 0 ? totalTelaFinal.toFixed(2) : '';
+            if (document.getElementById('total_tergal_final')) document.getElementById('total_tergal_final').value = totalTergalFinal > 0 ? totalTergalFinal.toFixed(2) : '';
+            if (document.getElementById('total_final_forro')) document.getElementById('total_final_forro').value = totalForroFinal > 0 ? totalForroFinal.toFixed(2) : '';
+
+            // Total general incluyendo forro
+            if (document.getElementById('costo_total_tela_tergal_forro')) {
+                document.getElementById('costo_total_tela_tergal_forro').value = (totalTelaFinal + totalTergalFinal + totalForroFinal).toFixed(2);
+            }
+        }
+
+        selectConfigs.forEach(config => {
+            const selectElement = document.getElementById(config.selectId);
+            const precioInputElement = document.getElementById(config.precioInputId);
+
+            if (selectElement) {
+                const actualizarEsteSelect = () => {
+                    actualizarPrecio(selectElement, precioInputElement);
+                    recalcularTotalesTelaTergalForro();
+                };
+
+                selectElement.addEventListener('change', actualizarEsteSelect);
+
+                if (selectElement.value) {
+                    actualizarEsteSelect();
+                }
+
+                if (typeof $ !== 'undefined' && $.fn.select2) {
+                    $(selectElement).on('change', actualizarEsteSelect);
+                }
+            }
+        });
+    });
+</script>
 @endsection
