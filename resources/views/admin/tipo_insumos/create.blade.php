@@ -9,28 +9,35 @@
     </div>
 
     <div class="section-body">
-        <form method="POST" action="{{ route('admin.tipo-insumos.store') }}">
-            @csrf
-            <div class="form-group">
-                <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" name="nombre" class="form-control" required>
+        <div class="card">
+            <div class="card-header">
+                <h4>Formulario de Creación</h4>
             </div>
-
-            <div class="form-row">
-                @for($i = 1; $i <= 15; $i++)
-                    <div class="form-group col-md-4">
-                        <label for="campo{{ $i }}">Campo {{ $i }}</label>
-                        <input type="text" id="campo{{ $i }}" name="campo{{ $i }}" class="form-control">
+            <div class="card-body">
+                <form method="POST" action="{{ route('admin.tipo-insumos.store') }}">
+                    @csrf
+                    <div class="form-group">
+                        <label for="nombre">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control" required>
                     </div>
-                    @if($i % 3 == 0)
-                        </div><div class="form-row">
-                    @endif
-                @endfor
-            </div>
 
-            <button type="submit" class="btn btn-primary">Guardar</button>
-            <a href="{{ route('admin.tipo-insumos.index') }}" class="btn btn-secondary">Cancelar</a>
-        </form>
+                    <div class="form-row">
+                        @for($i = 1; $i <= 15; $i++)
+                            <div class="form-group col-md-4">
+                                <label for="campo{{ $i }}">Campo {{ $i }}</label>
+                                <input type="text" id="campo{{ $i }}" name="campo{{ $i }}" class="form-control">
+                            </div>
+                            @if($i % 3 == 0 && $i < 15)
+                                </div><div class="form-row">
+                            @endif
+                        @endfor
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a href="{{ route('admin.tipo-insumos.index') }}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

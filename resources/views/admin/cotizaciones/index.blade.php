@@ -93,7 +93,7 @@
                                         <i class="fas fa-eye"></i> Ver
                                     </a>
                                     <a href="{{ route('admin.cotizaciones.pdf', $cotizacion->id) }}" class="btn btn-primary btn-sm" style="margin-right: 0.5rem;" target="_blank">
-                                        <i class="fas fa-file-pdf"></i> PDF
+                                        <i class="fas fa-file-pdf"></i> PDF Cliente
                                     </a>
                                     @if($cotizacion->estatus === 'solicitada')
                                         <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="d-inline mb-0" style="margin-right: 0.5rem;">
@@ -103,7 +103,7 @@
                                                 <i class="fas fa-check"></i> Aceptar
                                             </button>
                                         </form>
-                                        <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="d-inline mb-0">
+                                        <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="d-inline mb-0" style="margin-right: 0.5rem;">
                                             @csrf
                                             <input type="hidden" name="estatus" value="rechazada">
                                             <button type="submit" class="btn btn-danger btn-sm" title="Rechazar">
