@@ -669,7 +669,7 @@
                 </div>
             </div>
 
-            <!-- Script para cálculos automáticos-->
+            <!-- Script para cálculos automáticos lienzos-->
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const anchoInput = document.getElementById('ancho');
@@ -780,66 +780,6 @@
                     </div>
                 </div>
             </div>
-            {{-- Cálculo de telas de la tabla totales --}}
-            <script>
-                function calcularTotales() {
-                    const totalLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
-                    const totalLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
-                    const totalLienzosForro = parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0;
-                    const totalLienzos = totalLienzosCortina + totalLienzosTergal + totalLienzosForro;
-                    document.getElementById('total_lienzos').value = totalLienzos > 0 ? totalLienzos : '';
-
-                    const totalForro = parseFloat(document.getElementById('total_forro')?.value) || 0;
-                    document.getElementById('total_m2_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
-
-                    const totalTela = parseFloat(document.getElementById('total_tela')?.value) || 0;
-                    document.getElementById('total_m2_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
-
-                    const totalTergal = parseFloat(document.getElementById('total_tergal')?.value) || 0;
-                    document.getElementById('total_m2_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
-
-                    // Cálculos monetarios de la tabla totales
-
-                    const costoTelaTergal = parseFloat(document.getElementById('costo_total_tela_tergal_forro')?.value) || 0;
-                    const costoForro = parseFloat(document.querySelector('[name="detalle[total_final_forro]"]')?.value) || 0;
-                    const costoManoObra = parseFloat(document.querySelector('[name="detalle[costo_total_mano_obra]"]')?.value) || 0;
-                    const costoMateriales = parseFloat(document.getElementById('costo_total_materiales')?.value) || 0;
-
-                    const costoCortina = costoTelaTergal + costoForro + costoManoObra + costoMateriales;
-                    document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
-
-                    const utilidad = costoCortina * 2;
-                    document.getElementById('utilidad').value = utilidad > 0 ? utilidad.toFixed(2) : '';
-
-                    const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
-                    const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
-                    const costoDecorador = costoCortina + (costoCortina * (decoradorPorcentaje / 100));
-                    document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
-
-                    const precioPublico = costoCortina * 2;
-                    document.getElementById('precio_publico').value = precioPublico > 0 ? precioPublico.toFixed(2) : '';
-                }
-
-                // Ejecutar al cargar y cuando cambien los campos relevantes
-                document.addEventListener('DOMContentLoaded', calcularTotales);
-                document.addEventListener('input', function(e) {
-                    const ids = [
-                        'no_lienzos_redondeado', 'no_lienzos_redondeado_tergal', 'no_lienzos_redondeado_forro',
-                        'total_forro', 'total_tela', 'total_tergal',
-                        'costo_total_tela_tergal_forro', 'costo_total_materiales',
-                        'decorador_porcentaje'
-                    ];
-                    if (
-                        ids.includes(e.target.id) ||
-                        (e.target.name && [
-                            'detalle[total_final_forro]',
-                            'detalle[costo_total_mano_obra]'
-                        ].includes(e.target.name))
-                    ) {
-                        calcularTotales();
-                    }
-                });
-            </script>
 
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">
@@ -1227,6 +1167,63 @@
     });
 </script>
 
+{{-- Script tabla Totales tela, tergal y forro --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Función para recalcular los totales de cada fila y el total general
+        function recalcularTotalesTabla() {
+            // Cortina
+            const totalTela = parseFloat(document.getElementById('total_tela')?.value) || 0;
+            const precioTela = parseFloat(document.getElementById('precio_m2_tela')?.value) || 0;
+            const totalTelaFinalInput = document.getElementById('total_tela_final');
+            if (totalTelaFinalInput) totalTelaFinalInput.value = (totalTela * precioTela).toFixed(2);
+
+            // Tergal
+            const totalTergal = parseFloat(document.getElementById('total_tergal')?.value) || 0;
+            const precioTergal = parseFloat(document.getElementById('precio_m2_tergal')?.value) || 0;
+            const totalTergalFinalInput = document.getElementById('total_tergal_final');
+            if (totalTergalFinalInput) totalTergalFinalInput.value = (totalTergal * precioTergal).toFixed(2);
+
+            // Forro
+            const totalForro = parseFloat(document.getElementById('total_forro')?.value) || 0;
+            const precioForro = parseFloat(document.getElementById('precio_m2_forro')?.value) || 0;
+            const totalForroFinalInput = document.getElementById('total_final_forro');
+            if (totalForroFinalInput) totalForroFinalInput.value = (totalForro * precioForro).toFixed(2);
+
+            // Total general
+            const totalGeneral = 
+                (totalTela * precioTela) +
+                (totalTergal * precioTergal) +
+                (totalForro * precioForro);
+
+            const totalGeneralInput = document.getElementById('costo_total_tela_tergal_forro');
+            if (totalGeneralInput) totalGeneralInput.value = totalGeneral.toFixed(2);
+        }
+
+        // Escucha cambios en cualquier input o recalculo automático de la tabla de totales
+        const ids = [
+            'total_tela', 'precio_m2_tela', 'total_tergal', 'precio_m2_tergal',
+            'total_forro', 'precio_m2_forro', 'valor_bastilla', 'valor_bastilla_tergal', 'valor_bastilla_forro',
+            'no_lienzos_redondeado', 'largo', 'no_lienzos_redondeado_tergal', 'largo_tergal',
+            'no_lienzos_redondeado_forro', 'largo_forro'
+        ];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', recalcularTotalesTabla);
+                el.addEventListener('change', recalcularTotalesTabla);
+            }
+        });
+
+        // También escucha eventos globales por si hay cambios automáticos
+        document.addEventListener('input', recalcularTotalesTabla);
+        document.addEventListener('change', recalcularTotalesTabla);
+
+        // Ejecuta al cargar
+        recalcularTotalesTabla();
+    });
+</script>
+
 {{-- Script tabla mano de obra --}}
 <script>
     function calcularManoObraDesdeTotales() {
@@ -1388,5 +1385,75 @@
 
     // Ejecutar al cargar
     document.addEventListener('DOMContentLoaded', actualizarCostoTotalMateriales);
+</script>
+
+{{-- Cálculos tabla totales --}}
+<script>
+    function calcularTotales() {
+        // Totales de lienzos
+        const totalLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
+        const totalLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
+        const totalLienzosForro = parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0;
+        const totalLienzos = totalLienzosCortina + totalLienzosTergal + totalLienzosForro;
+        if (document.getElementById('total_lienzos')) {
+            document.getElementById('total_lienzos').value = totalLienzos > 0 ? totalLienzos : '';
+        }
+
+        // m2 Forro, Tela, Tergal
+        const totalForro = parseFloat(document.getElementById('total_forro')?.value) || 0;
+        if (document.getElementById('total_m2_forro')) {
+            document.getElementById('total_m2_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
+        }
+        const totalTela = parseFloat(document.getElementById('total_tela')?.value) || 0;
+        if (document.getElementById('total_m2_tela')) {
+            document.getElementById('total_m2_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
+        }
+        const totalTergal = parseFloat(document.getElementById('total_tergal')?.value) || 0;
+        if (document.getElementById('total_m2_tergal')) {
+            document.getElementById('total_m2_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
+        }
+
+        // Cálculos monetarios
+        const costoTelaTergal = parseFloat(document.getElementById('costo_total_tela_tergal_forro')?.value) || 0;
+        const costoForro = parseFloat(document.querySelector('[name="detalle[total_final_forro]"]')?.value) || 0;
+        const costoManoObra = parseFloat(document.querySelector('[name="detalle[costo_total_mano_obra]"]')?.value) || 0;
+        const costoMateriales = parseFloat(document.getElementById('costo_total_materiales')?.value) || 0;
+        const costoCortina = costoTelaTergal + costoForro + costoManoObra + costoMateriales;
+        if (document.getElementById('costo_cortina')) {
+            document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
+        }
+
+        // Utilidad (puedes ajustar la fórmula si es diferente)
+        const utilidad = costoCortina * 2;
+        if (document.getElementById('utilidad')) {
+            document.getElementById('utilidad').value = utilidad > 0 ? utilidad.toFixed(2) : '';
+        }
+
+        // Costo decorador
+        const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
+        const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
+        const costoDecorador = costoCortina + (costoCortina * (decoradorPorcentaje / 100));
+        if (document.getElementById('costo_decorador')) {
+            document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
+        }
+
+        // Precio público (puedes ajustar la fórmula si es diferente)
+        const precioPublico = costoCortina * 2;
+        if (document.getElementById('precio_publico')) {
+            document.getElementById('precio_publico').value = precioPublico > 0 ? precioPublico.toFixed(2) : '';
+        }
+    }
+
+    // Ejecutar al cargar
+    document.addEventListener('DOMContentLoaded', calcularTotales);
+
+    // Escuchar cambios en todos los inputs y selects de las tablas relevantes
+    document.addEventListener('input', function(e) {
+        // Actualiza totales siempre que cambie cualquier input o select en el formulario
+        calcularTotales();
+    });
+    document.addEventListener('change', function(e) {
+        calcularTotales();
+    });
 </script>
 @endsection
