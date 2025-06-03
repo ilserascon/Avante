@@ -757,21 +757,25 @@
                                     <tr>
                                         <td><strong>Costo Decorador</strong></td>
                                         <td>
-                                            <div class="input-group">
-                                                <input type="number" id="decorador_porcentaje" class="form-control text-end" value="15" min="0" max="100" step="0.01" style="max-width: 100px;">
-                                                <span class="input-group-text">%</span>
-                                                <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
-                                                <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" value="{{ $cotizacion->costo_decorador }}" readonly>
-                                            </div>
+                                            @if(auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador')
+                                                <div class="input-group">
+                                                    <input type="number" id="decorador_porcentaje" class="form-control text-end" value="15" min="0" max="100" step="0.01" style="max-width: 100px;">
+                                                    <span class="input-group-text">%</span>
+                                                    <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
+                                                    <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" value="{{ $cotizacion->costo_decorador }}" readonly>
+                                                </div>
+                                            @endif
                                         </td>
                                     </tr>
                                     <tr>
                                         <td><strong>Precio Público</strong></td>
                                         <td>
-                                            <div class="input-group">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" class="form-control" id="precio_publico" name="totales[precio_publico]" value="{{ $cotizacion->precio_publico }}" readonly>
-                                            </div>
+                                            @if(auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador')
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control" id="precio_publico" name="totales[precio_publico]" value="{{ $cotizacion->precio_publico }}" readonly>
+                                                </div>
+                                            @endif
                                         </td>
                                     </tr>
                                 </tbody>

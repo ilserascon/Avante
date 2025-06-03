@@ -9,9 +9,13 @@
         th, td { border: 1px solid #ccc; padding: 8px; }
         th { background: #f5f5f5; }
         h2, h4 { margin-bottom: 0; }
+        .logo-container { text-align: left; margin-bottom: 20px; }
     </style>
 </head>
 <body>
+    <div class="logo-container">
+        <img src="{{ public_path('stisla/assets/img/Logo.jpg') }}" alt="logo" style="width: 200px;">
+    </div>
     <h2>Cotización #{{ $cotizacion->id }}</h2>
     <p><strong>Cliente:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->nombre : 'N/A' }}</p>
     <p><strong>Fecha:</strong> {{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}</p>

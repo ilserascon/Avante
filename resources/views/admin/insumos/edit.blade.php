@@ -75,27 +75,54 @@
 <script>
     const tipoSelect = document.getElementById('id_tipo_insumo');
     const camposDiv = document.getElementById('campos-dinamicos');
-    const valoresActuales = {!! json_encode($insumo->campos_extra ?? new \stdClass()) !!};
     
+    const valoresOld = @json(old());
+    
+    const valoresActuales = {
+        @if($insumo->campos_extra)
+            @foreach($insumo->campos_extra as $key => $value)
+                '{{ $key }}': '{{ $value }}',
+            @endforeach
+        @endif
+
+        @for($i = 1; $i <= 20; $i++)
+            @if(isset($insumo->{'campo' . $i}) && $insumo->{'campo' . $i} !== null)
+                'campo{{ $i }}': '{{ $insumo->{'campo' . $i} }}',
+            @endif
+        @endfor
+    };
+
     function actualizarCampos() {
         camposDiv.innerHTML = '';
         const selectedOption = tipoSelect.options[tipoSelect.selectedIndex];
         let campos = {};
+        
         try {
             campos = JSON.parse(selectedOption.getAttribute('data-campos') || '{}');
-        } catch(e) {}
+        } catch(e) {
+            console.log('Error parsing campos data:', e);
+        }
 
         if (Object.keys(campos).length > 0) {
             let fields = [];
             let count = 0;
+            
             for (let key in campos) {
-                const valor = valoresActuales[key] || '';
+                let valor = '';
+                
+                if (valoresOld && typeof valoresOld[key] !== 'undefined' && valoresOld[key] !== null && valoresOld[key] !== '') {
+                    valor = valoresOld[key];
+                } else if (typeof valoresActuales[key] !== 'undefined' && valoresActuales[key] !== null && valoresActuales[key] !== '') {
+                    valor = valoresActuales[key];
+                }
+                
                 fields.push(
                     `<div class="form-group col-md-4">
                         <label for="${key}">${campos[key]}</label>
                         <input type="text" name="${key}" id="${key}" class="form-control" value="${valor}">
                     </div>`
                 );
+                
                 count++;
                 if (count % 3 === 0 || count === Object.keys(campos).length) {
                     camposDiv.innerHTML += `<div class="form-row">${fields.join('')}</div>`;
