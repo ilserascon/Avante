@@ -33,8 +33,11 @@
                 <p><strong>M2 Tergal:</strong> {{ $cotizacion->total_m2_tergal ?? '-' }}</p>
                 <p><strong>M2 Forro:</strong> {{ $cotizacion->total_m2_forro ?? '-' }}</p>
                 <p><strong>Costo Cortina:</strong> ${{ number_format($cotizacion->costo_cortina, 2) }}</p>
-                <p><strong>Utilidad:</strong> ${{ number_format($cotizacion->utilidad, 2) }}</p>
-                <p><strong>Costo Decorador:</strong> ${{ number_format($cotizacion->costo_decorador, 2) }}</p>
+                @if(auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador')
+                    <hr>
+                    <p><strong>Utilidad:</strong> ${{ number_format($cotizacion->utilidad, 2) }}</p>
+                    <p><strong>Costo Decorador:</strong> ${{ number_format($cotizacion->costo_decorador, 2) }}</p>
+                @endif
                 <p><strong>Precio Público:</strong> ${{ number_format($cotizacion->precio_publico, 2) }}</p>
                 @if(isset($cotizacion->detalles))
                     <hr>

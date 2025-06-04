@@ -422,30 +422,36 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <td><strong>Utilidad</strong></td>
-                                        <td>
-                                            @if(auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador')
+                                    @php
+                                        $esAdmin = auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador';
+                                    @endphp
+                                    @if(!$esAdmin)
+                                        <tr class="d-none">
+                                            <td><strong>Utilidad</strong></td>
+                                            <td>
                                                 <div class="input-group">
                                                     <span class="input-group-text">$</span>
                                                     <input type="number" class="form-control" id="utilidad" name="totales[utilidad]" value="{{ old('totales.utilidad', $cotizacion->utilidad ?? '') }}" readonly>
                                                 </div>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Costo Decorador</strong></td>
-                                        <td>
-                                            @if(auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador')
+                                                <input type="hidden" id="utilidad" name="totales[utilidad]" value="{{ old('totales.utilidad', $cotizacion->utilidad ?? '') }}">
+                                            </td>
+                                        </tr>
+                                    @endif
+                                    @if(!$esAdmin)
+                                        <tr class="d-none">
+                                            <td><strong>Costo Decorador</strong></td>
+                                            <td>
                                                 <div class="input-group">
                                                     <input type="number" id="decorador_porcentaje" class="form-control text-end" value="15" min="0" max="100" step="0.01" style="max-width: 100px;">
                                                     <span class="input-group-text">%</span>
                                                     <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
                                                     <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" value="{{ old('totales.costo_decorador', $cotizacion->costo_decorador ?? '') }}" readonly>
                                                 </div>
-                                            @endif
-                                        </td>
-                                    </tr>
+                                                <input type="hidden" id="decorador_porcentaje" value="15">
+                                                <input type="hidden" id="costo_decorador" name="totales[costo_decorador]" value="{{ old('totales.costo_decorador', $cotizacion->costo_decorador ?? '') }}">
+                                            </td>
+                                        </tr>
+                                    @endif
                                     <tr>
                                         <td><strong>Precio Público</strong></td>
                                         <td>
@@ -610,7 +616,7 @@
                                                         </td>
                                                     </tr>
                                                 </tbody>
-                                            </table>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1344,44 +1350,51 @@
     }
 
     function actualizarTablaTotales() {
-
-        // Cálculo de telas de la tabla totales
-
-        const totalLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
-        const totalLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
-        const totalLienzosForro = parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0;
-        const totalLienzos = totalLienzosCortina + totalLienzosTergal + totalLienzosForro;
-        document.getElementById('total_lienzos').value = totalLienzos > 0 ? totalLienzos : '';
-
-        const totalForro = parseFloat(document.getElementById('total_forro')?.value) || 0;
-        document.getElementById('total_m2_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
-
-        const totalTela = parseFloat(document.getElementById('total_tela')?.value) || 0;
-        document.getElementById('total_m2_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
-
-        const totalTergal = parseFloat(document.getElementById('total_tergal')?.value) || 0;
-        document.getElementById('total_m2_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
-
-        // Cálculos monetarios de la tabla totales
-
-        const costoTelaTergal = parseFloat(document.getElementById('costo_total_tela_tergal_forro')?.value) || 0;
-        const costoForro = parseFloat(document.querySelector('[name="detalle[total_final_forro]"]')?.value) || 0;
+        // Totales de tela, tergal y forro
+        const totalTelaFinal = parseFloat(document.getElementById('total_tela_final')?.value) || 0;
+        const totalTergalFinal = parseFloat(document.getElementById('total_tergal_final')?.value) || 0;
+        const totalForroFinal = parseFloat(document.getElementById('total_final_forro')?.value) || 0;
         const costoManoObra = parseFloat(document.querySelector('[name="detalle[costo_total_mano_obra]"]')?.value) || 0;
         const costoMateriales = parseFloat(document.getElementById('costo_total_materiales')?.value) || 0;
 
-        const costoCortina = costoTelaTergal + costoForro + costoManoObra + costoMateriales;
+        // Suma todos los costos
+        const costoCortina = totalTelaFinal + totalTergalFinal + totalForroFinal + costoManoObra + costoMateriales;
         document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
 
+        // Utilidad, decorador y precio público
         const utilidad = costoCortina * 2;
-        document.getElementById('utilidad').value = utilidad > 0 ? utilidad.toFixed(2) : '';
+        document.querySelectorAll('input[name="totales[utilidad]"]').forEach(function(input) {
+            input.value = utilidad > 0 ? utilidad.toFixed(2) : '';
+        });
 
         const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
         const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
         const costoDecorador = costoCortina + (costoCortina * (decoradorPorcentaje / 100));
-        document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
+        document.querySelectorAll('input[name="totales[costo_decorador]"]').forEach(function(input) {
+            input.value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
+        });
 
         const precioPublico = costoCortina * 2;
         document.getElementById('precio_publico').value = precioPublico > 0 ? precioPublico.toFixed(2) : '';
+
+        // Total Lienzos
+        const totalLienzos = 
+            (parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0) +
+            (parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0) +
+            (parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0);
+        document.getElementById('total_lienzos').value = totalLienzos > 0 ? totalLienzos : '';
+
+        // Total m2 Tela
+        const totalM2Tela = parseFloat(document.getElementById('total_tela')?.value) || 0;
+        document.getElementById('total_m2_tela').value = totalM2Tela > 0 ? totalM2Tela : '';
+
+        // Total m2 Tergal
+        const totalM2Tergal = parseFloat(document.getElementById('total_tergal')?.value) || 0;
+        document.getElementById('total_m2_tergal').value = totalM2Tergal > 0 ? totalM2Tergal : '';
+
+        // Total m2 Forro
+        const totalM2Forro = parseFloat(document.getElementById('total_forro')?.value) || 0;
+        document.getElementById('total_m2_forro').value = totalM2Forro > 0 ? totalM2Forro : '';
     }
 
     // Escuchar cambios en los campos de lienzos redondeados, total_forro, total_tela y total_tergal
@@ -1467,6 +1480,7 @@
         const totalTelaFinal = parseFloat($('#total_tela_final').val()) || 0;
         const totalForroFinal = parseFloat($('#total_final_forro').val()) || 0;
         $('#costo_total_tela_tergal_forro').val((totalTelaFinal + total + totalForroFinal).toFixed(2));
+
 
         actualizarTablaTotales();
     });

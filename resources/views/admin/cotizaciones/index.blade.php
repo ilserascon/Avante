@@ -56,8 +56,10 @@
                             <th>M2 Tergal</th>
                             <th>M2 Forro</th>
                             <th>Costo Cortina</th>
-                            <th>Utilidad</th>
-                            <th>Costo Decorador</th>
+                            @if(auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador')
+                                <th>Utilidad</th>
+                                <th>Costo Decorador</th>
+                            @endif
                             <th>Precio Público</th>
                             <th>Fecha</th>
                             <th>Estatus</th>
@@ -83,8 +85,10 @@
                                 <td>{{ $cotizacion->total_m2_tergal ?? '-' }}</td>
                                 <td>{{ $cotizacion->total_m2_forro ?? '-' }}</td>
                                 <td>${{ number_format($cotizacion->costo_cortina, 2) }}</td>
-                                <td>${{ number_format($cotizacion->utilidad, 2) }}</td>
-                                <td>${{ number_format($cotizacion->costo_decorador, 2) }}</td>
+                                @if(auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador')
+                                    <td>${{ number_format($cotizacion->utilidad, 2) }}</td>
+                                    <td>${{ number_format($cotizacion->costo_decorador, 2) }}</td>
+                                @endif
                                 <td>${{ number_format($cotizacion->precio_publico, 2) }}</td>
                                 <td>{{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}</td>
                                 <td>{{ ucfirst($cotizacion->estatus) }}</td>
