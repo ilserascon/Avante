@@ -130,7 +130,7 @@ class CotizacionController extends Controller
             $dataDetalle['ancho_tergal_real'] = $detalle['ancho_tergal_real'] ?? null;
             $dataDetalle['largo_tergal'] = $detalle['largo_tergal'] ?? null;
             $dataDetalle['no_lienzos_tergal'] = $detalle['no_lienzos_tergal'] ?? null;
-            $dataDetalle['no_lienzos_redondeado_tergal'] ?? null;
+            $dataDetalle['no_lienzos_redondeado_tergal'] = $detalle['no_lienzos_redondeado_tergal'] ?? null;
             $dataDetalle['bastilla_tergal'] = $detalle['valor_bastilla_tergal'] ?? null;
         }
 
@@ -141,7 +141,7 @@ class CotizacionController extends Controller
             $dataDetalle['ancho_forro_real'] = $detalle['ancho_forro_real'] ?? null;
             $dataDetalle['largo_forro'] = $detalle['largo_forro'] ?? null;
             $dataDetalle['no_lienzos_forro'] = $detalle['no_lienzos_forro'] ?? null;
-            $dataDetalle['no_lienzos_redondeado_forro'] ?? null;
+            $dataDetalle['no_lienzos_redondeado_forro'] = $detalle['no_lienzos_redondeado_forro'] ?? null;
             $dataDetalle['bastilla_forro'] = $detalle['valor_bastilla_forro'] ?? null;
         }
 

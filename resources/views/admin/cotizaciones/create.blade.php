@@ -425,20 +425,17 @@
                                     @php
                                         $esAdmin = auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador';
                                     @endphp
-                                    @if(!$esAdmin)
-                                        <tr class="d-none">
+                                    @if($esAdmin)
+                                        <tr>
                                             <td><strong>Utilidad</strong></td>
                                             <td>
                                                 <div class="input-group">
                                                     <span class="input-group-text">$</span>
                                                     <input type="number" class="form-control" id="utilidad" name="totales[utilidad]" value="{{ old('totales.utilidad', $cotizacion->utilidad ?? '') }}" readonly>
                                                 </div>
-                                                <input type="hidden" id="utilidad" name="totales[utilidad]" value="{{ old('totales.utilidad', $cotizacion->utilidad ?? '') }}">
                                             </td>
                                         </tr>
-                                    @endif
-                                    @if(!$esAdmin)
-                                        <tr class="d-none">
+                                        <tr>
                                             <td><strong>Costo Decorador</strong></td>
                                             <td>
                                                 <div class="input-group">
@@ -447,10 +444,12 @@
                                                     <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
                                                     <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" value="{{ old('totales.costo_decorador', $cotizacion->costo_decorador ?? '') }}" readonly>
                                                 </div>
-                                                <input type="hidden" id="decorador_porcentaje" value="15">
-                                                <input type="hidden" id="costo_decorador" name="totales[costo_decorador]" value="{{ old('totales.costo_decorador', $cotizacion->costo_decorador ?? '') }}">
                                             </td>
                                         </tr>
+                                    @else
+                                        {{-- Campos ocultos para cotizador --}}
+                                        <input type="hidden" id="utilidad" name="totales[utilidad]" value="{{ old('totales.utilidad', $cotizacion->utilidad ?? '') }}">
+                                        <input type="hidden" id="costo_decorador" name="totales[costo_decorador]" value="{{ old('totales.costo_decorador', $cotizacion->costo_decorador ?? '') }}">
                                     @endif
                                     <tr>
                                         <td><strong>Precio Público</strong></td>
@@ -1087,37 +1086,72 @@
     });
 
 
-    // Script para agregar bastilla al tergal
+    // Script para agregar bastilla al tergal (evita ciclos infinitos)
     document.addEventListener('input', function(e) {
+        // Si se actualiza la bastilla de la cortina, actualiza el largo de tergal
+        if (e.target && e.target.id === 'valor_bastilla') {
+            const largoCortinaInput = document.getElementById('largo');
+            const largoTergalInput = document.getElementById('largo_tergal');
+            const bastillaTergalInput = document.getElementById('valor_bastilla_tergal');
+
+            if (!largoCortinaInput || !largoTergalInput) return;
+
+            let base = parseFloat(largoCortinaInput.value);
+            if (isNaN(base)) return;
+
+            let bastillaTergal = bastillaTergalInput ? parseFloat(bastillaTergalInput.value) : 0;
+            if (isNaN(bastillaTergal)) bastillaTergal = 0;
+
+            const nuevoValor = (base + bastillaTergal).toFixed(2);
+            if (largoTergalInput.value !== nuevoValor) {
+                largoTergalInput.value = nuevoValor;
+                const event = new Event('input', { bubbles: true });
+                largoTergalInput.dispatchEvent(event);
+            }
+        }
+
+        // Si se actualiza la bastilla del tergal, suma sobre el largo de cortina actualizado
         if (e.target && e.target.id === 'valor_bastilla_tergal') {
+            const largoCortinaInput = document.getElementById('largo');
             const largoTergalInput = document.getElementById('largo_tergal');
             const bastillaTergalInput = e.target;
 
-            if (!largoTergalInput || !bastillaTergalInput) return;
+            if (!largoCortinaInput || !largoTergalInput || !bastillaTergalInput) return;
 
-            // Guardar el valor original si no existe aún
-            if (!largoTergalInput.dataset.original || largoTergalInput.value === "") {
-                const original = parseFloat(largoTergalInput.value);
-                if (!isNaN(original) && original > 0) {
-                    largoTergalInput.dataset.original = original;
-                }
+            let base = parseFloat(largoCortinaInput.value);
+            if (isNaN(base)) return;
+
+            let bastillaTergal = parseFloat(bastillaTergalInput.value);
+            if (isNaN(bastillaTergal)) bastillaTergal = 0;
+
+            const nuevoValor = (base + bastillaTergal).toFixed(2);
+            if (largoTergalInput.value !== nuevoValor) {
+                largoTergalInput.value = nuevoValor;
+                const event = new Event('input', { bubbles: true });
+                largoTergalInput.dispatchEvent(event);
             }
+        }
 
-            const largoOriginal = parseFloat(largoTergalInput.dataset.original);
-            const bastilla = parseFloat(bastillaTergalInput.value);
+        // Si se actualiza el largo de la cortina, también actualiza el largo de tergal
+        if (e.target && e.target.id === 'largo') {
+            const largoCortinaInput = document.getElementById('largo');
+            const largoTergalInput = document.getElementById('largo_tergal');
+            const bastillaTergalInput = document.getElementById('valor_bastilla_tergal');
 
-            if (isNaN(largoOriginal)) return;
+            if (!largoCortinaInput || !largoTergalInput) return;
 
-            if (!isNaN(bastilla)) {
-                largoTergalInput.value = (largoOriginal + bastilla).toFixed(2);
-            } else {
-                largoTergalInput.value = largoOriginal.toFixed(2);
+            let base = parseFloat(largoCortinaInput.value);
+            if (isNaN(base)) return;
+
+            let bastillaTergal = bastillaTergalInput ? parseFloat(bastillaTergalInput.value) : 0;
+            if (isNaN(bastillaTergal)) bastillaTergal = 0;
+
+            const nuevoValor = (base + bastillaTergal).toFixed(2);
+            if (largoTergalInput.value !== nuevoValor) {
+                largoTergalInput.value = nuevoValor;
+                const event = new Event('input', { bubbles: true });
+                largoTergalInput.dispatchEvent(event);
             }
-
-            const event = new Event('input', {
-                bubbles: true
-            });
-            largoTergalInput.dispatchEvent(event);
         }
     });
 
