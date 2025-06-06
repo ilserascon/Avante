@@ -32,12 +32,20 @@
             <th>Precio Público</th>
         </tr>
         <tr>
+            @php
+                // Insumos fijos por nombre
+                $insumosFijos = ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'];
+                // Buscar el cortinero dinámico (tipo 6) si existe
+                $cortineroDinamico = $cotizacion->insumos->first(function($insumo) {
+                    return $insumo->id_tipo_insumo == 6;
+                });
+                $tipos = [];
+                if($cotizacion->lleva_cortina) $tipos[] = 'Cortina';
+                if($cotizacion->lleva_tergal) $tipos[] = 'Tergal';
+                // Si hay cortinero dinámico, mostrar su nombre como tipo de cortinero
+                if($cortineroDinamico) $tipos[] = $cortineroDinamico->nombre;
+            @endphp
             <td>
-                @php
-                    $tipos = [];
-                    if($cotizacion->lleva_cortina) $tipos[] = 'Cortina';
-                    if($cotizacion->lleva_tergal) $tipos[] = 'Tergal';
-                @endphp
                 {{ implode(', ', $tipos) }}
             </td>
             <td>{{ $cotizacion->lleva_forro ? 'Sí' : 'No' }}</td>
@@ -50,6 +58,10 @@
     </table>
 
     <h4 style="margin-top:30px;">Insumos utilizados</h4>
+    @php
+        // Insumos fijos por nombre, pero excluye "Cortinero" para que solo se muestre el dinámico
+        $insumosFijos = ['Ojillos', 'Puntas', 'Mensulas'];
+    @endphp
     @if($cotizacion->insumos && $cotizacion->insumos->count())
         <table>
             <thead>
@@ -62,6 +74,10 @@
             </thead>
             <tbody>
                 @foreach($cotizacion->insumos as $insumo)
+                    {{-- Mostrar el cortinero dinámico (id_tipo_insumo == 6) y los demás insumos, pero NO el fijo "Cortinero" --}}
+                    @if($insumo->nombre === 'Cortinero' && $insumo->id_tipo_insumo != 6)
+                        @continue
+                    @endif
                     <tr>
                         <td>{{ $insumo->nombre }}</td>
                         <td>{{ $insumo->pivot->cantidad }}</td>

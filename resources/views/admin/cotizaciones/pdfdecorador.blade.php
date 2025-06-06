@@ -46,6 +46,9 @@
     </table>
 
     <h4 style="margin-top:30px;">Insumos utilizados</h4>
+    @php
+        $insumosFijos = ['Ojillos', 'Puntas', 'Mensulas'];
+    @endphp
     @if($cotizacion->insumos && $cotizacion->insumos->count())
         <table>
             <thead>
@@ -58,6 +61,9 @@
             </thead>
             <tbody>
                 @foreach($cotizacion->insumos as $insumo)
+                    @if($insumo->nombre === 'Cortinero' && $insumo->id_tipo_insumo != 6)
+                        @continue
+                    @endif
                     <tr>
                         <td>{{ $insumo->nombre }}</td>
                         <td>{{ $insumo->pivot->cantidad }}</td>

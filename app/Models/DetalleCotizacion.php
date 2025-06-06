@@ -63,6 +63,8 @@ class DetalleCotizacion extends Model
 
         'costo_total_mano_obra',
 
+        'decorador_porcentaje',
+
     ];
 
     public function cotizacion()

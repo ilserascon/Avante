@@ -439,7 +439,13 @@
                                             <td><strong>Costo Decorador</strong></td>
                                             <td>
                                                 <div class="input-group">
-                                                    <input type="number" id="decorador_porcentaje" class="form-control text-end" value="15" min="0" max="100" step="0.01" style="max-width: 100px;">
+                                                    <input type="number" 
+                                                        id="decorador_porcentaje" 
+                                                        name="totales[decorador_porcentaje]"
+                                                        class="form-control text-end" 
+                                                        value="{{ old('totales.decorador_porcentaje', $detalleCotizacion->decorador_porcentaje ?? 15) }}" 
+                                                        min="0" max="100" step="0.01" 
+                                                        style="max-width: 100px;">
                                                     <span class="input-group-text">%</span>
                                                     <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
                                                     <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" value="{{ old('totales.costo_decorador', $cotizacion->costo_decorador ?? '') }}" readonly>
@@ -1627,5 +1633,22 @@
     });
 
     document.getElementById('decorador_porcentaje').addEventListener('input', actualizarTablaTotales);
+
+    // Actualiza el valor del campo oculto al cambiar el porcentaje del decorador
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const decoradorPorcentaje = document.getElementById('decorador_porcentaje');
+        const decoradorPorcentajeHidden = document.getElementById('decorador_porcentaje_hidden');
+        if (form && decoradorPorcentaje && decoradorPorcentajeHidden) {
+            // Sincroniza en cada cambio
+            decoradorPorcentaje.addEventListener('input', function() {
+                decoradorPorcentajeHidden.value = decoradorPorcentaje.value;
+            });
+            // Y justo antes de enviar
+            form.addEventListener('submit', function() {
+                decoradorPorcentajeHidden.value = decoradorPorcentaje.value;
+            });
+        }
+    });
 </script>
 @endsection

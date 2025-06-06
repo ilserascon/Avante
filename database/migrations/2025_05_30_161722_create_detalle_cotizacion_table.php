@@ -67,6 +67,7 @@ return new class extends Migration
             $table->double('total_mano_obra_2')->nullable();
 
             $table->double('costo_total_mano_obra')->nullable();
+            $table->double('decorador_porcentaje')->nullable();
         });
     }
 

@@ -752,7 +752,13 @@
                                             <td><strong>Costo Decorador</strong></td>
                                             <td>
                                                 <div class="input-group">
-                                                    <input type="number" id="decorador_porcentaje" class="form-control text-end" value="15" min="0" max="100" step="0.01" style="max-width: 100px;">
+                                                    <input type="number" 
+                                                        id="decorador_porcentaje" 
+                                                        name="totales[decorador_porcentaje]"
+                                                        class="form-control text-end"
+                                                        value="{{ old('totales.decorador_porcentaje', $cotizacion->detalleCotizacion->decorador_porcentaje ?? 15) }}"
+                                                        min="0" max="100" step="0.01" 
+                                                        style="max-width: 100px;">
                                                     <span class="input-group-text">%</span>
                                                     <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
                                                     <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" value="{{ $cotizacion->costo_decorador }}" readonly>
@@ -1347,7 +1353,6 @@
         }
     }
 
-    // REEMPLAZA tu DOMContentLoaded existente con este código consolidado
     document.addEventListener('DOMContentLoaded', function() {
         // Calcular mano de obra inicial
         calcularManoObraDesdeTotales();
@@ -1406,15 +1411,13 @@
             }
         });
 
-        // ===== INTEGRACIÓN CON LA FUNCIÓN calcularTotalesTelaTergalForro =====
-        // Modificar la función existente para que también dispare el recálculo de MO
         const funcionOriginal = window.calcularTotalesTelaTergalForro;
         if (typeof funcionOriginal === 'function') {
             window.calcularTotalesTelaTergalForro = function() {
                 // Ejecutar la función original
                 funcionOriginal.apply(this, arguments);
                 
-                // Después ejecutar el recálculo de mano de obra
+                // Ejecutar el recálculo de mano de obra
                 setTimeout(calcularManoObraDesdeTotales, 10);
             };
         }
@@ -1422,7 +1425,6 @@
         console.log('Listeners para mano de obra configurados correctamente');
     });
 
-    // ===== FUNCIÓN OPCIONAL PARA DEBUGGING =====
     function verificarCamposManoObra() {
         const campos = {
             'total_tela': document.getElementById('total_tela')?.value,
@@ -1540,7 +1542,7 @@
     document.addEventListener('DOMContentLoaded', actualizarCostoTotalMateriales);
 </script>
 
-{{-- Cálculos tabla totales --}}
+{{-- Cálculos tabla totales corregido --}}
 <script>
     function calcularTotales() {
         // Totales de lienzos
@@ -1552,7 +1554,7 @@
             document.getElementById('total_lienzos').value = totalLienzos > 0 ? totalLienzos : '';
         }
 
-        // Forro, Tela, Tergal
+        // Forro, Tela, Tergal (solo m2, NO recalcular totales monetarios aquí)
         const totalForro = parseFloat(document.getElementById('total_forro')?.value) || 0;
         if (document.getElementById('total_m2_forro')) {
             document.getElementById('total_m2_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
@@ -1566,12 +1568,16 @@
             document.getElementById('total_m2_tergal').value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
         }
 
-        // Cálculos monetarios
+        // Cálculos monetarios: SOLO sumar los totales ya calculados y guardados
+        // NO recalcular los totales finales de tela, tergal y forro aquí
         const costoTelaTergal = parseFloat(document.getElementById('costo_total_tela_tergal_forro')?.value) || 0;
-        const costoForro = parseFloat(document.querySelector('[name="detalle[total_final_forro]"]')?.value) || 0;
         const costoManoObra = parseFloat(document.querySelector('[name="detalle[costo_total_mano_obra]"]')?.value) || 0;
         const costoMateriales = parseFloat(document.getElementById('costo_total_materiales')?.value) || 0;
-        const costoCortina = costoTelaTergal + costoForro + costoManoObra + costoMateriales;
+
+        // El costo de forro, tela y tergal ya está incluido en costoTelaTergal
+        // No sumes total_final_forro, total_tela_final, total_tergal_final aquí
+
+        const costoCortina = costoTelaTergal + costoManoObra + costoMateriales;
         if (document.getElementById('costo_cortina')) {
             document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
         }
@@ -1600,12 +1606,29 @@
     // Actualizar al cargar
     document.addEventListener('DOMContentLoaded', calcularTotales);
 
-    // Recalcula totales siempre que cambie cualquier input o select en el formulario
+    // Recalcula totales solo cuando cambian los campos base o materiales
     document.addEventListener('input', function(e) {
-        calcularTotales();
+        // Solo recalcula si cambian campos relevantes
+        if (
+            e.target.name === 'detalle[costo_total_tela_tergal_forro]' ||
+            e.target.name === 'detalle[costo_total_mano_obra]' ||
+            e.target.name === 'detalle[costo_total_materiales]' ||
+            e.target.name === 'totales[decorador_porcentaje]' ||
+            e.target.id === 'decorador_porcentaje'
+        ) {
+            calcularTotales();
+        }
     });
     document.addEventListener('change', function(e) {
-        calcularTotales();
+        if (
+            e.target.name === 'detalle[costo_total_tela_tergal_forro]' ||
+            e.target.name === 'detalle[costo_total_mano_obra]' ||
+            e.target.name === 'detalle[costo_total_materiales]' ||
+            e.target.name === 'totales[decorador_porcentaje]' ||
+            e.target.id === 'decorador_porcentaje'
+        ) {
+            calcularTotales();
+        }
     });
 </script>
 @endsection

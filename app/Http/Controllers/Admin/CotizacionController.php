@@ -173,6 +173,7 @@ class CotizacionController extends Controller
         $dataDetalle['total_mano_obra_2'] = $detalle['total_mano_obra_2'] ?? null;
 
         $dataDetalle['costo_total_mano_obra'] = $detalle['costo_total_mano_obra'] ?? null;
+        $dataDetalle['decorador_porcentaje'] = $totales['decorador_porcentaje'] ?? null;
 
         if (!empty($dataDetalle)) {
             $cotizacion->detalleCotizacion()->create($dataDetalle);
@@ -257,7 +258,26 @@ class CotizacionController extends Controller
             }
         }
 
-        // 7. Adjuntar todos los insumos de una sola vez
+
+        // 7. Procesar cortinero seleccionado (tipo de cortinero)
+        $cortineroId = $detalle['cortinero_id'] ?? null;
+        $cortineroCantidad = $detalle['cortinero_cantidad'] ?? 0;
+        $cortineroPrecio = $detalle['cortinero_precio'] ?? 0;
+
+        if ($cortineroId && $cortineroCantidad > 0) {
+            $todosLosInsumos[$cortineroId] = [
+                'cantidad' => $cortineroCantidad,
+                'precio_unitario' => $cortineroPrecio,
+                'subtotal' => $cortineroCantidad * $cortineroPrecio,
+            ];
+        }
+
+        // Guardar en detalle para mostrar en el formulario de edición
+        $dataDetalle['cortinero_id'] = $detalle['cortinero_id'] ?? null;
+        $dataDetalle['cortinero_cantidad'] = $detalle['cortinero_cantidad'] ?? null;
+        $dataDetalle['cortinero_precio'] = $detalle['cortinero_precio'] ?? null;
+
+        // 8. Adjuntar todos los insumos de una sola vez
         if (!empty($todosLosInsumos)) {
             $cotizacion->insumos()->attach($todosLosInsumos);
         }
@@ -451,6 +471,7 @@ class CotizacionController extends Controller
 
         $dataDetalle['costo_total_tela_tergal_forro'] = $detalle['costo_total_tela_tergal_forro'] ?? null;
         $dataDetalle['costo_total_mano_obra'] = $detalle['costo_total_mano_obra'] ?? null;
+        $dataDetalle['decorador_porcentaje'] = $totales['decorador_porcentaje'] ?? 15;
 
         $detalleCotizacion->update($dataDetalle);
 
