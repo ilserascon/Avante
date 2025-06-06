@@ -554,4 +554,10 @@ class CotizacionController extends Controller
 
         return response()->download(storage_path('app/public/pdfs/' . $fileName));
     }
+
+    public function pdfDecorador(Cotizacion $cotizacion)
+    {
+        $pdf = Pdf::loadView('admin.cotizaciones.pdfdecorador', compact('cotizacion'));
+        return $pdf->stream('decorador_'.$cotizacion->id.'.pdf');
+    }
 }
