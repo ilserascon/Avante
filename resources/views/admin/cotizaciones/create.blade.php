@@ -500,7 +500,7 @@
     $precio = 100;
     }
     @endphp
-    <option value="{{ $tela->id }}" data-precio="{{ $precio }}">
+    <option value="{{ $tela->id }}" data-precio="{{ $precio }}" data-campo2="{{ $tela->campo2 }}">
         {{ $tela->nombre }} - {{ $tela->campo1 }} - {{ $tela->campo2 }}
     </option>
     @endforeach
@@ -640,8 +640,15 @@
                                 $(telaSelect).select2();
 
                                 $(telaSelect).on('change', function() {
-                                    const precio = $(this).find('option:selected').data('precio');
+                                    const selected = $(this).find('option:selected');
+                                    const precio = selected.data('precio');
+                                    const campo2 = selected.data('campo2');
                                     $('#precio_m2_tela').val(Number(precio).toFixed(2)).trigger('input');
+                                    if (campo2 !== undefined && campo2 !== null && campo2 !== '') {
+                                        // Limpia el valor para dejar solo números y punto decimal
+                                        let limpio = campo2.toString().replace(/[^\d.]/g, '');
+                                        $('#ancho_tela').val(limpio);
+                                    }
 
                                     const metros = parseFloat($('#total_tela').val()) || 0;
                                     const total = metros * Number(precio);
