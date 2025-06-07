@@ -616,7 +616,7 @@
                                                         </td>
                                                         <td>
                                                             <input type="number" id="valor_bastilla" name="detalle[valor_bastilla]" class="form-control" 
-                                                                value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? '') }}" 
+                                                                value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? 1.10) }}" 
                                                                 placeholder="Ej. 1.10m" step="0.01" min="0">
                                                         </td>
                                                     </tr>
@@ -716,7 +716,7 @@
                                                         </td>
                                                         <td>
                                                             <input type="number" id="valor_bastilla_tergal" name="detalle[valor_bastilla_tergal]" class="form-control"
-                                                                value="{{ old('detalle.valor_bastilla_tergal', $detalleCotizacion->bastilla_tergal ?? '') }}"
+                                                                value="{{ old('detalle.valor_bastilla_tergal', $detalleCotizacion->bastilla_tergal ?? 0.65) }}"
                                                                 placeholder="Ej. 0.65m" step="0.01" min="0">
                                                         </td>
                                                     </tr>
@@ -893,7 +893,7 @@
                                                         </td>
                                                         <td>
                                                             <input type="number" id="valor_bastilla_forro" name="detalle[valor_bastilla_forro]" class="form-control"
-                                                                value="{{ old('detalle.valor_bastilla_forro', $detalleCotizacion->bastilla_forro ?? '') }}"
+                                                                value="{{ old('detalle.valor_bastilla_forro', $detalleCotizacion->bastilla_forro ?? 0.40) }}"
                                                                 placeholder="Ej. 0.40m" step="0.01" min="0">
                                                         </td>
                                                     </tr>
@@ -986,20 +986,28 @@
                                     if (anchoBase && anchoTelaBase) {
                                         anchoForro.value = anchoBase;
                                         anchoTelaForro.value = anchoTelaBase;
-
+                                        
                                         // Bastilla forro
                                         const bastillaForroInput = document.getElementById('valor_bastilla_forro');
-                                        let largoOriginal = largoBase;
-                                        if (bastillaForroInput && (bastillaForroInput.value === '' || parseFloat(bastillaForroInput.value) === 0)) {
-                                            if (!isNaN(parseFloat(largoOriginal))) {
-                                                largoForro.value = parseFloat(largoOriginal).toFixed(2);
-                                                largoForro.dataset.original = parseFloat(largoOriginal);
-                                            } else {
-                                                largoForro.value = '';
-                                                largoForro.dataset.original = '';
+                                        // Obtener el valor actual del campo largo_cortina
+                                        const largoCortinaInput = document.getElementById('largo');
+                                        let largoOriginal = largoCortinaInput ? parseFloat(largoCortinaInput.value) : 0;
+                                        
+                                        // Siempre copiar el valor del largo, independientemente de la bastilla
+                                        if (!isNaN(largoOriginal) && largoOriginal > 0) {
+                                            largoForro.value = largoOriginal.toFixed(2);
+                                            largoForro.dataset.original = largoOriginal;
+                                            
+                                            // Si hay bastilla, sumarla al valor base
+                                            const bastilla = parseFloat(bastillaForroInput.value);
+                                            if (!isNaN(bastilla) && bastilla > 0) {
+                                                largoForro.value = (largoOriginal + bastilla).toFixed(2);
                                             }
+                                        } else {
+                                            largoForro.value = '';
+                                            largoForro.dataset.original = '';
                                         }
-                                        // Si hay bastilla, el script de bastilla ya la suma
+                                        
                                         calcularForro();
                                     } else {
                                         anchoForro.readOnly = false;
