@@ -315,7 +315,6 @@
             <div class="card mt-4">
                 <div class="card-header">
                     <h4>Totales Tela, Tergal y Forro</h4>
-                    <button type="button" class="btn btn-primary btn-sm" onclick="calcularTotales()">Calcular Totales</button>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">

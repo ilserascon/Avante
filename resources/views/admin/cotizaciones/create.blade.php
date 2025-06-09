@@ -584,12 +584,12 @@
                                             <table class="table table-bordered mb-0">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th>Ancho tela cortina</th>
-                                                        <th>Ancho</th>
-                                                        <th>Largo</th>
+                                                        <th>Ancho tela cortina (cm)</th>
+                                                        <th>Ancho (cm)</th>
+                                                        <th>Largo (m)</th>
                                                         <th>No. Lienzos</th>
                                                         <th>No. Lienzos Redondeados</th>
-                                                        <th>Bastilla</th>
+                                                        <th>Bastilla (m)</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -691,12 +691,12 @@
                                             <table class="table table-bordered mb-0">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th>Ancho tela tergal</th>
-                                                        <th>Ancho</th>
-                                                        <th>Largo</th>
+                                                        <th>Ancho tela tergal (cm)</th>
+                                                        <th>Ancho (cm)</th>
+                                                        <th>Largo (m)</th>
                                                         <th>No. Lienzos</th>
                                                         <th>No. Lienzos Redondeados</th>
-                                                        <th>Bastilla</th>
+                                                        <th>Bastilla (m)</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -868,12 +868,12 @@
                                             <table class="table table-bordered mb-0">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th>Ancho tela forro</th>
-                                                        <th>Ancho</th>
-                                                        <th>Largo</th>
+                                                        <th>Ancho tela forro (cm)</th>
+                                                        <th>Ancho (cm)</th>
+                                                        <th>Largo (m)</th>
                                                         <th>No. Lienzos</th>
                                                         <th>No. Lienzos Redondeados</th>
-                                                        <th>Bastilla</th>
+                                                        <th>Bastilla (m)</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
