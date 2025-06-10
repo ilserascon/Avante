@@ -595,24 +595,24 @@
                                                 <tbody>
                                                     <tr>
                                                         <td>
-                                                            <input type="text" name="detalle[ancho_tela]" id="ancho_tela" class="form-control"
-                                                                value="{{ old('detalle.ancho_tela', $detalleCotizacion->ancho_tela ?? '') }}">
+                                                            <input type="number" name="detalle[ancho_tela]" id="ancho_tela" class="form-control"
+                                                                value="{{ old('detalle.ancho_tela', $detalleCotizacion->ancho_tela ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
-                                                            <input type="text" name="detalle[ancho]" id="ancho" class="form-control"
-                                                                value="{{ old('detalle.ancho', $detalleCotizacion->ancho ?? '') }}">
+                                                            <input type="number" name="detalle[ancho]" id="ancho" class="form-control"
+                                                                value="{{ old('detalle.ancho', $detalleCotizacion->ancho ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
-                                                            <input type="text" name="detalle[largo]" id="largo" class="form-control"
-                                                                value="{{ old('detalle.largo', $detalleCotizacion->largo ?? '') }}">
+                                                            <input type="number" name="detalle[largo]" id="largo" class="form-control"
+                                                                value="{{ old('detalle.largo', $detalleCotizacion->largo ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
-                                                            <input type="double" name="detalle[no_lienzos]" id="no_lienzos" class="form-control"
-                                                                value="{{ old('detalle.no_lienzos', $detalleCotizacion->no_lienzos ?? '') }}">
+                                                            <input type="number" name="detalle[no_lienzos]" id="no_lienzos" class="form-control"
+                                                                value="{{ old('detalle.no_lienzos', $detalleCotizacion->no_lienzos ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
                                                             <input type="number" name="detalle[no_lienzos_redondeado]" id="no_lienzos_redondeado" class="form-control"
-                                                                value="{{ old('detalle.no_lienzos_redondeado', $detalleCotizacion->no_lienzos_redondeado ?? '') }}">
+                                                                value="{{ old('detalle.no_lienzos_redondeado', $detalleCotizacion->no_lienzos_redondeado ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
                                                             <input type="number" id="valor_bastilla" name="detalle[valor_bastilla]" class="form-control" 
@@ -702,24 +702,24 @@
                                                 <tbody>
                                                     <tr>
                                                         <td>
-                                                            <input type="text" name="detalle[ancho_tergal]" id="ancho_tergal" class="form-control"
-                                                                value="{{ old('detalle.ancho_tergal', $detalleCotizacion->ancho_tergal ?? '') }}">
+                                                            <input type="number" name="detalle[ancho_tergal]" id="ancho_tergal" class="form-control"
+                                                                value="{{ old('detalle.ancho_tergal', $detalleCotizacion->ancho_tergal ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
-                                                            <input type="text" name="detalle[ancho_tergal_real]" id="ancho_tergal_real" class="form-control"
-                                                                value="{{ old('detalle.ancho_tergal_real', $detalleCotizacion->ancho_tergal_real ?? '') }}">
+                                                            <input type="number" name="detalle[ancho_tergal_real]" id="ancho_tergal_real" class="form-control"
+                                                                value="{{ old('detalle.ancho_tergal_real', $detalleCotizacion->ancho_tergal_real ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
-                                                            <input type="text" name="detalle[largo_tergal]" id="largo_tergal" class="form-control"
-                                                                value="{{ old('detalle.largo_tergal', $detalleCotizacion->largo_tergal ?? '') }}">
+                                                            <input type="number" name="detalle[largo_tergal]" id="largo_tergal" class="form-control"
+                                                                value="{{ old('detalle.largo_tergal', $detalleCotizacion->largo_tergal ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
-                                                            <input type="double" name="detalle[no_lienzos_tergal]" id="no_lienzos_tergal" class="form-control"
-                                                                value="{{ old('detalle.no_lienzos_tergal', $detalleCotizacion->no_lienzos_tergal ?? '') }}">
+                                                            <input type="number" name="detalle[no_lienzos_tergal]" id="no_lienzos_tergal" class="form-control"
+                                                                value="{{ old('detalle.no_lienzos_tergal', $detalleCotizacion->no_lienzos_tergal ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
                                                             <input type="number" name="detalle[no_lienzos_redondeado_tergal]" id="no_lienzos_redondeado_tergal" class="form-control"
-                                                                value="{{ old('detalle.no_lienzos_redondeado_tergal', $detalleCotizacion->no_lienzos_redondeado_tergal ?? '') }}">
+                                                                value="{{ old('detalle.no_lienzos_redondeado_tergal', $detalleCotizacion->no_lienzos_redondeado_tergal ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
                                                             <input type="number" id="valor_bastilla_tergal" name="detalle[valor_bastilla_tergal]" class="form-control"
@@ -879,24 +879,24 @@
                                                 <tbody>
                                                     <tr>
                                                         <td>
-                                                            <input type="text" name="detalle[ancho_forro]" id="ancho_forro" class="form-control"
-                                                                value="{{ old('detalle.ancho_forro', $detalleCotizacion->ancho_forro ?? '') }}">
+                                                            <input type="number" name="detalle[ancho_forro]" id="ancho_forro" class="form-control"
+                                                                value="{{ old('detalle.ancho_forro', $detalleCotizacion->ancho_forro ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
-                                                            <input type="text" name="detalle[ancho_forro_real]" id="ancho_forro_real" class="form-control"
-                                                                value="{{ old('detalle.ancho_forro_real', $detalleCotizacion->ancho_forro_real ?? '') }}">
+                                                            <input type="number" name="detalle[ancho_forro_real]" id="ancho_forro_real" class="form-control"
+                                                                value="{{ old('detalle.ancho_forro_real', $detalleCotizacion->ancho_forro_real ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
-                                                            <input type="text" name="detalle[largo_forro]" id="largo_forro" class="form-control"
-                                                                value="{{ old('detalle.largo_forro', $detalleCotizacion->largo_forro ?? '') }}">
+                                                            <input type="number" name="detalle[largo_forro]" id="largo_forro" class="form-control"
+                                                                value="{{ old('detalle.largo_forro', $detalleCotizacion->largo_forro ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
-                                                            <input type="double" name="detalle[no_lienzos_forro]" id="no_lienzos_forro" class="form-control"
-                                                                value="{{ old('detalle.no_lienzos_forro', $detalleCotizacion->no_lienzos_forro ?? '') }}">
+                                                            <input type="number" name="detalle[no_lienzos_forro]" id="no_lienzos_forro" class="form-control"
+                                                                value="{{ old('detalle.no_lienzos_forro', $detalleCotizacion->no_lienzos_forro ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
                                                             <input type="number" name="detalle[no_lienzos_redondeado_forro]" id="no_lienzos_redondeado_forro" class="form-control"
-                                                                value="{{ old('detalle.no_lienzos_redondeado_forro', $detalleCotizacion->no_lienzos_redondeado_forro ?? '') }}">
+                                                                value="{{ old('detalle.no_lienzos_redondeado_forro', $detalleCotizacion->no_lienzos_redondeado_forro ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
                                                             <input type="number" id="valor_bastilla_forro" name="detalle[valor_bastilla_forro]" class="form-control"
@@ -1073,141 +1073,194 @@
         forro.addEventListener('change', actualizarFormulario);
     });
 
-    // Script para agregar bastilla a la cortina
-    document.addEventListener('input', function() {
-        const largoInput = document.getElementById('largo');
-        const bastillaInput = document.getElementById('valor_bastilla');
+    // Función auxiliar para obtener float seguro
+    function parseSafeFloat(value) {
+        const num = parseFloat(value);
+        return isNaN(num) ? 0 : num;
+    }
 
-        if (!largoInput || !bastillaInput) return;
-
-        // Guardar el valor original solo si no existe
-        if (!largoInput.dataset.original) {
-            const original = parseFloat(largoInput.value);
-            if (!isNaN(original)) {
-                largoInput.dataset.original = original;
-            }
-        }
-
-        const largoOriginal = parseFloat(largoInput.dataset.original);
-        const bastilla = parseFloat(bastillaInput.value);
-
-        if (isNaN(largoOriginal)) return;
-
-        if (!isNaN(bastilla)) {
-            largoInput.value = (largoOriginal + bastilla).toFixed(2);
-        } else {
-            largoInput.value = largoOriginal.toFixed(2);
-        }
-
-        // Disparar el evento de cambio para otros cálculos dependientes
-        const event = new Event('input', {
-            bubbles: true
-        });
-        largoInput.dispatchEvent(event);
-    });
-
-
-    // Script para agregar bastilla al tergal (evita ciclos infinitos)
-    document.addEventListener('input', function(e) {
-        // Si se actualiza la bastilla de la cortina, actualiza el largo de tergal
-        if (e.target && e.target.id === 'valor_bastilla') {
-            const largoCortinaInput = document.getElementById('largo');
-            const largoTergalInput = document.getElementById('largo_tergal');
-            const bastillaTergalInput = document.getElementById('valor_bastilla_tergal');
-
-            if (!largoCortinaInput || !largoTergalInput) return;
-
-            let base = parseFloat(largoCortinaInput.value);
-            if (isNaN(base)) return;
-
-            let bastillaTergal = bastillaTergalInput ? parseFloat(bastillaTergalInput.value) : 0;
-            if (isNaN(bastillaTergal)) bastillaTergal = 0;
-
-            const nuevoValor = (base + bastillaTergal).toFixed(2);
-            if (largoTergalInput.value !== nuevoValor) {
-                largoTergalInput.value = nuevoValor;
-                const event = new Event('input', { bubbles: true });
-                largoTergalInput.dispatchEvent(event);
-            }
-        }
-
-        // Si se actualiza la bastilla del tergal, suma sobre el largo de cortina actualizado
-        if (e.target && e.target.id === 'valor_bastilla_tergal') {
-            const largoCortinaInput = document.getElementById('largo');
-            const largoTergalInput = document.getElementById('largo_tergal');
-            const bastillaTergalInput = e.target;
-
-            if (!largoCortinaInput || !largoTergalInput || !bastillaTergalInput) return;
-
-            let base = parseFloat(largoCortinaInput.value);
-            if (isNaN(base)) return;
-
-            let bastillaTergal = parseFloat(bastillaTergalInput.value);
-            if (isNaN(bastillaTergal)) bastillaTergal = 0;
-
-            const nuevoValor = (base + bastillaTergal).toFixed(2);
-            if (largoTergalInput.value !== nuevoValor) {
-                largoTergalInput.value = nuevoValor;
-                const event = new Event('input', { bubbles: true });
-                largoTergalInput.dispatchEvent(event);
-            }
-        }
-
-        // Si se actualiza el largo de la cortina, también actualiza el largo de tergal
-        if (e.target && e.target.id === 'largo') {
-            const largoCortinaInput = document.getElementById('largo');
-            const largoTergalInput = document.getElementById('largo_tergal');
-            const bastillaTergalInput = document.getElementById('valor_bastilla_tergal');
-
-            if (!largoCortinaInput || !largoTergalInput) return;
-
-            let base = parseFloat(largoCortinaInput.value);
-            if (isNaN(base)) return;
-
-            let bastillaTergal = bastillaTergalInput ? parseFloat(bastillaTergalInput.value) : 0;
-            if (isNaN(bastillaTergal)) bastillaTergal = 0;
-
-            const nuevoValor = (base + bastillaTergal).toFixed(2);
-            if (largoTergalInput.value !== nuevoValor) {
-                largoTergalInput.value = nuevoValor;
-                const event = new Event('input', { bubbles: true });
-                largoTergalInput.dispatchEvent(event);
-            }
-        }
-    });
-
-    // Script para agregar bastilla al forro
-    document.addEventListener('input', function(e) {
-        if (e.target && e.target.id === 'valor_bastilla_forro') {
-            const largoForroInput = document.getElementById('largo_forro');
-            const bastillaForroInput = e.target;
-
-            if (!largoForroInput || !bastillaForroInput) return;
-
-            // Guardar el valor original si no existe aún
-            if (!largoForroInput.dataset.original || largoForroInput.value === "") {
-                const original = parseFloat(largoForroInput.value);
-                if (!isNaN(original) && original > 0) {
-                    largoForroInput.dataset.original = original;
+    // Función para actualizar el largo sumando bastilla
+    function actualizarConBastilla(inputLargo, bastillaInput) {
+        if (!inputLargo || !bastillaInput) return;
+        
+        // Obtener el valor base (sin bastilla)
+        const bastillaAnterior = parseSafeFloat(bastillaInput.dataset.lastValue || 0);
+        const largoBase = parseSafeFloat(inputLargo.value) - bastillaAnterior;
+        const nuevaBastilla = parseSafeFloat(bastillaInput.value);
+        
+        // Solo actualizar si hay bastilla que sumar
+        if (nuevaBastilla > 0) {
+            const nuevoTotal = (largoBase + nuevaBastilla).toFixed(2);
+            
+            if (inputLargo.value !== nuevoTotal) {
+                inputLargo.value = nuevoTotal;
+                
+                bastillaInput.dataset.lastValue = nuevaBastilla;
+                
+                if (inputLargo.id !== 'largo' && inputLargo.id !== 'largo_tergal') {
+                    const event = new Event('input', { bubbles: true });
+                    inputLargo.dispatchEvent(event);
                 }
             }
+        }
+        
+        bastillaInput.dataset.lastValue = nuevaBastilla;
+    }
 
-            const largoOriginal = parseFloat(largoForroInput.dataset.original);
-            const bastilla = parseFloat(bastillaForroInput.value);
-
-            if (isNaN(largoOriginal)) return;
-
-            if (!isNaN(bastilla)) {
-                largoForroInput.value = (largoOriginal + bastilla).toFixed(2);
-            } else {
-                largoForroInput.value = largoOriginal.toFixed(2);
+    // Función para actualizar tergal
+    function actualizarLargoTergal() {
+        const largoCortinaInput = document.getElementById('largo');
+        const largoTergalInput = document.getElementById('largo_tergal');
+        const bastillaTergalInput = document.getElementById('valor_bastilla_tergal');
+        
+        if (!largoTergalInput) return;
+        
+        let valorBase = 0;
+        
+        // Si existe largo de cortina, lo usa como base
+        if (largoCortinaInput && largoCortinaInput.value) {
+            valorBase = parseSafeFloat(largoCortinaInput.value);
+        } else {
+            // Obtener el valor actual sin la bastilla anterior
+            const bastillaAnterior = parseSafeFloat(bastillaTergalInput?.dataset.lastValue || 0);
+            valorBase = parseSafeFloat(largoTergalInput.value) - bastillaAnterior;
+            
+            if (valorBase <= 0) {
+                valorBase = parseSafeFloat(largoTergalInput.value);
             }
+        }
+        
+        const bastilla = bastillaTergalInput ? parseSafeFloat(bastillaTergalInput.value) : 0;
+        const nuevoValor = (valorBase + bastilla).toFixed(2);
+        
+        if (largoTergalInput.value !== nuevoValor) {
+            largoTergalInput.value = nuevoValor;
+            
+            // Guardar último valor de bastilla
+            if (bastillaTergalInput) {
+                bastillaTergalInput.dataset.lastValue = bastilla;
+            }
+            
+            const event = new Event('input', { bubbles: true });
+            largoTergalInput.dispatchEvent(event);
+        }
+    }
 
-            const event = new Event('input', {
-                bubbles: true
-            });
+    // Función para actualizar forro (copia el largo de tergal)
+    function actualizarLargoForro() {
+        const largoTergalInput = document.getElementById('largo_tergal');
+        const largoForroInput = document.getElementById('largo_forro');
+        const bastillaForroInput = document.getElementById('valor_bastilla_forro');
+        
+        if (!largoTergalInput || !largoForroInput) return;
+        
+        const largoTergal = parseSafeFloat(largoTergalInput.value);
+        const bastillaForro = bastillaForroInput ? parseSafeFloat(bastillaForroInput.value) : 0;
+        
+        // El forro copia el largo de tergal y suma su propia bastilla
+        const nuevoValor = (largoTergal + bastillaForro).toFixed(2);
+        
+        if (largoForroInput.value !== nuevoValor) {
+            largoForroInput.value = nuevoValor;
+            
+            // Guardar último valor de bastilla del forro
+            if (bastillaForroInput) {
+                bastillaForroInput.dataset.lastValue = bastillaForro;
+            }
+            
+            const event = new Event('input', { bubbles: true });
             largoForroInput.dispatchEvent(event);
         }
+    }
+
+    // Función para manejar cambios manuales en tergal cuando no hay largo de cortina
+    function manejarTergalManual() {
+        const largoCortinaInput = document.getElementById('largo');
+        const largoTergalInput = document.getElementById('largo_tergal');
+        
+        // Solo permitir modificación manual si no hay largo de cortina
+        if (!largoCortinaInput || !largoCortinaInput.value) {
+            largoTergalInput.dataset.manual = 'true';
+            actualizarLargoForro();
+        }
+    }
+
+    // Event listeners
+    document.addEventListener('input', function (e) {
+        const targetId = e.target.id;
+        
+        switch (targetId) {
+            case 'valor_bastilla':
+                actualizarConBastilla(
+                    document.getElementById('largo'),
+                    document.getElementById('valor_bastilla')
+                );
+                // Actualizar tergal después de cambiar el largo
+                actualizarLargoTergal();
+                break;
+                
+            case 'valor_bastilla_tergal':
+                actualizarLargoTergal();
+                // Actualizar forro después de cambiar tergal
+                actualizarLargoForro();
+                break;
+                
+            case 'largo':
+                // Limpiar flag manual de tergal si ahora hay largo de cortina
+                const largoTergalInput = document.getElementById('largo_tergal');
+                if (largoTergalInput) {
+                    largoTergalInput.dataset.manual = 'false';
+                }
+                // Aplicar bastilla automáticamente si existe
+                const bastillaInput = document.getElementById('valor_bastilla');
+                if (bastillaInput && bastillaInput.value) {
+                    actualizarConBastilla(
+                        document.getElementById('largo'),
+                        bastillaInput
+                    );
+                }
+                actualizarLargoTergal();
+                break;
+                
+            case 'largo_tergal':
+                // Aplicar bastilla automáticamente si existe
+                const bastillaTergalInput = document.getElementById('valor_bastilla_tergal');
+                if (bastillaTergalInput && bastillaTergalInput.value) {
+                    // Solo aplicar bastilla si no hay largo de cortina o si es manual
+                    const largoCortinaInput = document.getElementById('largo');
+                    if (!largoCortinaInput || !largoCortinaInput.value) {
+                        actualizarConBastilla(
+                            document.getElementById('largo_tergal'),
+                            bastillaTergalInput
+                        );
+                    }
+                }
+                manejarTergalManual();
+                break;
+                
+            case 'valor_bastilla_forro':
+                actualizarConBastilla(
+                    document.getElementById('largo_forro'),
+                    document.getElementById('valor_bastilla_forro')
+                );
+                break;
+        }
+    });
+
+    // Inicializar valores al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar todos los campos
+        actualizarLargoTergal();
+        actualizarLargoForro();
+        
+        // Inicializar bastillas si ya tienen valores
+        const bastillaInputs = ['valor_bastilla', 'valor_bastilla_tergal', 'valor_bastilla_forro'];
+        bastillaInputs.forEach(id => {
+            const input = document.getElementById(id);
+            if (input && input.value) {
+                input.dataset.lastValue = input.value;
+            }
+        });
     });
 
     // Script para calcular No. Lienzos
