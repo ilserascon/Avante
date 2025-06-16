@@ -584,8 +584,8 @@
                                             <table class="table table-bordered mb-0">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th>Ancho tela cortina (cm)</th>
-                                                        <th>Ancho (cm)</th>
+                                                        <th>Ancho tela (cm)</th>
+                                                        <th>Ancho cortina (cm)</th>
                                                         <th>Largo (m)</th>
                                                         <th>No. Lienzos</th>
                                                         <th>No. Lienzos Redondeados</th>
@@ -616,8 +616,8 @@
                                                         </td>
                                                         <td>
                                                             <input type="number" id="valor_bastilla" name="detalle[valor_bastilla]" class="form-control" 
-                                                                value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? 1.10) }}" 
-                                                                placeholder="Ej. 1.10m" step="0.01" min="0">
+                                                                value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? .40) }}" 
+                                                                placeholder="Ej. 0.40m" step="0.01" min="0">
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -659,6 +659,31 @@
                                     $('#costo_total_tela_tergal_forro').val((total + totalTergalFinal + totalForroFinal).toFixed(2));
 
                                     actualizarTablaTotales();
+                                    calcularLienzos();
+                                });
+                                
+                                $(document).on('change', '#tela_id', function() {
+                                    const precio = $(this).find('option:selected').data('precio');
+                                    $('#precio_m2_tela').val(Number(precio).toFixed(2));
+
+                                    // Recalcular total_tela (m²) al cambiar la tela
+                                    const noLienzosCortina = parseFloat($('#no_lienzos_redondeado').val()) || 0;
+                                    const largoCortina = parseFloat($('#largo').val()) || 0;
+                                    const bastillaCortina = parseFloat($('#valor_bastilla').val()) || 0;
+                                    const totalTela = noLienzosCortina * (largoCortina + bastillaCortina);
+                                    $('#total_tela').val(totalTela.toFixed(2));
+
+                                    // Calcular total final de tela
+                                    const total = totalTela * Number(precio);
+                                    $('#total_tela_final').val(total.toFixed(2));
+
+                                    // Actualizar costo total combinado
+                                    const totalTergalFinal = parseFloat($('#total_tergal_final').val()) || 0;
+                                    const totalForroFinal = parseFloat($('#total_final_forro').val()) || 0;
+                                    $('#costo_total_tela_tergal_forro').val((total + totalTergalFinal + totalForroFinal).toFixed(2));
+
+                                    // Actualizar tabla de totales
+                                    actualizarTablaTotales();
                                 });
 
                                 $(telaSelect).trigger('change');
@@ -691,8 +716,8 @@
                                             <table class="table table-bordered mb-0">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th>Ancho tela tergal (cm)</th>
-                                                        <th>Ancho (cm)</th>
+                                                        <th>Ancho tela (cm)</th>
+                                                        <th>Ancho tergal (cm)</th>
                                                         <th>Largo (m)</th>
                                                         <th>No. Lienzos</th>
                                                         <th>No. Lienzos Redondeados</th>
@@ -765,6 +790,37 @@
                                         document.getElementById('no_lienzos_redondeado_tergal').value = '';
                                     }
                                 }
+
+                                // Función para sincronizar ancho_tela con ancho_tergal
+                                function sincronizarAnchoTelaConTergal() {
+                                    const anchoTelaValue = document.getElementById('ancho_tela')?.value;
+                                    const anchoTelaTergal = document.getElementById('ancho_tergal');
+                                    
+                                    if (anchoTelaValue && anchoTelaTergal) {
+                                        anchoTelaTergal.value = anchoTelaValue;
+                                        calcularTergal(); // Recalcular después de sincronizar
+                                    }
+                                }
+
+                                // Interceptar el evento change del select de tela para sincronizar inmediatamente
+                                function interceptarCambioTela() {
+                                    const telaSelect = document.getElementById('tela_id');
+                                    if (telaSelect) {
+                                        $(telaSelect).on('change', function() {
+                                            setTimeout(() => {
+                                                sincronizarAnchoTelaConTergal();
+                                            }, 10);
+                                        });
+                                    }
+                                }
+
+                                // escuchar cambios manuales en ancho_tela
+                                const anchoTelaElement = document.getElementById('ancho_tela');
+                                if (anchoTelaElement) {
+                                    anchoTelaElement.addEventListener('input', sincronizarAnchoTelaConTergal);
+                                    anchoTelaElement.addEventListener('change', sincronizarAnchoTelaConTergal);
+                                }
+
                                 const plantillaTergal = document.getElementById('plantilla_tergal');
                                 const tergalSelect = document.getElementById('tergal_id');
                                 tergalSelect.innerHTML = plantillaTergal.innerHTML;
@@ -772,7 +828,6 @@
                                 if (tergalSeleccionado) {
                                     $(tergalSelect).val(tergalSeleccionado);
                                 }
-
 
                                 $(tergalSelect).select2();
 
@@ -792,37 +847,39 @@
                                 });
 
                                 function sincronizarTergalConCortina() {
+                                    // Campos de cortina
+                                    const anchoCortina = document.getElementById('ancho');
+                                    const largoCortina = document.getElementById('largo');
+                                    const anchoTelaCortina = document.getElementById('ancho_tela');
+
+                                    // Campos de tergal
+                                    const anchoTergal = document.getElementById('ancho_tergal_real');
+                                    const largoTergal = document.getElementById('largo_tergal');
+                                    const anchoTelaTergal = document.getElementById('ancho_tergal');
+
                                     // Si hay datos en los campos de cortina, se heredan
                                     if (anchoCortina?.value && anchoTelaCortina?.value) {
-                                        let largoOriginal = largoCortina?.dataset?.original ?
-                                            parseFloat(largoCortina.dataset.original) :
-                                            parseFloat(largoCortina?.value);
-
                                         anchoTergal.value = anchoCortina.value;
-
-                                        const bastillaTergalInput = document.getElementById('valor_bastilla_tergal');
-
-                                        if (bastillaTergalInput && (bastillaTergalInput.value === '' || parseFloat(bastillaTergalInput.value) === 0)) {
-                                            if (!isNaN(largoOriginal)) {
-                                                largoTergal.value = largoOriginal.toFixed(2);
-                                                largoTergal.dataset.original = largoOriginal;
-                                            } else {
-                                                largoTergal.value = '';
-                                                largoTergal.dataset.original = '';
-                                            }
-                                        }
-
                                         anchoTelaTergal.value = anchoTelaCortina.value;
 
+                                        // Copia el largo de cortina al largo de tergal
+                                        if (largoCortina && largoCortina.value) {
+                                            largoTergal.value = parseFloat(largoCortina.value).toFixed(2);
+                                        } else {
+                                            largoTergal.value = '';
+                                        }
 
-                                        calcularTergal();
+                                        calcularTergal && calcularTergal();
                                     } else {
                                         anchoTergal.readOnly = false;
                                         largoTergal.readOnly = false;
                                         anchoTelaTergal.readOnly = false;
                                     }
 
-                                    $(tergalSelect).trigger('change');
+                                    const tergalSelect = document.getElementById('tergal_id');
+                                    if (tergalSelect) {
+                                        $(tergalSelect).trigger('change');
+                                    }
                                 }
 
                                 // Escuchar cambios en inputs para actualizar tergal si los datos de cortina cambian
@@ -839,6 +896,10 @@
                                 });
 
                                 sincronizarTergalConCortina();
+                                
+                                interceptarCambioTela();
+                                
+                                sincronizarAnchoTelaConTergal();
                             }, 200);
                         }
 
@@ -868,8 +929,8 @@
                                             <table class="table table-bordered mb-0">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th>Ancho tela forro (cm)</th>
-                                                        <th>Ancho (cm)</th>
+                                                        <th>Ancho tela (cm)</th>
+                                                        <th>Ancho forro (cm)</th>
                                                         <th>Largo (m)</th>
                                                         <th>No. Lienzos</th>
                                                         <th>No. Lienzos Redondeados</th>
@@ -945,6 +1006,38 @@
                                     }
                                 }
 
+                                // Función para sincronizar ancho_tela con ancho_forro
+                                function sincronizarAnchoTelaConForro() {
+                                    const anchoTelaValue = document.getElementById('ancho_tela')?.value;
+                                    const anchoTelaForro = document.getElementById('ancho_forro');
+                                    
+                                    if (anchoTelaValue && anchoTelaForro) {
+                                        anchoTelaForro.value = anchoTelaValue;
+                                        calcularForro();
+                                        
+                                        const changeEvent = new Event('change', { bubbles: true });
+                                        document.dispatchEvent(changeEvent);
+                                    }
+                                }
+
+                                function interceptarCambioTelaForro() {
+                                    const telaSelect = document.getElementById('tela_id');
+                                    if (telaSelect) {
+                                        $(telaSelect).on('change', function() {
+                                            setTimeout(() => {
+                                                sincronizarAnchoTelaConForro();
+                                            }, 10);
+                                        });
+                                    }
+                                }
+
+                                // escuchar cambios manuales en ancho_tela
+                                const anchoTelaElement = document.getElementById('ancho_tela');
+                                if (anchoTelaElement) {
+                                    anchoTelaElement.addEventListener('input', sincronizarAnchoTelaConForro);
+                                    anchoTelaElement.addEventListener('change', sincronizarAnchoTelaConForro);
+                                }
+
                                 forroSelect.innerHTML = plantillaForro.innerHTML;
 
                                 if (forroSeleccionado) {
@@ -974,48 +1067,37 @@
                                     const largoCortina = document.getElementById('largo');
                                     const anchoTelaCortina = document.getElementById('ancho_tela');
 
-                                    // Actualización para que también funcione con el tergal
-
                                     // Campos de tergal
                                     const anchoTergal = document.getElementById('ancho_tergal_real');
                                     const largoTergal = document.getElementById('largo_tergal');
                                     const anchoTelaTergal = document.getElementById('ancho_tergal');
+
                                     // Campos de forro
                                     const anchoForro = document.getElementById('ancho_forro_real');
                                     const largoForro = document.getElementById('largo_forro');
                                     const anchoTelaForro = document.getElementById('ancho_forro');
 
-                                    // Intenta primero con cortina, si no, con tergal
-                                    let anchoBase = anchoCortina?.value || anchoTergal?.value || '';
-                                    let largoBase = largoCortina?.value || largoTergal?.value || '';
-                                    let anchoTelaBase = anchoTelaCortina?.value || anchoTelaTergal?.value || '';
+                                    // Prioridad: cortina > tergal
+                                    let anchoBase = (anchoCortina && anchoCortina.value) ? anchoCortina.value : (anchoTergal && anchoTergal.value ? anchoTergal.value : '');
+                                    let largoBase = (largoCortina && largoCortina.value) ? largoCortina.value : (largoTergal && largoTergal.value ? largoTergal.value : '');
+                                    let anchoTelaBase = (anchoTelaCortina && anchoTelaCortina.value) ? anchoTelaCortina.value : (anchoTelaTergal && anchoTelaTergal.value ? anchoTelaTergal.value : '');
 
                                     if (anchoBase && anchoTelaBase) {
                                         anchoForro.value = anchoBase;
                                         anchoTelaForro.value = anchoTelaBase;
-                                        
-                                        // Bastilla forro
-                                        const bastillaForroInput = document.getElementById('valor_bastilla_forro');
-                                        // Obtener el valor actual del campo largo_cortina
-                                        const largoCortinaInput = document.getElementById('largo');
-                                        let largoOriginal = largoCortinaInput ? parseFloat(largoCortinaInput.value) : 0;
-                                        
-                                        // Siempre copiar el valor del largo, independientemente de la bastilla
-                                        if (!isNaN(largoOriginal) && largoOriginal > 0) {
-                                            largoForro.value = largoOriginal.toFixed(2);
-                                            largoForro.dataset.original = largoOriginal;
-                                            
-                                            // Si hay bastilla, sumarla al valor base
-                                            const bastilla = parseFloat(bastillaForroInput.value);
-                                            if (!isNaN(bastilla) && bastilla > 0) {
-                                                largoForro.value = (largoOriginal + bastilla).toFixed(2);
-                                            }
+
+                                        if (largoBase) {
+                                            largoForro.value = parseFloat(largoBase).toFixed(2);
+                                            largoForro.dataset.original = largoBase;
                                         } else {
                                             largoForro.value = '';
                                             largoForro.dataset.original = '';
                                         }
+                                        if (typeof calcularForro === 'function') calcularForro();
                                         
-                                        calcularForro();
+                                        // Disparar evento change para que se actualice la tabla de totales
+                                        const changeEvent = new Event('change', { bubbles: true });
+                                        document.dispatchEvent(changeEvent);
                                     } else {
                                         anchoForro.readOnly = false;
                                         largoForro.readOnly = false;
@@ -1026,7 +1108,7 @@
                                     $(document.getElementById('forro_id')).trigger('change');
                                 }
 
-                                // Escuchar cambios en inputs para actualizar forro si los datos de cortina cambian
+                                // Escuchar cambios en inputs para actualizar forro si los datos de cortina/tergal cambian
                                 ['ancho', 'largo', 'ancho_tela', 'ancho_tergal_real', 'largo_tergal', 'ancho_tergal'].forEach(id => {
                                     const input = document.getElementById(id);
                                     if (input) {
@@ -1036,12 +1118,17 @@
 
                                 // Escuchar cambios manuales para forro si se escriben directamente
                                 [anchoForro, anchoTelaForro].forEach(input => {
-                                    input.addEventListener('input', calcularForro);
+                                    if (input) {
+                                        input.addEventListener('input', calcularForro);
+                                    }
                                 });
 
                                 sincronizarForroConCortina();
-                            }, 500);
-
+                                
+                                interceptarCambioTelaForro();
+                                
+                                sincronizarAnchoTelaConForro();
+                            }, 200);
                         }
 
             // Restaura valores guardados
@@ -1079,100 +1166,6 @@
         return isNaN(num) ? 0 : num;
     }
 
-    // Función para actualizar el largo sumando bastilla
-    function actualizarConBastilla(inputLargo, bastillaInput) {
-        if (!inputLargo || !bastillaInput) return;
-        
-        // Obtener el valor base (sin bastilla)
-        const bastillaAnterior = parseSafeFloat(bastillaInput.dataset.lastValue || 0);
-        const largoBase = parseSafeFloat(inputLargo.value) - bastillaAnterior;
-        const nuevaBastilla = parseSafeFloat(bastillaInput.value);
-        
-        // Solo actualizar si hay bastilla que sumar
-        if (nuevaBastilla > 0) {
-            const nuevoTotal = (largoBase + nuevaBastilla).toFixed(2);
-            
-            if (inputLargo.value !== nuevoTotal) {
-                inputLargo.value = nuevoTotal;
-                
-                bastillaInput.dataset.lastValue = nuevaBastilla;
-                
-                if (inputLargo.id !== 'largo' && inputLargo.id !== 'largo_tergal') {
-                    const event = new Event('input', { bubbles: true });
-                    inputLargo.dispatchEvent(event);
-                }
-            }
-        }
-        
-        bastillaInput.dataset.lastValue = nuevaBastilla;
-    }
-
-    // Función para actualizar tergal
-    function actualizarLargoTergal() {
-        const largoCortinaInput = document.getElementById('largo');
-        const largoTergalInput = document.getElementById('largo_tergal');
-        const bastillaTergalInput = document.getElementById('valor_bastilla_tergal');
-        
-        if (!largoTergalInput) return;
-        
-        let valorBase = 0;
-        
-        // Si existe largo de cortina, lo usa como base
-        if (largoCortinaInput && largoCortinaInput.value) {
-            valorBase = parseSafeFloat(largoCortinaInput.value);
-        } else {
-            // Obtener el valor actual sin la bastilla anterior
-            const bastillaAnterior = parseSafeFloat(bastillaTergalInput?.dataset.lastValue || 0);
-            valorBase = parseSafeFloat(largoTergalInput.value) - bastillaAnterior;
-            
-            if (valorBase <= 0) {
-                valorBase = parseSafeFloat(largoTergalInput.value);
-            }
-        }
-        
-        const bastilla = bastillaTergalInput ? parseSafeFloat(bastillaTergalInput.value) : 0;
-        const nuevoValor = (valorBase + bastilla).toFixed(2);
-        
-        if (largoTergalInput.value !== nuevoValor) {
-            largoTergalInput.value = nuevoValor;
-            
-            // Guardar último valor de bastilla
-            if (bastillaTergalInput) {
-                bastillaTergalInput.dataset.lastValue = bastilla;
-            }
-            
-            const event = new Event('input', { bubbles: true });
-            largoTergalInput.dispatchEvent(event);
-        }
-    }
-
-    // Función para actualizar forro (copia el largo de tergal)
-    function actualizarLargoForro() {
-        const largoTergalInput = document.getElementById('largo_tergal');
-        const largoForroInput = document.getElementById('largo_forro');
-        const bastillaForroInput = document.getElementById('valor_bastilla_forro');
-        
-        if (!largoTergalInput || !largoForroInput) return;
-        
-        const largoTergal = parseSafeFloat(largoTergalInput.value);
-        const bastillaForro = bastillaForroInput ? parseSafeFloat(bastillaForroInput.value) : 0;
-        
-        // El forro copia el largo de tergal y suma su propia bastilla
-        const nuevoValor = (largoTergal + bastillaForro).toFixed(2);
-        
-        if (largoForroInput.value !== nuevoValor) {
-            largoForroInput.value = nuevoValor;
-            
-            // Guardar último valor de bastilla del forro
-            if (bastillaForroInput) {
-                bastillaForroInput.dataset.lastValue = bastillaForro;
-            }
-            
-            const event = new Event('input', { bubbles: true });
-            largoForroInput.dispatchEvent(event);
-        }
-    }
-
     // Función para manejar cambios manuales en tergal cuando no hay largo de cortina
     function manejarTergalManual() {
         const largoCortinaInput = document.getElementById('largo');
@@ -1184,68 +1177,6 @@
             actualizarLargoForro();
         }
     }
-
-    // Event listeners
-    document.addEventListener('input', function (e) {
-        const targetId = e.target.id;
-        
-        switch (targetId) {
-            case 'valor_bastilla':
-                actualizarConBastilla(
-                    document.getElementById('largo'),
-                    document.getElementById('valor_bastilla')
-                );
-                // Actualizar tergal después de cambiar el largo
-                actualizarLargoTergal();
-                break;
-                
-            case 'valor_bastilla_tergal':
-                actualizarLargoTergal();
-                // Actualizar forro después de cambiar tergal
-                actualizarLargoForro();
-                break;
-                
-            case 'largo':
-                // Limpiar flag manual de tergal si ahora hay largo de cortina
-                const largoTergalInput = document.getElementById('largo_tergal');
-                if (largoTergalInput) {
-                    largoTergalInput.dataset.manual = 'false';
-                }
-                // Aplicar bastilla automáticamente si existe
-                const bastillaInput = document.getElementById('valor_bastilla');
-                if (bastillaInput && bastillaInput.value) {
-                    actualizarConBastilla(
-                        document.getElementById('largo'),
-                        bastillaInput
-                    );
-                }
-                actualizarLargoTergal();
-                break;
-                
-            case 'largo_tergal':
-                // Aplicar bastilla automáticamente si existe
-                const bastillaTergalInput = document.getElementById('valor_bastilla_tergal');
-                if (bastillaTergalInput && bastillaTergalInput.value) {
-                    // Solo aplicar bastilla si no hay largo de cortina o si es manual
-                    const largoCortinaInput = document.getElementById('largo');
-                    if (!largoCortinaInput || !largoCortinaInput.value) {
-                        actualizarConBastilla(
-                            document.getElementById('largo_tergal'),
-                            bastillaTergalInput
-                        );
-                    }
-                }
-                manejarTergalManual();
-                break;
-                
-            case 'valor_bastilla_forro':
-                actualizarConBastilla(
-                    document.getElementById('largo_forro'),
-                    document.getElementById('valor_bastilla_forro')
-                );
-                break;
-        }
-    });
 
     // Inicializar valores al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
@@ -1278,29 +1209,39 @@
             document.getElementById('no_lienzos').value = '';
             document.getElementById('no_lienzos_redondeado').value = '';
         }
+        document.addEventListener('input', function(e) {
+            if (e.target.id === 'no_lienzos') {
+                const noLienzos = parseFloat(e.target.value) || 0;
+                document.getElementById('no_lienzos_redondeado').value = Math.ceil(noLienzos);
+                actualizarTablaTotales && actualizarTablaTotales();
+            }
+        });
     }
 
     // Script para calcular el total de tela, tergal y forro para la tabla de totales y el costo de mano de obra
     document.addEventListener('change', function() {
-        // Valores para Cortina
+        // Cortina
         const noLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value);
         const largoCortina = parseFloat(document.getElementById('largo')?.value);
+        const bastillaCortina = parseFloat(document.getElementById('valor_bastilla')?.value) || 0;
         const precioTela = parseFloat(document.getElementById('precio_m2_tela')?.value);
 
-        // Valores para Tergal
+        // Tergal
         const noLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value);
         const largoTergal = parseFloat(document.getElementById('largo_tergal')?.value);
+        const bastillaTergal = parseFloat(document.getElementById('valor_bastilla_tergal')?.value) || 0;
         const precioTergal = parseFloat(document.getElementById('precio_m2_tergal')?.value);
 
-        // Valores para Forro
+        // Forro
         const noLienzosForro = parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value);
         const largoForro = parseFloat(document.getElementById('largo_forro')?.value);
+        const bastillaForro = parseFloat(document.getElementById('valor_bastilla_forro')?.value) || 0;
         const precioForro = parseFloat(document.getElementById('precio_m2_forro')?.value);
 
-        // Cálculos de totales
-        const totalTela = (!isNaN(noLienzosCortina) && !isNaN(largoCortina)) ? (noLienzosCortina * largoCortina) : 0;
-        const totalTergal = (!isNaN(noLienzosTergal) && !isNaN(largoTergal)) ? (noLienzosTergal * largoTergal) : 0;
-        const totalForro = (!isNaN(noLienzosForro) && !isNaN(largoForro)) ? (noLienzosForro * largoForro) : 0;
+        // Suma la bastilla solo en el cálculo
+        const totalTela = (!isNaN(noLienzosCortina) && !isNaN(largoCortina)) ? (noLienzosCortina * (largoCortina + bastillaCortina)) : 0;
+        const totalTergal = (!isNaN(noLienzosTergal) && !isNaN(largoTergal)) ? (noLienzosTergal * (largoTergal + bastillaTergal)) : 0;
+        const totalForro = (!isNaN(noLienzosForro) && !isNaN(largoForro)) ? (noLienzosForro * (largoForro + bastillaForro)) : 0;
 
         // Cálculos de totales finales
         const totalTelaFinal = (!isNaN(precioTela)) ? (totalTela * precioTela) : 0;
@@ -1320,7 +1261,6 @@
         if (document.getElementById('costo_total_tela_tergal_forro')) {
             document.getElementById('costo_total_tela_tergal_forro').value = (totalTelaFinal + totalTergalFinal + totalForroFinal).toFixed(2);
         }
-
         // Cálculo de Mano de Obra
         const m2CortinaInput = document.querySelector('[name="detalle[m2_1]"]');
         const m2TergalInput = document.querySelector('[name="detalle[m2_2]"]');
@@ -1432,6 +1372,8 @@
 
         tbody.appendChild(fila);
         contadorOtros++;
+
+
     }
 
     function actualizarCostoTotal() {
@@ -1455,6 +1397,7 @@
         });
 
         document.getElementById('costo_total_materiales').value = total.toFixed(2);
+        actualizarTablaTotales();
     }
 
     function actualizarTablaTotales() {
@@ -1552,11 +1495,12 @@
         mostrarOcultarTablas();
     });
 
-    document.addEventListener('input', function(e) {
+    document.addEventListener('change', function(e) {
         if (
             e.target.id === 'no_lienzos_redondeado' ||
             e.target.id === 'largo' ||
-            e.target.id === 'precio_m2_tela'
+            e.target.id === 'precio_m2_tela' ||
+            e.target.id === 'total_tela'
         ) {
             actualizarTablaTotales();
         }
@@ -1566,10 +1510,18 @@
         const precio = $(this).find('option:selected').data('precio');
         $('#precio_m2_tela').val(Number(precio).toFixed(2));
 
-        const metros = parseFloat($('#total_tela').val()) || 0;
-        const total = metros * Number(precio);
+        // Recalcular total_tela (m²) al cambiar la tela
+        const noLienzosCortina = parseFloat($('#no_lienzos_redondeado').val()) || 0;
+        const largoCortina = parseFloat($('#largo').val()) || 0;
+        const bastillaCortina = parseFloat($('#valor_bastilla').val()) || 0;
+        const totalTela = noLienzosCortina * (largoCortina + bastillaCortina);
+        $('#total_tela').val(totalTela.toFixed(2));
+
+        // Calcular total final de tela
+        const total = totalTela * Number(precio);
         $('#total_tela_final').val(total.toFixed(2));
 
+        // Actualizar costo total combinado
         const totalTergalFinal = parseFloat($('#total_tergal_final').val()) || 0;
         const totalForroFinal = parseFloat($('#total_final_forro').val()) || 0;
         $('#costo_total_tela_tergal_forro').val((total + totalTergalFinal + totalForroFinal).toFixed(2));
@@ -1718,5 +1670,7 @@
             });
         }
     });
+
+    
 </script>
 @endsection
