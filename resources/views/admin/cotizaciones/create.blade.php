@@ -281,7 +281,7 @@
                                 <tr>
                                     <td>
                                         Cortinero
-                                        <select name="detalle[cortinero_id]" id="cortinero_id" class="form-select">
+                                        <select name="detalle[cortinero_id]" id="cortinero_id" class="form-select select2">
                                             <option value="">Seleccione tipo de cortinero</option>
                                             @foreach($cortineros as $cortinero)
                                             <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico }}">
@@ -300,21 +300,24 @@
                                         </div>
                                         <script>
                                             document.addEventListener('DOMContentLoaded', function() {
-                                                const cortineroSelect = document.getElementById('cortinero_id');
+                                                // Inicializa Select2 en el select de cortinero
+                                                $('#cortinero_id').select2();
+
+                                                const cortineroSelect = $('#cortinero_id');
                                                 const cortineroPrecio = document.getElementById('cortinero_precio');
-                                                if (cortineroSelect && cortineroPrecio) {
-                                                    cortineroSelect.addEventListener('change', function() {
-                                                        const selected = cortineroSelect.options[cortineroSelect.selectedIndex];
-                                                        cortineroPrecio.value = selected.dataset.precio || '';
+                                                if (cortineroSelect.length && cortineroPrecio) {
+                                                    cortineroSelect.on('change', function() {
+                                                        const selected = $(this).find('option:selected');
+                                                        cortineroPrecio.value = selected.data('precio') || '';
                                                         actualizarCostoTotal();
                                                         actualizarTablaTotales();
                                                     });
                                                     // Actualiza el precio al cargar si hay uno seleccionado
-                                                    const selected = cortineroSelect.options[cortineroSelect.selectedIndex];
-                                                    cortineroPrecio.value = selected && selected.dataset.precio ? selected.dataset.precio : '';
+                                                    const selected = cortineroSelect.find('option:selected');
+                                                    cortineroPrecio.value = selected.data('precio') || '';
                                                 }
                                             });
-                                        </script>
+                                            </script>
                                     </td>
                                     <td></td>
                                 </tr>
