@@ -439,12 +439,12 @@
                                             <td><strong>Costo Decorador</strong></td>
                                             <td>
                                                 <div class="input-group">
-                                                    <input type="number" 
-                                                        id="decorador_porcentaje" 
+                                                    <input type="number"
+                                                        id="decorador_porcentaje"
                                                         name="totales[decorador_porcentaje]"
-                                                        class="form-control text-end" 
-                                                        value="{{ old('totales.decorador_porcentaje', $detalleCotizacion->decorador_porcentaje ?? 15) }}" 
-                                                        min="0" max="100" step="0.01" 
+                                                        class="form-control text-end"
+                                                        value="{{ old('totales.decorador_porcentaje', $detalleCotizacion->decorador_porcentaje ?? 15) }}"
+                                                        min="0" max="100" step="0.01"
                                                         style="max-width: 100px;">
                                                     <span class="input-group-text">%</span>
                                                     <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
@@ -472,7 +472,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <button type="submit" class="btn btn-primary mt-4">Guardar Cotización</button>
             <a href="{{ route('admin.cotizaciones.index') }}" class="btn btn-secondary mt-4">Cancelar</a>
         </form>
@@ -615,8 +615,8 @@
                                                                 value="{{ old('detalle.no_lienzos_redondeado', $detalleCotizacion->no_lienzos_redondeado ?? '') }}" step="0.01" min="0">
                                                         </td>
                                                         <td>
-                                                            <input type="number" id="valor_bastilla" name="detalle[valor_bastilla]" class="form-control" 
-                                                                value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? .40) }}" 
+                                                            <input type="number" id="valor_bastilla" name="detalle[valor_bastilla]" class="form-control"
+                                                                value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? .40) }}"
                                                                 placeholder="Ej. 0.40m" step="0.01" min="0">
                                                         </td>
                                                     </tr>
@@ -661,7 +661,7 @@
                                     actualizarTablaTotales();
                                     calcularLienzos();
                                 });
-                                
+
                                 $(document).on('change', '#tela_id', function() {
                                     const precio = $(this).find('option:selected').data('precio');
                                     $('#precio_m2_tela').val(Number(precio).toFixed(2));
@@ -795,7 +795,7 @@
                                 function sincronizarAnchoTelaConTergal() {
                                     const anchoTelaValue = document.getElementById('ancho_tela')?.value;
                                     const anchoTelaTergal = document.getElementById('ancho_tergal');
-                                    
+
                                     if (anchoTelaValue && anchoTelaTergal) {
                                         anchoTelaTergal.value = anchoTelaValue;
                                         calcularTergal(); // Recalcular después de sincronizar
@@ -896,9 +896,9 @@
                                 });
 
                                 sincronizarTergalConCortina();
-                                
+
                                 interceptarCambioTela();
-                                
+
                                 sincronizarAnchoTelaConTergal();
                             }, 200);
                         }
@@ -1010,11 +1010,11 @@
                                 function sincronizarAnchoTelaConForro() {
                                     const anchoTelaValue = document.getElementById('ancho_tela')?.value;
                                     const anchoTelaForro = document.getElementById('ancho_forro');
-                                    
+
                                     if (anchoTelaValue && anchoTelaForro) {
                                         anchoTelaForro.value = anchoTelaValue;
                                         calcularForro();
-                                        
+
                                         const changeEvent = new Event('change', { bubbles: true });
                                         document.dispatchEvent(changeEvent);
                                     }
@@ -1094,7 +1094,7 @@
                                             largoForro.dataset.original = '';
                                         }
                                         if (typeof calcularForro === 'function') calcularForro();
-                                        
+
                                         // Disparar evento change para que se actualice la tabla de totales
                                         const changeEvent = new Event('change', { bubbles: true });
                                         document.dispatchEvent(changeEvent);
@@ -1124,9 +1124,9 @@
                                 });
 
                                 sincronizarForroConCortina();
-                                
+
                                 interceptarCambioTelaForro();
-                                
+
                                 sincronizarAnchoTelaConForro();
                             }, 200);
                         }
@@ -1170,7 +1170,7 @@
     function manejarTergalManual() {
         const largoCortinaInput = document.getElementById('largo');
         const largoTergalInput = document.getElementById('largo_tergal');
-        
+
         // Solo permitir modificación manual si no hay largo de cortina
         if (!largoCortinaInput || !largoCortinaInput.value) {
             largoTergalInput.dataset.manual = 'true';
@@ -1183,7 +1183,7 @@
         // Inicializar todos los campos
         actualizarLargoTergal();
         actualizarLargoForro();
-        
+
         // Inicializar bastillas si ya tienen valores
         const bastillaInputs = ['valor_bastilla', 'valor_bastilla_tergal', 'valor_bastilla_forro'];
         bastillaInputs.forEach(id => {
@@ -1429,7 +1429,7 @@
         document.getElementById('precio_publico').value = precioPublico > 0 ? precioPublico.toFixed(2) : '';
 
         // Total Lienzos
-        const totalLienzos = 
+        const totalLienzos =
             (parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0) +
             (parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0) +
             (parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0);
@@ -1671,6 +1671,15 @@
         }
     });
 
-    
+
+</script>
+
+<script>
+    // Bloquea el envío del formulario al presionar Enter en los inputs
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && event.target.tagName === 'INPUT') {
+        event.preventDefault();
+    }
+});
 </script>
 @endsection
