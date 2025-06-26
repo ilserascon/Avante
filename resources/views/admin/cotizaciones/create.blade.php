@@ -1293,11 +1293,12 @@
 
     // Insumos precargados desde el backend
     const insumosDisponibles = @json($insumos); // Marca error pero funciona igual
+    const cortinerosDisponibles = @json($cortineros);
 
     // Scripts para calcular el costo total de materiales
     function crearSelectInsumos(nombreInput) {
         const select = document.createElement('select');
-        select.classList.add('form-select');
+        select.classList.add('form-select', 'select2');
         select.name = nombreInput;
 
         const defaultOption = document.createElement('option');
@@ -1305,24 +1306,40 @@
         defaultOption.textContent = "Seleccione un insumo";
         select.appendChild(defaultOption);
 
+        // Insumos normales
         insumosDisponibles.forEach(insumo => {
             const option = document.createElement('option');
             option.value = insumo.id;
             option.textContent = insumo.nombre;
+            option.dataset.precio = insumo.precio_publico;
             select.appendChild(option);
         });
+
+        // Cortineros (optgroup para diferenciarlos)
+        if (cortinerosDisponibles && cortinerosDisponibles.length > 0) {
+            const cortineroGroup = document.createElement('optgroup');
+            cortineroGroup.label = 'Cortineros';
+            cortinerosDisponibles.forEach(cortinero => {
+                const option = document.createElement('option');
+                option.value = 'cortinero_' + cortinero.id;
+                option.textContent = cortinero.nombre;
+                option.dataset.precio = cortinero.precio_publico;
+                cortineroGroup.appendChild(option);
+            });
+            select.appendChild(cortineroGroup);
+        }
 
         return select;
     }
 
     function añadirOtroInsumo() {
         const tbody = document.getElementById('materiales-tbody');
-
         const fila = document.createElement('tr');
 
         // Celda de selección de insumo
         const tdNombre = document.createElement('td');
-        tdNombre.appendChild(crearSelectInsumos(`detalle[otros${contadorOtros}_nombre]`));
+        const selectInsumo = crearSelectInsumos(`detalle[otros${contadorOtros}_nombre]`);
+        tdNombre.appendChild(selectInsumo);
 
         // Celda cantidad
         const tdCantidad = document.createElement('td');
@@ -1350,6 +1367,7 @@
         inputPrecio.classList.add('form-control');
         inputPrecio.step = 0.01;
         inputPrecio.min = 0;
+        inputPrecio.readOnly = true;
         inputPrecio.addEventListener('input', actualizarCostoTotal);
 
         inputGroup.appendChild(span);
@@ -1376,7 +1394,22 @@
         tbody.appendChild(fila);
         contadorOtros++;
 
+        // Inicializar select2 para el nuevo select
+        $(selectInsumo).select2({
+            dropdownParent: $('#tabla-materiales-varios')
+        });
 
+        // Actualizar el precio al seleccionar un insumo
+        $(selectInsumo).on('change', function() {
+            const selected = $(this).find('option:selected');
+            const precio = selected.data('precio');
+            if (precio !== undefined && precio !== null && precio !== '') {
+                inputPrecio.value = precio;
+            } else {
+                inputPrecio.value = '';
+            }
+            actualizarCostoTotal();
+        });
     }
 
     function actualizarCostoTotal() {
