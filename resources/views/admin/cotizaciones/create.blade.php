@@ -280,7 +280,7 @@
                                 </tr>
                                 <tr>
                                     <td>
-                                        Cortinero
+                                        Cortinero cortina
                                         <select name="detalle[cortinero_id]" id="cortinero_id" class="form-select select2">
                                             <option value="">Seleccione tipo de cortinero</option>
                                             @foreach($cortineros as $cortinero)
@@ -663,6 +663,7 @@
 
                                     actualizarTablaTotales();
                                     calcularLienzos();
+                                    actualizarPrecioManoObra();
                                 });
 
                                 $(document).on('change', '#tela_id', function() {
@@ -1287,6 +1288,81 @@
         if (totalMO2) totalMO2.value = totalMano2.toFixed(2);
 
         if (costoTotalMO) costoTotalMO.value = (totalMano1 + totalMano2).toFixed(2);
+    });
+
+    // Cambia el precio de mano de obra según el ancho de la tela
+    function actualizarPrecioManoObra() {
+        const anchoTelaInput = document.getElementById('ancho_tela');
+        const manoObraInput = document.querySelector('input[name="detalle[costo_mano_obra_1]"]');
+
+        if (anchoTelaInput && manoObraInput) {
+            const ancho = parseFloat(anchoTelaInput.value) || 0;
+
+            if (ancho >= 280) {
+                manoObraInput.value = "240.00";
+            } else {
+                manoObraInput.value = "120.00";
+            }
+
+            if (typeof actualizarTablaTotales === 'function') {
+                actualizarTablaTotales();
+            }
+        }
+    }
+
+    // Actualizar el precio de mano de obra al cambiar el ancho de la tela
+    function actualizarPrecioManoObra() {
+        const anchoTelaInput = document.getElementById('ancho_tela');
+        const manoObraInput = document.querySelector('input[name="detalle[costo_mano_obra_1]"]');
+        const m2CortinaInput = document.querySelector('[name="detalle[m2_1]"]');
+        const totalMO1 = document.querySelector('[name="detalle[total_mano_obra_1]"]');
+        const costoMO2 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_2]"]')?.value) || 0;
+        const m2TergalInput = document.querySelector('[name="detalle[m2_2]"]');
+        const totalMO2 = document.querySelector('[name="detalle[total_mano_obra_2]"]');
+        const costoTotalMO = document.querySelector('[name="detalle[costo_total_mano_obra]"]');
+
+        if (anchoTelaInput && manoObraInput) {
+            const ancho = parseFloat(anchoTelaInput.value) || 0;
+
+            if (ancho >= 280) {
+                manoObraInput.value = "240.00";
+            } else {
+                manoObraInput.value = "120.00";
+            }
+
+            // Recalcular total de mano de obra cortina
+            const costoMO1 = parseFloat(manoObraInput.value) || 0;
+            const totalTela = parseFloat(m2CortinaInput?.value) || 0;
+            const totalMano1 = totalTela * costoMO1;
+            if (totalMO1) totalMO1.value = totalMano1.toFixed(2);
+
+            // Recalcular total de mano de obra tergal
+            const totalTergal = parseFloat(m2TergalInput?.value) || 0;
+            const totalMano2 = totalTergal * costoMO2;
+            if (totalMO2) totalMO2.value = totalMano2.toFixed(2);
+
+            // Actualizar costo total mano de obra
+            if (costoTotalMO) costoTotalMO.value = (totalMano1 + totalMano2).toFixed(2);
+
+            // Recalcular totales generales
+            if (typeof actualizarTablaTotales === 'function') {
+                actualizarTablaTotales();
+            }
+        }
+    }
+
+    // Ejecutar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        const anchoTelaInput = document.getElementById('ancho_tela');
+
+        if (anchoTelaInput) {
+            // Ejecutar cuando cambie el input
+            anchoTelaInput.addEventListener('input', actualizarPrecioManoObra);
+            anchoTelaInput.addEventListener('change', actualizarPrecioManoObra);
+
+            // Ejecutar inicial
+            actualizarPrecioManoObra();
+        }
     });
 
     let contadorOtros = 1;
