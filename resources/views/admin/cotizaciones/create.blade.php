@@ -323,6 +323,46 @@
                                 </tr>
                                 <tr>
                                     <td>
+                                        Cortinero tergal
+                                        <select name="detalle[cortinero_tergal_id]" id="cortinero_tergal_id" class="form-select select2">
+                                            <option value="">Seleccione tipo de cortinero</option>
+                                            @foreach($cortineros as $cortinero)
+                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico }}">
+                                                {{ $cortinero->nombre }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="detalle[cortinero_tergal_cantidad]" id="cortinero_tergal_cantidad" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" id="cortinero_tergal_precio" name="detalle[cortinero_tergal_precio]" class="form-control" step="0.01" readonly>
+                                        </div>
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                $('#cortinero_tergal_id').select2();
+                                                const cortineroSelect = $('#cortinero_tergal_id');
+                                                const cortineroPrecio = document.getElementById('cortinero_tergal_precio');
+                                                if (cortineroSelect.length && cortineroPrecio) {
+                                                    cortineroSelect.on('change', function() {
+                                                        const selected = $(this).find('option:selected');
+                                                        cortineroPrecio.value = selected.data('precio') || '';
+                                                        actualizarCostoTotal();
+                                                        actualizarTablaTotales();
+                                                    });
+                                                    // Actualiza el precio al cargar si hay uno seleccionado
+                                                    const selected = cortineroSelect.find('option:selected');
+                                                    cortineroPrecio.value = selected.data('precio') || '';
+                                                }
+                                            });
+                                        </script>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
                                         Puntas
                                         <input type="hidden" name="detalle[puntas_id]" value="{{ $insumosFijos['Puntas']->id ?? '' }}">
                                     </td>

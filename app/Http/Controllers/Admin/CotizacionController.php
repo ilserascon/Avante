@@ -272,6 +272,19 @@ class CotizacionController extends Controller
             ];
         }
 
+        // 7b. Procesar cortinero tergal seleccionado
+        $cortineroTergalId = $detalle['cortinero_tergal_id'] ?? null;
+        $cortineroTergalCantidad = $detalle['cortinero_tergal_cantidad'] ?? 0;
+        $cortineroTergalPrecio = $detalle['cortinero_tergal_precio'] ?? 0;
+
+        if ($cortineroTergalId && $cortineroTergalCantidad > 0) {
+            $todosLosInsumos[$cortineroTergalId] = [
+                'cantidad' => $cortineroTergalCantidad,
+                'precio_unitario' => $cortineroTergalPrecio,
+                'subtotal' => $cortineroTergalCantidad * $cortineroTergalPrecio,
+            ];
+        }
+
         // Guardar en detalle para mostrar en el formulario de edición
         $dataDetalle['cortinero_id'] = $detalle['cortinero_id'] ?? null;
         $dataDetalle['cortinero_cantidad'] = $detalle['cortinero_cantidad'] ?? null;
@@ -509,8 +522,19 @@ class CotizacionController extends Controller
                             'subtotal' => $cantidad * $precio,
                         ];
                     }
-                    continue;
                 }
+
+                $cortineroTergalId = $detalle['cortinero_tergal_id'] ?? null;
+                $cortineroTergalCantidad = $detalle['cortinero_tergal_cantidad'] ?? 0;
+                $cortineroTergalPrecio = $detalle['cortinero_tergal_precio'] ?? 0;
+                if ($cortineroTergalId && $cortineroTergalCantidad > 0) {
+                    $todosLosInsumos[$cortineroTergalId] = [
+                        'cantidad' => $cortineroTergalCantidad,
+                        'precio_unitario' => $cortineroTergalPrecio,
+                        'subtotal' => $cortineroTergalCantidad * $cortineroTergalPrecio,
+                    ];
+                }
+                continue;
 
                 $precio = $insumo->precio_publico;
                 if ($cantidad > 0) {
