@@ -1565,7 +1565,7 @@
         document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
 
         // Utilidad, decorador y precio público
-        const utilidad = costoCortina * 2;
+        const utilidad = costoCortina * 0.15;
         document.querySelectorAll('input[name="totales[utilidad]"]').forEach(function(input) {
             input.value = utilidad > 0 ? utilidad.toFixed(2) : '';
         });
@@ -1573,9 +1573,17 @@
         const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
         const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
         const costoDecorador = costoCortina + (costoCortina * (decoradorPorcentaje / 100));
+
+        // Actualizar todos los inputs con name="totales[costo_decorador]"
         document.querySelectorAll('input[name="totales[costo_decorador]"]').forEach(function(input) {
             input.value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
         });
+
+        // También actualizar el input específico con id="costo_decorador"
+        const costoDecoradorInput = document.getElementById('costo_decorador');
+        if (costoDecoradorInput) {
+            costoDecoradorInput.value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
+        }
 
         const precioPublico = costoCortina * 2;
         document.getElementById('precio_publico').value = precioPublico > 0 ? precioPublico.toFixed(2) : '';
@@ -1804,7 +1812,13 @@
         }
     });
 
-    document.getElementById('decorador_porcentaje').addEventListener('input', actualizarTablaTotales);
+    document.addEventListener('DOMContentLoaded', function() {
+        const decoradorPorcentaje = document.getElementById('decorador_porcentaje');
+        if (decoradorPorcentaje) {
+            decoradorPorcentaje.addEventListener('input', actualizarTablaTotales);
+            decoradorPorcentaje.addEventListener('change', actualizarTablaTotales);
+        }
+    });
 
     // Actualiza el valor del campo oculto al cambiar el porcentaje del decorador
     document.addEventListener('DOMContentLoaded', function() {
