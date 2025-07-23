@@ -32,7 +32,7 @@ class CotizacionController extends Controller
 
     public function create()
     {
-        $insumos = Insumo::where('id_tipo_insumo', '=', 2)->get();
+        $insumos = Insumo::whereIn('id_tipo_insumo', [2, 7])->get();
 
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
@@ -309,7 +309,7 @@ class CotizacionController extends Controller
         $detalleCotizacion = $cotizacion->detalleCotizacion;
 
         // Obtener insumos para los selects y campos del formulario
-        $insumos = Insumo::where('id_tipo_insumo', '=', 2)->get();
+        $insumos = Insumo::whereIn('id_tipo_insumo', [2, 7])->get();
 
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
