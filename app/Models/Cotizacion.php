@@ -24,7 +24,9 @@ class Cotizacion extends Model
         'utilidad',
         'costo_decorador',
         'precio_publico',
-        'estatus'
+        'estatus',
+        'aplicar_iva',
+        'descuento',
     ];
 
     public function cliente()

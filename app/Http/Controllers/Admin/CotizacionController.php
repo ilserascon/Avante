@@ -105,6 +105,8 @@ class CotizacionController extends Controller
         $cotizacion->utilidad          = $totales['utilidad'] ?? null;
         $cotizacion->costo_decorador   = $totales['costo_decorador'] ?? null;
         $cotizacion->precio_publico    = $totales['precio_publico'] ?? null;
+        $cotizacion->aplicar_iva = $request->has('aplicar_iva');
+        $cotizacion->descuento = $request->input('descuento', 0);
 
         $cotizacion->estatus = $request->input('estatus', 'solicitada');
 
@@ -121,6 +123,7 @@ class CotizacionController extends Controller
             $dataDetalle['no_lienzos'] = $detalle['no_lienzos'] ?? null;
             $dataDetalle['no_lienzos_redondeado'] = $detalle['no_lienzos_redondeado'] ?? null;
             $dataDetalle['bastilla'] = $detalle['valor_bastilla'] ?? null;
+            $dataDetalle['tipo_cortina'] = $detalle['tipo_cortina'] ?? null;
         }
 
         // Datos de tergal
@@ -379,6 +382,8 @@ class CotizacionController extends Controller
         $cotizacion->utilidad          = $totales['utilidad'] ?? null;
         $cotizacion->costo_decorador   = $totales['costo_decorador'] ?? null;
         $cotizacion->precio_publico    = $totales['precio_publico'] ?? null;
+        $cotizacion->aplicar_iva = $request->has('aplicar_iva');
+        $cotizacion->descuento = $request->input('descuento', 0);
         $cotizacion->estatus = $request->input('estatus', 'solicitada');
         $cotizacion->save();
 
@@ -405,6 +410,7 @@ class CotizacionController extends Controller
             $dataDetalle['m2_1'] = $detalle['m2_1'] ?? null;
             $dataDetalle['costo_mano_obra_1'] = $detalle['costo_mano_obra_1'] ?? null;
             $dataDetalle['total_mano_obra_1'] = $detalle['total_mano_obra_1'] ?? null;
+            $dataDetalle['tipo_cortina'] = $detalle['tipo_cortina'] ?? null;
         } else {
             $dataDetalle['tela_id'] = null;
             $dataDetalle['ancho_tela'] = null;

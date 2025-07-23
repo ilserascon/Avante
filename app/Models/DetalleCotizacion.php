@@ -19,6 +19,7 @@ class DetalleCotizacion extends Model
         'no_lienzos',
         'no_lienzos_redondeado',
         'bastilla',
+        'tipo_cortina',
 
         'tergal_id',
         'ancho_tergal',

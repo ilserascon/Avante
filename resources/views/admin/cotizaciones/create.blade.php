@@ -13,7 +13,7 @@
             @csrf
 
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="cliente_id">Cliente</label>
                     <select name="cliente_id" id="cliente_id" class="form-control" required autocomplete="off">
                         <option value="">Seleccione un cliente</option>
@@ -22,9 +22,13 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="fecha">Fecha</label>
                     <input type="date" name="fecha" id="fecha" class="form-control" required value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="tipo_cortina" class="form-label">Tipo de Cortina</label>
+                    <input type="text" name="detalle[tipo_cortina]" id="tipo_cortina" class="form-control" placeholder="Ejemplo: plisada, rizada, wave">
                 </div>
             </div>
             <div class="row mb-3 align-items-center">
@@ -487,6 +491,25 @@
                                             <div class="input-group">
                                                 <span class="input-group-text">$</span>
                                                 <input type="number" class="form-control" id="precio_publico" name="totales[precio_publico]" value="{{ old('totales.precio_publico', $cotizacion->precio_publico ?? '') }}" readonly>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td>
+                                            <div class="row justify-content-end">
+                                                <div class="col-md-6">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" value="1" id="aplicar_iva" name="aplicar_iva">
+                                                        <label class="form-check-label" for="aplicar_iva">
+                                                            Aplicar IVA (16%)
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="descuento" class="form-label mb-0">Descuento (%)</label>
+                                                    <input type="number" class="form-control" id="descuento" name="descuento" min="0" max="100" step="0.01" value="0">
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -1602,7 +1625,22 @@
             input.value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
         });
 
-        const precioPublico = costoCortina * 2;
+        // --- NUEVO: Descuento e IVA ---
+        let precioPublico = costoCortina * 2;
+
+        // Descuento
+        const descuentoInput = document.getElementById('descuento');
+        const descuento = descuentoInput ? (parseFloat(descuentoInput.value) || 0) : 0;
+        if (descuento > 0) {
+            precioPublico = precioPublico - (precioPublico * (descuento / 100));
+        }
+
+        // IVA
+        const aplicarIVA = document.getElementById('aplicar_iva')?.checked;
+        if (aplicarIVA) {
+            precioPublico = precioPublico * 1.16;
+        }
+
         document.getElementById('precio_publico').value = precioPublico > 0 ? precioPublico.toFixed(2) : '';
 
         // Total Lienzos
@@ -1624,6 +1662,11 @@
         const totalM2Forro = parseFloat(document.getElementById('total_forro')?.value) || 0;
         document.getElementById('total_m2_forro').value = totalM2Forro > 0 ? totalM2Forro : '';
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('aplicar_iva')?.addEventListener('change', actualizarTablaTotales);
+        document.getElementById('descuento')?.addEventListener('input', actualizarTablaTotales);
+    });
 
     // Escuchar cambios en los campos de lienzos redondeados, total_forro, total_tela y total_tergal
     document.addEventListener('input', function(e) {

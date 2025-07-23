@@ -20,7 +20,7 @@
 
             <!-- Información General -->
             <div class="row">
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <label for="cliente_id">Cliente</label>
                     <select name="cliente_id" id="cliente_id" class="form-control" required autocomplete="off">
                         <option value="">Seleccione un cliente</option>
@@ -31,17 +31,23 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <label for="fecha">Fecha</label>
                     <input type="date" name="fecha" id="fecha" class="form-control" required value="{{ $cotizacion->fecha }}">
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <label for="estatus">Estatus</label>
                     <select name="estatus" id="estatus" class="form-control" required>
                         <option value="solicitada" {{ $cotizacion->estatus == 'solicitada' ? 'selected' : '' }}>Solicitada</option>
                         <option value="aceptada" {{ $cotizacion->estatus == 'aceptada' ? 'selected' : '' }}>Aceptada</option>
                         <option value="rechazada" {{ $cotizacion->estatus == 'rechazada' ? 'selected' : '' }}>Rechazada</option>
                     </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="tipo_cortina" class="form-label">Tipo de Cortina</label>
+                    <input type="text" name="detalle[tipo_cortina]" id="tipo_cortina" class="form-control"
+                        placeholder="Ejemplo: plisada, rizada, wave"
+                        value="{{ old('detalle.tipo_cortina', $detalleCotizacion->tipo_cortina ?? '') }}">
                 </div>
             </div>
 
@@ -144,8 +150,8 @@
                                             value="{{ old('detalle.no_lienzos_redondeado', $detalleCotizacion->no_lienzos_redondeado ?? '') }}" step="0.01" min="0">
                                     </td>
                                     <td>
-                                        <input type="number" id="valor_bastilla" name="detalle[valor_bastilla]" class="form-control" 
-                                            value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? '') }}" 
+                                        <input type="number" id="valor_bastilla" name="detalle[valor_bastilla]" class="form-control"
+                                            value="{{ old('detalle.valor_bastilla', $detalleCotizacion->bastilla ?? '') }}"
                                             placeholder="Ej. 1.10m" step="0.01" min="0">
                                     </td>
                                 </tr>
@@ -297,7 +303,7 @@
                                     </td>
                                     <td>
                                         <input type="number" name="detalle[no_lienzos_redondeado_forro]" id="no_lienzos_redondeado_forro" class="form-control"
-                                            value="{{ old('detalle.no_lienzos_redondeado_forro', $detalleCotizacion->no_lienzos_redondeado_forro ?? '') }}" step="0.01" min="0"> 
+                                            value="{{ old('detalle.no_lienzos_redondeado_forro', $detalleCotizacion->no_lienzos_redondeado_forro ?? '') }}" step="0.01" min="0">
                                     </td>
                                     <td>
                                         <input type="number" id="valor_bastilla_forro" name="detalle[valor_bastilla_forro]" class="form-control"
@@ -331,7 +337,7 @@
                                 <!-- Fila Cortina -->
                                 <tr>
                                     <td>
-                                        <input type="number" name="detalle[total_tela]" id="total_tela" class="form-control" step="0.01" 
+                                        <input type="number" name="detalle[total_tela]" id="total_tela" class="form-control" step="0.01"
                                             value="{{ old('detalle.total_tela', $detalleCotizacion->total_tela ?? '') }}" readonly>
                                     </td>
                                     <td>
@@ -751,12 +757,12 @@
                                             <td><strong>Costo Decorador</strong></td>
                                             <td>
                                                 <div class="input-group">
-                                                    <input type="number" 
-                                                        id="decorador_porcentaje" 
+                                                    <input type="number"
+                                                        id="decorador_porcentaje"
                                                         name="totales[decorador_porcentaje]"
                                                         class="form-control text-end"
                                                         value="{{ old('totales.decorador_porcentaje', $cotizacion->detalleCotizacion->decorador_porcentaje ?? 15) }}"
-                                                        min="0" max="100" step="0.01" 
+                                                        min="0" max="100" step="0.01"
                                                         style="max-width: 100px;">
                                                     <span class="input-group-text">%</span>
                                                     <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
@@ -778,6 +784,27 @@
                                             </div>
                                         </td>
                                     </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td>
+                                            <div class="row justify-content-end">
+                                                <div class="col-md-6">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" value="1" id="aplicar_iva" name="aplicar_iva"
+                                                            {{ old('aplicar_iva', $cotizacion->aplicar_iva ?? false) ? 'checked' : '' }}>
+                                                        <label class="form-check-label" for="aplicar_iva">
+                                                            Aplicar IVA (16%)
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="descuento" class="form-label mb-0">Descuento (%)</label>
+                                                    <input type="number" class="form-control" id="descuento" name="descuento" min="0" max="100" step="0.01"
+                                                        value="{{ old('descuento', $cotizacion->descuento ?? 0) }}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -794,7 +821,7 @@
                     <i class="fas fa-times"></i> Cancelar
                 </a>
             </div>
-            
+
         </form>
     </div>
 </div>
@@ -899,8 +926,8 @@
         }
         calcularLienzosForro();
     });
-    
-    // Copiar valores de Cortina a Tergal 
+
+    // Copiar valores de Cortina a Tergal
     function copiarCortinaATergal() {
         const anchoCortina = document.getElementById('ancho');
         const largoCortina = document.getElementById('largo');
@@ -1145,60 +1172,60 @@
         actualizarLargoConBastilla('largo_forro', 'valor_bastilla_forro');
     });
 
-    // Calcular y actualizar totales de Tela, Tergal y Forro 
+    // Calcular y actualizar totales de Tela, Tergal y Forro
     function calcularTotalesTelaTergalForro() {
         const cortinaCheck = document.getElementById('cortinaCheck')?.checked || false;
         const tergalCheck = document.getElementById('tergalCheck')?.checked || false;
         const forroCheck = document.getElementById('forroCheck')?.checked || false;
-        
+
         let totalTela = 0, totalTergal = 0, totalForro = 0;
         let totalTelaFinal = 0, totalTergalFinal = 0, totalForroFinal = 0;
         let precioTela = 0, precioTergal = 0, precioForro = 0;
-        
+
         const noLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
         const largoCortina = parseFloat(document.getElementById('largo')?.value) || 0;
         precioTela = parseFloat(document.getElementById('tela_id')?.selectedOptions[0]?.dataset.precio) || 0;
-        
+
         totalTela = noLienzosCortina * largoCortina;
         totalTelaFinal = totalTela * precioTela;
-        
+
         const noLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
         const largoTergal = parseFloat(document.getElementById('largo_tergal')?.value) || 0;
         precioTergal = parseFloat(document.getElementById('tergal_id')?.selectedOptions[0]?.dataset.precio) || 0;
-        
+
         totalTergal = noLienzosTergal * largoTergal;
         totalTergalFinal = totalTergal * precioTergal;
-        
+
         const noLienzosForro = parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0;
         const largoForro = parseFloat(document.getElementById('largo_forro')?.value) || 0;
         precioForro = parseFloat(document.getElementById('forro_id')?.selectedOptions[0]?.dataset.precio) || 0;
-        
+
         totalForro = noLienzosForro * largoForro;
         totalForroFinal = totalForro * precioForro;
-        
+
         function actualizarCampo(id, valor, checkboxActivo = true) {
             const input = document.getElementById(id);
             if (input) {
                 input.value = (checkboxActivo && valor > 0) ? valor.toFixed(2) : '';
             }
         }
-        
+
         actualizarCampo('total_tela', totalTela, cortinaCheck);
         actualizarCampo('precio_m2_tela_final', precioTela, cortinaCheck);
         actualizarCampo('total_tela_final', totalTelaFinal, cortinaCheck);
-        
+
         actualizarCampo('total_tergal', totalTergal, tergalCheck);
         actualizarCampo('precio_m2_tergal_final', precioTergal, tergalCheck);
         actualizarCampo('total_tergal_final', totalTergalFinal, tergalCheck);
-        
+
         actualizarCampo('total_forro', totalForro, forroCheck);
         actualizarCampo('precio_m2_forro_final', precioForro, forroCheck);
         actualizarCampo('total_final_forro', totalForroFinal, forroCheck);
-        
-        const costoTotal = (cortinaCheck ? totalTelaFinal : 0) + 
-                            (tergalCheck ? totalTergalFinal : 0) + 
+
+        const costoTotal = (cortinaCheck ? totalTelaFinal : 0) +
+                            (tergalCheck ? totalTergalFinal : 0) +
                             (forroCheck ? totalForroFinal : 0);
-        
+
         actualizarCampo('costo_total_tela_tergal_forro', costoTotal, (cortinaCheck || tergalCheck || forroCheck));
     }
 
@@ -1206,7 +1233,7 @@
     function actualizarPrecioIndividual(selectElement, precioInputId) {
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const precioInput = document.getElementById(precioInputId);
-        
+
         if (selectedOption && selectedOption.value && precioInput) {
             const precio = selectedOption.getAttribute('data-precio');
             if (precio) {
@@ -1294,7 +1321,7 @@
             if (seccionCortina) seccionCortina.style.display = cortinaCheck.checked ? '' : 'none';
             if (seccionTergal) seccionTergal.style.display = tergalCheck.checked ? '' : 'none';
             if (seccionForro) seccionForro.style.display = forroCheck.checked ? '' : 'none';
-            
+
             calcularTotalesTelaTergalForro();
         }
 
@@ -1314,7 +1341,7 @@
             calcularTotalesTelaTergalForro();
         }, 100);
     });
-    
+
     // Función para calcular mano de obra desde totales
     function calcularManoObraDesdeTotales() {
         try {
@@ -1357,7 +1384,7 @@
         calcularManoObraDesdeTotales();
 
         // ===== LISTENERS PARA RECALCULAR MANO DE OBRA AUTOMÁTICAMENTE =====
-        
+
         // 1. Cuando cambian los totales de tela/tergal (valores principales)
         ['total_tela', 'total_tergal'].forEach(function(id) {
             const el = document.getElementById(id);
@@ -1388,7 +1415,7 @@
             if (input) {
                 input.addEventListener('input', function() {
                     console.log(`Cambio manual en m2:`, name, this.value);
-                    
+
                     // Solo recalcular totales de MO, no sobreescribir los m2
                     const m2CortinaManual = parseFloat(document.querySelector('[name="detalle[m2_1]"]')?.value) || 0;
                     const m2TergalManual = parseFloat(document.querySelector('[name="detalle[m2_2]"]')?.value) || 0;
@@ -1415,7 +1442,7 @@
             window.calcularTotalesTelaTergalForro = function() {
                 // Ejecutar la función original
                 funcionOriginal.apply(this, arguments);
-                
+
                 // Ejecutar el recálculo de mano de obra
                 setTimeout(calcularManoObraDesdeTotales, 10);
             };
@@ -1436,7 +1463,7 @@
             'total_mano_obra_2': document.querySelector('[name="detalle[total_mano_obra_2]"]')?.value,
             'costo_total_mano_obra': document.querySelector('[name="detalle[costo_total_mano_obra]"]')?.value
         };
-        
+
         console.table(campos);
         return campos;
     }
