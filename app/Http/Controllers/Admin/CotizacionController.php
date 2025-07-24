@@ -8,6 +8,7 @@ use App\Models\Cotizacion;
 use App\Models\Insumo;
 use Barryvdh\DomPDF\Facade\Pdf; // Usa la facade de DomPDF
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class CotizacionController extends Controller
 {
@@ -32,7 +33,7 @@ class CotizacionController extends Controller
 
     public function create()
     {
-        $insumos = Insumo::where('id_tipo_insumo', '=', 2)->get();
+        $insumos = Insumo::whereIn('id_tipo_insumo', [2, 7])->get();
 
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
@@ -70,49 +71,44 @@ class CotizacionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'cliente_id'         => 'required|exists:clientes,id',
-            'fecha'              => 'required|date',
-            'detalle'            => 'array',
-            'totales'            => 'array',
-        ], [
-            'cliente_id.required' => 'El campo cliente es obligatorio.',
-            'cliente_id.exists' => 'El cliente seleccionado no es válido.',
-            'fecha.required' => 'El campo fecha es obligatorio.',
-            'fecha.date' => 'La fecha debe ser válida.',
-            'detalle.array' => 'El detalle debe ser un arreglo.',
-            'totales.array' => 'Los totales deben ser un arreglo.',
+            'cliente_id' => 'required|exists:clientes,id',
+            'fecha' => 'required|date',
+            'detalle' => 'array',
+            'totales' => 'array',
         ]);
 
         $detalle = $request->input('detalle', []);
         $totales = $request->input('totales', []);
 
         $cotizacion = new Cotizacion();
-        $cotizacion->cliente_id   = $validated['cliente_id'];
-        $cotizacion->fecha        = $validated['fecha'];
+        $cotizacion->cliente_id = $validated['cliente_id'];
+        $cotizacion->fecha = $validated['fecha'];
+        $cotizacion->area = $request->input('area');
 
-        $tipos = array_filter($request->input('tipo', []), function($v) {
+        $tipos = array_filter($request->input('tipo', []), function ($v) {
             return $v !== '__dummy_cortina__' && $v !== '__dummy_tergal__';
         });
         $cotizacion->lleva_cortina = in_array('cortina', $tipos);
-        $cotizacion->lleva_tergal  = in_array('tergal', $tipos);
-        $cotizacion->lleva_forro   = $request->input('lleva_forro', 0) == 1;
+        $cotizacion->lleva_tergal = in_array('tergal', $tipos);
+        $cotizacion->lleva_forro = $request->input('lleva_forro', 0) == 1;
 
-        $cotizacion->total_lienzos     = $totales['total_lienzos'] ?? null;
-        $cotizacion->total_m2_forro    = $totales['total_m2_forro'] ?? null;
-        $cotizacion->total_m2_tela     = $totales['total_m2_tela'] ?? null;
-        $cotizacion->total_m2_tergal   = $totales['total_m2_tergal'] ?? null;
-        $cotizacion->costo_cortina     = $totales['costo_cortina'] ?? null;
-        $cotizacion->utilidad          = $totales['utilidad'] ?? null;
-        $cotizacion->costo_decorador   = $totales['costo_decorador'] ?? null;
-        $cotizacion->precio_publico    = $totales['precio_publico'] ?? null;
-
+        $cotizacion->total_lienzos = $totales['total_lienzos'] ?? null;
+        $cotizacion->total_m2_forro = $totales['total_m2_forro'] ?? null;
+        $cotizacion->total_m2_tela = $totales['total_m2_tela'] ?? null;
+        $cotizacion->total_m2_tergal = $totales['total_m2_tergal'] ?? null;
+        $cotizacion->costo_cortina = $totales['costo_cortina'] ?? null;
+        $cotizacion->utilidad = $totales['utilidad'] ?? null;
+        $cotizacion->costo_decorador = $totales['costo_decorador'] ?? null;
+        $cotizacion->precio_publico = $totales['precio_publico'] ?? null;
+        $cotizacion->aplicar_iva = $request->has('aplicar_iva');
+        $cotizacion->descuento = $request->input('descuento', 0);
         $cotizacion->estatus = $request->input('estatus', 'solicitada');
 
         $cotizacion->save();
 
         $dataDetalle = [];
 
-        // Datos de cortina
+        // Cortina
         if ($cotizacion->lleva_cortina && isset($detalle['ancho'])) {
             $dataDetalle['tela_id'] = $detalle['tela_id'] ?? null;
             $dataDetalle['ancho_tela'] = $detalle['ancho_tela'] ?? null;
@@ -121,9 +117,10 @@ class CotizacionController extends Controller
             $dataDetalle['no_lienzos'] = $detalle['no_lienzos'] ?? null;
             $dataDetalle['no_lienzos_redondeado'] = $detalle['no_lienzos_redondeado'] ?? null;
             $dataDetalle['bastilla'] = $detalle['valor_bastilla'] ?? null;
+            $dataDetalle['tipo_cortina'] = $detalle['tipo_cortina'] ?? null;
         }
 
-        // Datos de tergal
+        // Tergal
         if ($cotizacion->lleva_tergal && isset($detalle['ancho_tergal'])) {
             $dataDetalle['tergal_id'] = $detalle['tergal_id'] ?? null;
             $dataDetalle['ancho_tergal'] = $detalle['ancho_tergal'] ?? null;
@@ -134,7 +131,7 @@ class CotizacionController extends Controller
             $dataDetalle['bastilla_tergal'] = $detalle['valor_bastilla_tergal'] ?? null;
         }
 
-        // Datos de forro
+        // Forro
         if ($cotizacion->lleva_forro && isset($detalle['ancho_forro'])) {
             $dataDetalle['forro_id'] = $detalle['forro_id'] ?? null;
             $dataDetalle['ancho_forro'] = $detalle['ancho_forro'] ?? null;
@@ -145,7 +142,7 @@ class CotizacionController extends Controller
             $dataDetalle['bastilla_forro'] = $detalle['valor_bastilla_forro'] ?? null;
         }
 
-        // Datos de la tabla "Total Tela, Tergal y Forro"
+        // Totales
         $dataDetalle['total_tela'] = $detalle['total_tela'] ?? null;
         $dataDetalle['precio_m2_tela'] = $detalle['precio_m2_tela'] ?? null;
         $dataDetalle['descripcion_tela'] = $detalle['descripcion_tela'] ?? null;
@@ -163,7 +160,7 @@ class CotizacionController extends Controller
 
         $dataDetalle['costo_total_tela_tergal_forro'] = $detalle['costo_total_tela_tergal_forro'] ?? null;
 
-        // Datos de la tabla "Mano de Obra"
+        // Mano de obra
         $dataDetalle['m2_1'] = $detalle['m2_1'] ?? null;
         $dataDetalle['costo_mano_obra_1'] = $detalle['costo_mano_obra_1'] ?? null;
         $dataDetalle['total_mano_obra_1'] = $detalle['total_mano_obra_1'] ?? null;
@@ -175,78 +172,37 @@ class CotizacionController extends Controller
         $dataDetalle['costo_total_mano_obra'] = $detalle['costo_total_mano_obra'] ?? null;
         $dataDetalle['decorador_porcentaje'] = $totales['decorador_porcentaje'] ?? null;
 
-        if (!empty($dataDetalle)) {
-            $cotizacion->detalleCotizacion()->create($dataDetalle);
-        }
+        // Cortineros
+        $dataDetalle['cortinero_id'] = $detalle['cortinero_id'] ?? null;
+        $dataDetalle['cortinero_cantidad'] = $detalle['cortinero_cantidad'] ?? null;
+        $dataDetalle['cortinero_precio'] = $detalle['cortinero_precio'] ?? null;
+        $dataDetalle['cortinero_tergal_id'] = $detalle['cortinero_tergal_id'] ?? null;
+        $dataDetalle['cortinero_tergal_cantidad'] = $detalle['cortinero_tergal_cantidad'] ?? null;
+        $dataDetalle['cortinero_tergal_precio'] = $detalle['cortinero_tergal_precio'] ?? null;
 
-        // ===== LÓGICA CORREGIDA PARA MANEJO DE INSUMOS =====
+        $detalleCotizacionCreado = $cotizacion->detalleCotizacion()->create($dataDetalle);
 
-        // 1. Limpiar todos los insumos relacionados primero
-        $cotizacion->insumos()->detach();
-
-        // 2. Preparar array para todos los insumos que se van a adjuntar
+        // 🧩 Guardar insumos dinámicos
         $todosLosInsumos = [];
 
-        // 3. Adjuntar insumos seleccionados básicos (sin cantidad/precio personalizado)
-        $insumosBasicos = $request->input('insumos', []);
-        foreach ($insumosBasicos as $insumoId) {
-            $todosLosInsumos[$insumoId] = [
-                'cantidad' => 1,
-                'precio_unitario' => 0,
-                'subtotal' => 0,
-            ];
-        }
-
-        // 4. Obtener insumos fijos para procesar cantidades y precios
-        $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
-            ->where('id_tipo_insumo', 2)
-            ->get()
-            ->keyBy('nombre');
-
-        // 5. Procesar insumos fijos con cantidades y precios
-        foreach (['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'] as $nombre) {
-            $insumo = $insumosFijos->get($nombre);
-            if ($insumo) {
-                $key = strtolower($nombre);
-                $cantidad = $detalle["{$key}_cantidad"] ?? 0;
-                $precio = $insumo->precio_publico;
-
-                if ($cantidad > 0) {
-                    $subtotal = $cantidad * $precio;
-
-                    // Si ya existe en el array, actualizar; si no, agregar
-                    if (isset($todosLosInsumos[$insumo->id])) {
-                        $todosLosInsumos[$insumo->id]['cantidad'] += $cantidad;
-                        $todosLosInsumos[$insumo->id]['precio_unitario'] = $precio;
-                        $todosLosInsumos[$insumo->id]['subtotal'] += $subtotal;
-                    } else {
-                        $todosLosInsumos[$insumo->id] = [
-                            'cantidad' => $cantidad,
-                            'precio_unitario' => $precio,
-                            'subtotal' => $subtotal,
-                        ];
-                    }
-                }
-            }
-        }
-
-        // 6. Procesar "otros insumos" dinámicos
         foreach ($detalle as $key => $value) {
             if (preg_match('/^otros(\d+)_nombre$/', $key, $matches)) {
                 $index = $matches[1];
-                $insumoId = $value;
-                $cantidad = $detalle["otros{$index}_cantidad"] ?? 0;
-                $precio = $detalle["otros{$index}_precio"] ?? 0;
+                $insumoRaw = $value;
+
+                // Convertir string tipo "cortinero_4" a int
+                $insumoId = Str::startsWith($insumoRaw, 'cortinero_')
+                    ? intval(Str::after($insumoRaw, 'cortinero_'))
+                    : intval($insumoRaw);
+
+                $cantidad = floatval($detalle["otros{$index}_cantidad"] ?? 0);
+                $precio = floatval($detalle["otros{$index}_precio"] ?? 0);
+                $subtotal = $cantidad * $precio;
 
                 if ($insumoId && $cantidad > 0 && $precio > 0) {
-                    $subtotal = $cantidad * $precio;
-
-                    // Si ya existe en el array, actualizar; si no, agregar
                     if (isset($todosLosInsumos[$insumoId])) {
                         $todosLosInsumos[$insumoId]['cantidad'] += $cantidad;
                         $todosLosInsumos[$insumoId]['subtotal'] += $subtotal;
-                        // Para "otros insumos", mantenemos el precio que se ingresó
-                        $todosLosInsumos[$insumoId]['precio_unitario'] = $precio;
                     } else {
                         $todosLosInsumos[$insumoId] = [
                             'cantidad' => $cantidad,
@@ -258,42 +214,10 @@ class CotizacionController extends Controller
             }
         }
 
-
-        // 7. Procesar cortinero seleccionado (tipo de cortinero)
-        $cortineroId = $detalle['cortinero_id'] ?? null;
-        $cortineroCantidad = $detalle['cortinero_cantidad'] ?? 0;
-        $cortineroPrecio = $detalle['cortinero_precio'] ?? 0;
-
-        if ($cortineroId && $cortineroCantidad > 0) {
-            $todosLosInsumos[$cortineroId] = [
-                'cantidad' => $cortineroCantidad,
-                'precio_unitario' => $cortineroPrecio,
-                'subtotal' => $cortineroCantidad * $cortineroPrecio,
-            ];
-        }
-
-        // 7b. Procesar cortinero tergal seleccionado
-        $cortineroTergalId = $detalle['cortinero_tergal_id'] ?? null;
-        $cortineroTergalCantidad = $detalle['cortinero_tergal_cantidad'] ?? 0;
-        $cortineroTergalPrecio = $detalle['cortinero_tergal_precio'] ?? 0;
-
-        if ($cortineroTergalId && $cortineroTergalCantidad > 0) {
-            $todosLosInsumos[$cortineroTergalId] = [
-                'cantidad' => $cortineroTergalCantidad,
-                'precio_unitario' => $cortineroTergalPrecio,
-                'subtotal' => $cortineroTergalCantidad * $cortineroTergalPrecio,
-            ];
-        }
-
-        // Guardar en detalle para mostrar en el formulario de edición
-        $dataDetalle['cortinero_id'] = $detalle['cortinero_id'] ?? null;
-        $dataDetalle['cortinero_cantidad'] = $detalle['cortinero_cantidad'] ?? null;
-        $dataDetalle['cortinero_precio'] = $detalle['cortinero_precio'] ?? null;
-
-        // 8. Adjuntar todos los insumos de una sola vez
         if (!empty($todosLosInsumos)) {
             $cotizacion->insumos()->attach($todosLosInsumos);
         }
+
         return redirect()->route('admin.cotizaciones.index')->with('success', 'Cotización creada exitosamente.');
     }
 
@@ -309,7 +233,7 @@ class CotizacionController extends Controller
         $detalleCotizacion = $cotizacion->detalleCotizacion;
 
         // Obtener insumos para los selects y campos del formulario
-        $insumos = Insumo::where('id_tipo_insumo', '=', 2)->get();
+        $insumos = Insumo::whereIn('id_tipo_insumo', [2, 7])->get();
 
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
@@ -329,6 +253,26 @@ class CotizacionController extends Controller
         $forros = Insumo::where('id_tipo_insumo', 5)->get();
         $cortineros = Insumo::where('id_tipo_insumo', 6)->get();
 
+        // Obtener cortineros seleccionados
+        $cortineroSeleccionado = null;
+        $cortineroTergalSeleccionado = null;
+
+        if ($detalleCotizacion) {
+            // Buscar cortinero por el ID guardado en detalleCotizacion
+            if ($detalleCotizacion->cortinero_id) {
+                $cortineroSeleccionado = $cotizacion->insumos()
+                    ->where('insumo_id', $detalleCotizacion->cortinero_id)
+                    ->first();
+            }
+
+            // Buscar cortinero tergal por el ID guardado en detalleCotizacion
+            if ($detalleCotizacion->cortinero_tergal_id) {
+                $cortineroTergalSeleccionado = $cotizacion->insumos()
+                    ->where('insumo_id', $detalleCotizacion->cortinero_tergal_id)
+                    ->first();
+            }
+        }
+
         return view('admin.cotizaciones.edit', compact(
             'cotizacion',
             'detalleCotizacion',
@@ -338,7 +282,9 @@ class CotizacionController extends Controller
             'telas',
             'tergales',
             'forros',
-            'cortineros'
+            'cortineros',
+            'cortineroSeleccionado',
+            'cortineroTergalSeleccionado'
         ));
     }
 
@@ -367,6 +313,7 @@ class CotizacionController extends Controller
         $tipos = $request->input('tipo', []);
         $cotizacion->cliente_id   = $validated['cliente_id'];
         $cotizacion->fecha        = $validated['fecha'];
+        $cotizacion->area = $request->input('area');
         $cotizacion->lleva_cortina = in_array('cortina', $tipos);
         $cotizacion->lleva_tergal  = in_array('tergal', $tipos);
         $cotizacion->lleva_forro   = $request->has('lleva_forro');
@@ -379,6 +326,8 @@ class CotizacionController extends Controller
         $cotizacion->utilidad          = $totales['utilidad'] ?? null;
         $cotizacion->costo_decorador   = $totales['costo_decorador'] ?? null;
         $cotizacion->precio_publico    = $totales['precio_publico'] ?? null;
+        $cotizacion->aplicar_iva = $request->has('aplicar_iva');
+        $cotizacion->descuento = $request->input('descuento', 0);
         $cotizacion->estatus = $request->input('estatus', 'solicitada');
         $cotizacion->save();
 
@@ -405,6 +354,7 @@ class CotizacionController extends Controller
             $dataDetalle['m2_1'] = $detalle['m2_1'] ?? null;
             $dataDetalle['costo_mano_obra_1'] = $detalle['costo_mano_obra_1'] ?? null;
             $dataDetalle['total_mano_obra_1'] = $detalle['total_mano_obra_1'] ?? null;
+            $dataDetalle['tipo_cortina'] = $detalle['tipo_cortina'] ?? null;
         } else {
             $dataDetalle['tela_id'] = null;
             $dataDetalle['ancho_tela'] = null;
@@ -482,13 +432,24 @@ class CotizacionController extends Controller
             $dataDetalle['total_final_forro'] = null;
         }
 
+        // DATOS GENERALES
         $dataDetalle['costo_total_tela_tergal_forro'] = $detalle['costo_total_tela_tergal_forro'] ?? null;
         $dataDetalle['costo_total_mano_obra'] = $detalle['costo_total_mano_obra'] ?? null;
         $dataDetalle['decorador_porcentaje'] = $totales['decorador_porcentaje'] ?? 15;
 
+        // AGREGAR DATOS DE CORTINEROS A $dataDetalle
+        $dataDetalle['cortinero_id'] = $detalle['cortinero_id'] ?? null;
+        $dataDetalle['cortinero_cantidad'] = $detalle['cortinero_cantidad'] ?? null;
+        $dataDetalle['cortinero_precio'] = $detalle['cortinero_precio'] ?? null;
+
+        $dataDetalle['cortinero_tergal_id'] = $detalle['cortinero_tergal_id'] ?? null;
+        $dataDetalle['cortinero_tergal_cantidad'] = $detalle['cortinero_tergal_cantidad'] ?? null;
+        $dataDetalle['cortinero_tergal_precio'] = $detalle['cortinero_tergal_precio'] ?? null;
+
+        // Actualizar detalle de cotización
         $detalleCotizacion->update($dataDetalle);
 
-        // Insumos (igual que antes)
+        // ===== MANEJO DE INSUMOS =====
         $todosLosInsumos = [];
         $insumosSeleccionados = $request->input('insumos', []);
         foreach ($insumosSeleccionados as $insumoId) {
@@ -501,6 +462,7 @@ class CotizacionController extends Controller
             }
         }
 
+        // Insumos fijos
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
             ->get()
@@ -511,30 +473,6 @@ class CotizacionController extends Controller
             if ($insumo) {
                 $key = strtolower($nombre);
                 $cantidad = $detalle["{$key}_cantidad"] ?? 0;
-
-                if ($nombre === 'Cortinero') {
-                    $cortineroId = $detalle['cortinero_id'] ?? null;
-                    $precio = $detalle['cortinero_precio'] ?? 0;
-                    if ($cortineroId && $cantidad > 0) {
-                        $todosLosInsumos[$cortineroId] = [
-                            'cantidad' => $cantidad,
-                            'precio_unitario' => $precio,
-                            'subtotal' => $cantidad * $precio,
-                        ];
-                    }
-                }
-
-                $cortineroTergalId = $detalle['cortinero_tergal_id'] ?? null;
-                $cortineroTergalCantidad = $detalle['cortinero_tergal_cantidad'] ?? 0;
-                $cortineroTergalPrecio = $detalle['cortinero_tergal_precio'] ?? 0;
-                if ($cortineroTergalId && $cortineroTergalCantidad > 0) {
-                    $todosLosInsumos[$cortineroTergalId] = [
-                        'cantidad' => $cortineroTergalCantidad,
-                        'precio_unitario' => $cortineroTergalPrecio,
-                        'subtotal' => $cortineroTergalCantidad * $cortineroTergalPrecio,
-                    ];
-                }
-                continue;
 
                 $precio = $insumo->precio_publico;
                 if ($cantidad > 0) {
@@ -547,12 +485,45 @@ class CotizacionController extends Controller
             }
         }
 
+        // Cortinero cortina
+        $cortineroId = $detalle['cortinero_id'] ?? null;
+        $cortineroCantidad = $detalle['cortinero_cantidad'] ?? 0;
+        $cortineroPrecio = $detalle['cortinero_precio'] ?? 0;
+        if ($cortineroId && $cortineroCantidad > 0) {
+            $todosLosInsumos[$cortineroId] = [
+                'cantidad' => $cortineroCantidad,
+                'precio_unitario' => $cortineroPrecio,
+                'subtotal' => $cortineroCantidad * $cortineroPrecio,
+            ];
+        }
+
+        // Cortinero tergal
+        $cortineroTergalId = $detalle['cortinero_tergal_id'] ?? null;
+        $cortineroTergalCantidad = $detalle['cortinero_tergal_cantidad'] ?? 0;
+        $cortineroTergalPrecio = $detalle['cortinero_tergal_precio'] ?? 0;
+        if ($cortineroTergalId && $cortineroTergalCantidad > 0) {
+            $todosLosInsumos[$cortineroTergalId] = [
+                'cantidad' => $cortineroTergalCantidad,
+                'precio_unitario' => $cortineroTergalPrecio,
+                'subtotal' => $cortineroTergalCantidad * $cortineroTergalPrecio,
+            ];
+        }
+
+        // Otros insumos dinámicos
         foreach ($detalle as $k => $v) {
             if (preg_match('/^otros(\d+)_nombre$/', $k, $matches)) {
                 $index = $matches[1];
-                $insumoId = $v;
+
+                // Limpiar insumoId si viene con prefijo como "cortinero_4"
+                if (preg_match('/^([a-zA-Z]+_)?(\d+)$/', $v, $matchInsumo)) {
+                    $insumoId = (int) $matchInsumo[2];
+                } else {
+                    continue; // ignora si no es válido
+                }
+
                 $cantidad = $detalle["otros{$index}_cantidad"] ?? 0;
                 $precio = $detalle["otros{$index}_precio"] ?? 0;
+
                 if ($insumoId && $cantidad > 0) {
                     if (isset($todosLosInsumos[$insumoId])) {
                         $todosLosInsumos[$insumoId]['cantidad'] += $cantidad;
@@ -568,6 +539,7 @@ class CotizacionController extends Controller
             }
         }
 
+        // Sincronizar insumos
         if (!empty($todosLosInsumos)) {
             $cotizacion->insumos()->sync($todosLosInsumos);
         } else {

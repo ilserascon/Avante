@@ -13,7 +13,7 @@
             @csrf
 
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-3 mb-3">
                     <label for="cliente_id">Cliente</label>
                     <select name="cliente_id" id="cliente_id" class="form-control" required autocomplete="off">
                         <option value="">Seleccione un cliente</option>
@@ -22,9 +22,17 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-3 mb-3">
                     <label for="fecha">Fecha</label>
                     <input type="date" name="fecha" id="fecha" class="form-control" required value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="tipo_cortina" class="form-label">Tipo de Cortina</label>
+                    <input type="text" name="detalle[tipo_cortina]" id="tipo_cortina" class="form-control" placeholder="Ejemplo: plisada, rizada, wave">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="area" class="form-label">Área</label>
+                    <input type="text" name="area" id="area" class="form-control" placeholder="Ejemplo: Cocina, Habitación, etc." value="{{ old('area', $cotizacion->area ?? '') }}">
                 </div>
             </div>
             <div class="row mb-3 align-items-center">
@@ -257,27 +265,12 @@
                                     <th style="min-width: 180px;">Materiales Varios</th>
                                     <th style="min-width: 120px;">Cantidad</th>
                                     <th style="min-width: 150px;">Precio Unitario</th>
+                                    <th style="min-width: 150px;">Subtotal</th>
                                     <th style="min-width: 100px;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="materiales-tbody">
                                 <!-- Insumos fijos -->
-                                <tr>
-                                    <td>
-                                        Ojillos
-                                        <input type="hidden" name="detalle[ojillos_id]" value="{{ $insumosFijos['Ojillos']->id ?? '' }}">
-                                    </td>
-                                    <td>
-                                        <input type="number" name="detalle[ojillos_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
-                                    </td>
-                                    <td>
-                                        <div class="input-group">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number" class="form-control" value="{{ $insumosFijos['Ojillos']->precio_publico ?? '' }}" step="0.01" readonly>
-                                        </div>
-                                    </td>
-                                    <td></td>
-                                </tr>
                                 <tr>
                                     <td>
                                         Cortinero cortina
@@ -291,33 +284,19 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="number" name="detalle[cortinero_cantidad]" id="cortinero_cantidad" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                                        <input type="number" name="detalle[cortinero_cantidad]" id="cortinero_cantidad" class="form-control" oninput="calcularSubtotalCortinero()" autocomplete="off">
                                     </td>
                                     <td>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
                                             <input type="number" id="cortinero_precio" name="detalle[cortinero_precio]" class="form-control" step="0.01" readonly>
                                         </div>
-                                        <script>
-                                            document.addEventListener('DOMContentLoaded', function() {
-                                                // Inicializa Select2 en el select de cortinero
-                                                $('#cortinero_id').select2();
-
-                                                const cortineroSelect = $('#cortinero_id');
-                                                const cortineroPrecio = document.getElementById('cortinero_precio');
-                                                if (cortineroSelect.length && cortineroPrecio) {
-                                                    cortineroSelect.on('change', function() {
-                                                        const selected = $(this).find('option:selected');
-                                                        cortineroPrecio.value = selected.data('precio') || '';
-                                                        actualizarCostoTotal();
-                                                        actualizarTablaTotales();
-                                                    });
-                                                    // Actualiza el precio al cargar si hay uno seleccionado
-                                                    const selected = cortineroSelect.find('option:selected');
-                                                    cortineroPrecio.value = selected.data('precio') || '';
-                                                }
-                                            });
-                                            </script>
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" id="cortinero_subtotal" class="form-control" readonly step="0.01">
+                                        </div>
                                     </td>
                                     <td></td>
                                 </tr>
@@ -334,65 +313,75 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="number" name="detalle[cortinero_tergal_cantidad]" id="cortinero_tergal_cantidad" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
+                                        <input type="number" name="detalle[cortinero_tergal_cantidad]" id="cortinero_tergal_cantidad" class="form-control" oninput="calcularSubtotalCortineroTergal()" autocomplete="off">
                                     </td>
                                     <td>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
                                             <input type="number" id="cortinero_tergal_precio" name="detalle[cortinero_tergal_precio]" class="form-control" step="0.01" readonly>
                                         </div>
-                                        <script>
-                                            document.addEventListener('DOMContentLoaded', function() {
-                                                $('#cortinero_tergal_id').select2();
-                                                const cortineroSelect = $('#cortinero_tergal_id');
-                                                const cortineroPrecio = document.getElementById('cortinero_tergal_precio');
-                                                if (cortineroSelect.length && cortineroPrecio) {
-                                                    cortineroSelect.on('change', function() {
-                                                        const selected = $(this).find('option:selected');
-                                                        cortineroPrecio.value = selected.data('precio') || '';
-                                                        actualizarCostoTotal();
-                                                        actualizarTablaTotales();
-                                                    });
-                                                    // Actualiza el precio al cargar si hay uno seleccionado
-                                                    const selected = cortineroSelect.find('option:selected');
-                                                    cortineroPrecio.value = selected.data('precio') || '';
-                                                }
-                                            });
-                                        </script>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Puntas
-                                        <input type="hidden" name="detalle[puntas_id]" value="{{ $insumosFijos['Puntas']->id ?? '' }}">
-                                    </td>
-                                    <td>
-                                        <input type="number" name="detalle[puntas_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
                                     </td>
                                     <td>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
-                                            <input type="number" class="form-control" value="{{ $insumosFijos['Puntas']->precio_publico ?? '' }}" step="0.01" readonly>
+                                            <input type="number" id="cortinero_tergal_subtotal" class="form-control" readonly step="0.01">
                                         </div>
                                     </td>
                                     <td></td>
                                 </tr>
-                                <tr>
-                                    <td>
-                                        Mensulas
-                                        <input type="hidden" name="detalle[mensulas_id]" value="{{ $insumosFijos['Mensulas']->id ?? '' }}">
-                                    </td>
-                                    <td>
-                                        <input type="number" name="detalle[mensulas_cantidad]" class="form-control" oninput="actualizarCostoTotal()" autocomplete="off">
-                                    </td>
-                                    <td>
-                                        <div class="input-group">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number" class="form-control" value="{{ $insumosFijos['Mensulas']->precio_publico ?? '' }}" step="0.01" readonly>
-                                        </div>
-                                    </td>
-                                    <td></td>
-                                </tr>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        // Cortinero cortina
+                                        $('#cortinero_id').select2();
+                                        const cortineroSelect = $('#cortinero_id');
+                                        const cortineroPrecio = document.getElementById('cortinero_precio');
+                                        const cortineroCantidad = document.getElementById('cortinero_cantidad');
+                                        const cortineroSubtotal = document.getElementById('cortinero_subtotal');
+                                        function calcularSubtotalCortinero() {
+                                            const cantidad = parseFloat(cortineroCantidad.value) || 0;
+                                            const precio = parseFloat(cortineroPrecio.value) || 0;
+                                            cortineroSubtotal.value = (cantidad * precio).toFixed(2);
+                                            actualizarCostoTotal();
+                                        }
+                                        cortineroSelect.on('change', function() {
+                                            const selected = $(this).find('option:selected');
+                                            cortineroPrecio.value = selected.data('precio') || '';
+                                            calcularSubtotalCortinero();
+                                            actualizarTablaTotales();
+                                        });
+                                        cortineroCantidad.addEventListener('input', calcularSubtotalCortinero);
+                                        // Inicializa el precio y subtotal al cargar
+                                        cortineroPrecio.value = cortineroSelect.find('option:selected').data('precio') || '';
+                                        calcularSubtotalCortinero();
+
+                                        // Cortinero tergal
+                                        $('#cortinero_tergal_id').select2();
+                                        const cortineroTergalSelect = $('#cortinero_tergal_id');
+                                        const cortineroTergalPrecio = document.getElementById('cortinero_tergal_precio');
+                                        const cortineroTergalCantidad = document.getElementById('cortinero_tergal_cantidad');
+                                        const cortineroTergalSubtotal = document.getElementById('cortinero_tergal_subtotal');
+                                        function calcularSubtotalCortineroTergal() {
+                                            const cantidad = parseFloat(cortineroTergalCantidad.value) || 0;
+                                            const precio = parseFloat(cortineroTergalPrecio.value) || 0;
+                                            cortineroTergalSubtotal.value = (cantidad * precio).toFixed(2);
+                                            actualizarCostoTotal();
+                                        }
+                                        cortineroTergalSelect.on('change', function() {
+                                            const selected = $(this).find('option:selected');
+                                            cortineroTergalPrecio.value = selected.data('precio') || '';
+                                            calcularSubtotalCortineroTergal();
+                                            actualizarTablaTotales();
+                                        });
+                                        cortineroTergalCantidad.addEventListener('input', calcularSubtotalCortineroTergal);
+                                        // Inicializa el precio y subtotal al cargar
+                                        cortineroTergalPrecio.value = cortineroTergalSelect.find('option:selected').data('precio') || '';
+                                        calcularSubtotalCortineroTergal();
+
+                                        // Expone funciones globales para insumos dinámicos
+                                        window.calcularSubtotalCortinero = calcularSubtotalCortinero;
+                                        window.calcularSubtotalCortineroTergal = calcularSubtotalCortineroTergal;
+                                    });
+                                </script>
                                 <!-- Aquí se insertarán los insumos dinámicos -->
                             </tbody>
                             <tfoot>
@@ -506,6 +495,25 @@
                                             <div class="input-group">
                                                 <span class="input-group-text">$</span>
                                                 <input type="number" class="form-control" id="precio_publico" name="totales[precio_publico]" value="{{ old('totales.precio_publico', $cotizacion->precio_publico ?? '') }}" readonly>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td>
+                                            <div class="row justify-content-end">
+                                                <div class="col-md-6">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" value="1" id="aplicar_iva" name="aplicar_iva">
+                                                        <label class="form-check-label" for="aplicar_iva">
+                                                            Aplicar IVA (16%)
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="descuento" class="form-label mb-0">Descuento (%)</label>
+                                                    <input type="number" class="form-control" id="descuento" name="descuento" min="0" max="100" step="0.01" value="0">
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -1465,18 +1473,15 @@
         inputCantidad.classList.add('form-control');
         inputCantidad.step = 1;
         inputCantidad.min = 0;
-        inputCantidad.addEventListener('input', actualizarCostoTotal);
         tdCantidad.appendChild(inputCantidad);
 
         // Celda precio
         const tdPrecio = document.createElement('td');
-        const inputGroup = document.createElement('div');
-        inputGroup.classList.add('input-group');
-
-        const span = document.createElement('span');
-        span.classList.add('input-group-text');
-        span.textContent = '$';
-
+        const inputGroupPrecio = document.createElement('div');
+        inputGroupPrecio.classList.add('input-group');
+        const spanPrecio = document.createElement('span');
+        spanPrecio.classList.add('input-group-text');
+        spanPrecio.textContent = '$';
         const inputPrecio = document.createElement('input');
         inputPrecio.type = 'number';
         inputPrecio.name = `detalle[otros${contadorOtros}_precio]`;
@@ -1484,11 +1489,25 @@
         inputPrecio.step = 0.01;
         inputPrecio.min = 0;
         inputPrecio.readOnly = true;
-        inputPrecio.addEventListener('input', actualizarCostoTotal);
+        inputGroupPrecio.appendChild(spanPrecio);
+        inputGroupPrecio.appendChild(inputPrecio);
+        tdPrecio.appendChild(inputGroupPrecio);
 
-        inputGroup.appendChild(span);
-        inputGroup.appendChild(inputPrecio);
-        tdPrecio.appendChild(inputGroup);
+        // Celda subtotal
+        const tdSubtotal = document.createElement('td');
+        const inputGroupSubtotal = document.createElement('div');
+        inputGroupSubtotal.classList.add('input-group');
+        const spanSubtotal = document.createElement('span');
+        spanSubtotal.classList.add('input-group-text');
+        spanSubtotal.textContent = '$';
+        const inputSubtotal = document.createElement('input');
+        inputSubtotal.type = 'number';
+        inputSubtotal.classList.add('form-control');
+        inputSubtotal.readOnly = true;
+        inputSubtotal.step = 0.01;
+        inputGroupSubtotal.appendChild(spanSubtotal);
+        inputGroupSubtotal.appendChild(inputSubtotal);
+        tdSubtotal.appendChild(inputGroupSubtotal);
 
         // Celda eliminar
         const tdEliminar = document.createElement('td');
@@ -1505,6 +1524,7 @@
         fila.appendChild(tdNombre);
         fila.appendChild(tdCantidad);
         fila.appendChild(tdPrecio);
+        fila.appendChild(tdSubtotal);
         fila.appendChild(tdEliminar);
 
         tbody.appendChild(fila);
@@ -1524,6 +1544,23 @@
             } else {
                 inputPrecio.value = '';
             }
+            calcularSubtotal();
+            actualizarCostoTotal();
+        });
+
+        // Calcular subtotal cuando cambie cantidad o precio
+        function calcularSubtotal() {
+            const cantidad = parseFloat(inputCantidad.value) || 0;
+            const precio = parseFloat(inputPrecio.value) || 0;
+            inputSubtotal.value = (cantidad * precio).toFixed(2);
+        }
+
+        inputCantidad.addEventListener('input', function() {
+            calcularSubtotal();
+            actualizarCostoTotal();
+        });
+        inputPrecio.addEventListener('input', function() {
+            calcularSubtotal();
             actualizarCostoTotal();
         });
     }
@@ -1564,28 +1601,36 @@
         const costoCortina = totalTelaFinal + totalTergalFinal + totalForroFinal + costoManoObra + costoMateriales;
         document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
 
-        // Utilidad, decorador y precio público
+        // Utilidad
         const utilidad = costoCortina * 0.15;
         document.querySelectorAll('input[name="totales[utilidad]"]').forEach(function(input) {
             input.value = utilidad > 0 ? utilidad.toFixed(2) : '';
         });
 
+        // Costo decorador
         const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
         const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
         const costoDecorador = costoCortina + (costoCortina * (decoradorPorcentaje / 100));
-
-        // Actualizar todos los inputs con name="totales[costo_decorador]"
-        document.querySelectorAll('input[name="totales[costo_decorador]"]').forEach(function(input) {
-            input.value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
-        });
-
-        // También actualizar el input específico con id="costo_decorador"
-        const costoDecoradorInput = document.getElementById('costo_decorador');
-        if (costoDecoradorInput) {
-            costoDecoradorInput.value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
+        if (document.getElementById('costo_decorador')) {
+            document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
         }
 
-        const precioPublico = costoCortina * 2;
+        // Precio público
+        let precioPublico = costoCortina * 2;
+
+        // Descuento
+        const descuentoInput = document.getElementById('descuento');
+        const descuento = descuentoInput ? (parseFloat(descuentoInput.value) || 0) : 0;
+        if (descuento > 0) {
+            precioPublico = precioPublico - (precioPublico * (descuento / 100));
+        }
+
+        // IVA
+        const aplicarIVA = document.getElementById('aplicar_iva')?.checked;
+        if (aplicarIVA) {
+            precioPublico = precioPublico * 1.16;
+        }
+
         document.getElementById('precio_publico').value = precioPublico > 0 ? precioPublico.toFixed(2) : '';
 
         // Total Lienzos
@@ -1607,6 +1652,11 @@
         const totalM2Forro = parseFloat(document.getElementById('total_forro')?.value) || 0;
         document.getElementById('total_m2_forro').value = totalM2Forro > 0 ? totalM2Forro : '';
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('aplicar_iva')?.addEventListener('change', actualizarTablaTotales);
+        document.getElementById('descuento')?.addEventListener('input', actualizarTablaTotales);
+    });
 
     // Escuchar cambios en los campos de lienzos redondeados, total_forro, total_tela y total_tergal
     document.addEventListener('input', function(e) {
@@ -1812,28 +1862,39 @@
         }
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const decoradorPorcentaje = document.getElementById('decorador_porcentaje');
-        if (decoradorPorcentaje) {
-            decoradorPorcentaje.addEventListener('input', actualizarTablaTotales);
-            decoradorPorcentaje.addEventListener('change', actualizarTablaTotales);
+    // Event listeners globales
+    document.addEventListener('input', function(e) {
+        // Recalcula cuando cambian campos relevantes
+        if (
+            e.target.id === 'total_tela_final' ||
+            e.target.id === 'total_tergal_final' ||
+            e.target.id === 'total_final_forro' ||
+            e.target.name === 'detalle[costo_total_mano_obra]' ||
+            e.target.id === 'costo_total_materiales' ||
+            e.target.name === 'totales[decorador_porcentaje]' ||
+            e.target.id === 'decorador_porcentaje' ||
+            e.target.id === 'descuento' ||
+            e.target.id === 'aplicar_iva'
+        ) {
+            console.log('Event listener activado por:', e.target.id || e.target.name);
+            actualizarTablaTotales();
         }
     });
 
-    // Actualiza el valor del campo oculto al cambiar el porcentaje del decorador
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('form');
-        const decoradorPorcentaje = document.getElementById('decorador_porcentaje');
-        const decoradorPorcentajeHidden = document.getElementById('decorador_porcentaje_hidden');
-        if (form && decoradorPorcentaje && decoradorPorcentajeHidden) {
-            // Sincroniza en cada cambio
-            decoradorPorcentaje.addEventListener('input', function() {
-                decoradorPorcentajeHidden.value = decoradorPorcentaje.value;
-            });
-            // Y justo antes de enviar
-            form.addEventListener('submit', function() {
-                decoradorPorcentajeHidden.value = decoradorPorcentaje.value;
-            });
+    document.addEventListener('change', function(e) {
+        if (
+            e.target.id === 'total_tela_final' ||
+            e.target.id === 'total_tergal_final' ||
+            e.target.id === 'total_final_forro' ||
+            e.target.name === 'detalle[costo_total_mano_obra]' ||
+            e.target.id === 'costo_total_materiales' ||
+            e.target.name === 'totales[decorador_porcentaje]' ||
+            e.target.id === 'decorador_porcentaje' ||
+            e.target.id === 'descuento' ||
+            e.target.id === 'aplicar_iva'
+        ) {
+            console.log('Change event activado por:', e.target.id || e.target.name);
+            actualizarTablaTotales();
         }
     });
 

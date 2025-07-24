@@ -19,6 +19,7 @@ class DetalleCotizacion extends Model
         'no_lienzos',
         'no_lienzos_redondeado',
         'bastilla',
+        'tipo_cortina',
 
         'tergal_id',
         'ancho_tergal',
@@ -64,6 +65,13 @@ class DetalleCotizacion extends Model
         'costo_total_mano_obra',
 
         'decorador_porcentaje',
+
+        'cortinero_id',
+        'cortinero_cantidad',
+        'cortinero_precio',
+        'cortinero_tergal_id',
+        'cortinero_tergal_cantidad',
+        'cortinero_tergal_precio',
 
     ];
 
