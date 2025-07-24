@@ -13,6 +13,7 @@ class Cotizacion extends Model
     protected $fillable = [
         'cliente_id',
         'fecha',
+        'area',
         'lleva_cortina',
         'lleva_tergal',
         'lleva_forro',

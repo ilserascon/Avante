@@ -13,7 +13,7 @@
             @csrf
 
             <div class="row">
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <label for="cliente_id">Cliente</label>
                     <select name="cliente_id" id="cliente_id" class="form-control" required autocomplete="off">
                         <option value="">Seleccione un cliente</option>
@@ -22,13 +22,17 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <label for="fecha">Fecha</label>
                     <input type="date" name="fecha" id="fecha" class="form-control" required value="{{ date('Y-m-d') }}">
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <label for="tipo_cortina" class="form-label">Tipo de Cortina</label>
                     <input type="text" name="detalle[tipo_cortina]" id="tipo_cortina" class="form-control" placeholder="Ejemplo: plisada, rizada, wave">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="area" class="form-label">Área</label>
+                    <input type="text" name="area" id="area" class="form-control" placeholder="Ejemplo: Cocina, Habitación, etc." value="{{ old('area', $cotizacion->area ?? '') }}">
                 </div>
             </div>
             <div class="row mb-3 align-items-center">

@@ -83,6 +83,7 @@ class CotizacionController extends Controller
         $cotizacion = new Cotizacion();
         $cotizacion->cliente_id = $validated['cliente_id'];
         $cotizacion->fecha = $validated['fecha'];
+        $cotizacion->area = $request->input('area');
 
         $tipos = array_filter($request->input('tipo', []), function ($v) {
             return $v !== '__dummy_cortina__' && $v !== '__dummy_tergal__';
@@ -312,6 +313,7 @@ class CotizacionController extends Controller
         $tipos = $request->input('tipo', []);
         $cotizacion->cliente_id   = $validated['cliente_id'];
         $cotizacion->fecha        = $validated['fecha'];
+        $cotizacion->area = $request->input('area');
         $cotizacion->lleva_cortina = in_array('cortina', $tipos);
         $cotizacion->lleva_tergal  = in_array('tergal', $tipos);
         $cotizacion->lleva_forro   = $request->has('lleva_forro');

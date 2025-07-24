@@ -36,6 +36,11 @@
                     <input type="date" name="fecha" id="fecha" class="form-control" required value="{{ $cotizacion->fecha }}">
                 </div>
                 <div class="col-md-3 mb-3">
+                    <label for="area" class="form-label">Área</label>
+                    <input type="text" name="area" id="area" class="form-control" placeholder="Ejemplo: Cocina, Habitación, etc."
+                        value="{{ old('area', $cotizacion->area ?? '') }}">
+                </div>
+                <div class="col-md-3 mb-3">
                     <label for="estatus">Estatus</label>
                     <select name="estatus" id="estatus" class="form-control" required>
                         <option value="solicitada" {{ $cotizacion->estatus == 'solicitada' ? 'selected' : '' }}>Solicitada</option>
