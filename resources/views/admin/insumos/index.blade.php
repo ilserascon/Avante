@@ -9,6 +9,9 @@
         <h1>Insumos</h1>
         <div class="section-header-button ml-auto">
             <a href="{{ route('admin.insumos.create') }}" class="btn btn-primary">Nuevo Insumo</a>
+            <button class="btn btn-success ml-2" data-toggle="modal" data-target="#importModal">
+                Importar Insumos
+            </button>
         </div>
     </div>
 
@@ -93,4 +96,46 @@
         </div>
     </div>
 </div>
+    <!-- Modal de Importación -->
+    <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form action="{{ route('admin.insumos.import') }}" method="POST" enctype="multipart/form-data" class="modal-content">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importModalLabel">Importar Insumos desde Excel</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="tipoInsumo">Tipo de Insumo</label>
+                        <select name="id_tipo_insumo" class="form-control" required>
+                            @foreach($tipos as $tipo)
+                                <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="archivo">Archivo Excel</label>
+                        <input type="file" name="archivo" class="form-control-file" required accept=".xlsx,.xls,.csv">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Importar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+@if(session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
+
+
 @endsection
