@@ -201,13 +201,8 @@ class InsumoController extends Controller
             'archivo' => 'required|file|mimes:xlsx,csv,xls',
         ]);
 
-        try {
-            Excel::import(new InsumosImport($request->id_tipo_insumo), $request->file('archivo'));
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', "El proveedor '{$e->getMessage()}' no se ha encontrado, por favor agréguelo antes de continuar.");
-        }
+        Excel::import(new InsumosImport($request->id_tipo_insumo), $request->file('archivo'));
 
         return redirect()->back()->with('success', 'Insumos importados correctamente');
     }
-
 }
