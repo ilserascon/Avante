@@ -1566,21 +1566,6 @@
         let total = 0;
 
         Array.from(tbody.querySelectorAll('tr')).forEach(fila => {
-            const inputSubtotal = fila.querySelector('input[type="number"].form-control[readonly]:not([name*="_precio"])');
-            if (inputSubtotal) {
-                total += parseFloat(inputSubtotal.value) || 0;
-            }
-        });
-
-        document.getElementById('costo_total_materiales').value = total.toFixed(2);
-        actualizarTablaTotales();
-    }
-
-    function actualizarCostoTotal() {
-        const tbody = document.getElementById('materiales-tbody');
-        let total = 0;
-
-        Array.from(tbody.querySelectorAll('tr')).forEach(fila => {
             // Busca el input de cantidad
             const cantidadInput = fila.querySelector('input[name*="_cantidad"]');
             // Busca el input de precio (puede ser readonly o editable)

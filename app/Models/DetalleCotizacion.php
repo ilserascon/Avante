@@ -66,6 +66,13 @@ class DetalleCotizacion extends Model
 
         'decorador_porcentaje',
 
+        'cortinero_id',
+        'cortinero_cantidad',
+        'cortinero_precio',
+        'cortinero_tergal_id',
+        'cortinero_tergal_cantidad',
+        'cortinero_tergal_precio',
+
     ];
 
     public function cotizacion()
