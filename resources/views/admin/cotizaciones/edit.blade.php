@@ -355,7 +355,7 @@
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
                                             <input type="number" name="detalle[total_tela_final]" id="total_tela_final" class="form-control" step="0.01"
-                                                value="{{ old('detalle.total_tela_final', $detalleCotizacion->total_tela_final ?? '') }}" readonly>
+                                                value="{{ old('detalle.total_tela_final', $detalleCotizacion->total_tela_final ?? '') }}">
                                         </div>
                                     </td>
                                 </tr>
@@ -1027,37 +1027,95 @@
         });
     });
 
-    // Script para calcular totales
-    document.addEventListener('change', function() {
-        // Obtener valores sin modificar los campos
+    // Listener para el cambio de precio de tela
+    $(document).on('change', '#tela_id', function() {
+        const precio = $(this).find('option:selected').data('precio');
+        $('#precio_m2_tela').val(Number(precio).toFixed(2));
+        // Después de actualizar el precio, ejecutar los cálculos
+        calcularTotalesTelaTergalForro();
+    });
+
+    // Listener para el cambio de precio de tergal
+    $(document).on('change', '#tergal_id', function() {
+        const precio = $(this).find('option:selected').data('precio');
+        $('#precio_m2_tergal').val(Number(precio).toFixed(2));
+        // Después de actualizar el precio, ejecutar los cálculos
+        calcularTotalesTelaTergalForro();
+    });
+
+    // Listener para el cambio de precio de forro
+    $(document).on('change', '#forro_id', function() {
+        const precio = $(this).find('option:selected').data('precio');
+        $('#precio_m2_forro').val(Number(precio).toFixed(2));
+        // Después de actualizar el precio, ejecutar los cálculos
+        calcularTotalesTelaTergalForro();
+    });
+
+    // Función principal de cálculo
+    function calcularTotalesTelaTergalForro() {
+        // TELA - Obtener precio del select si el campo está vacío
         const noLienzosCortina = parseFloat(document.getElementById('no_lienzos_redondeado')?.value) || 0;
         const largoCortina = parseFloat(document.getElementById('largo')?.value) || 0;
         const bastillaCortina = parseFloat(document.getElementById('valor_bastilla')?.value) || 0;
-        const precioTela = parseFloat(document.getElementById('precio_m2_tela')?.value) || 0;
 
-        // Tergal
+        let precioTela = parseFloat(document.getElementById('precio_m2_tela')?.value) || 0;
+        if (precioTela === 0) {
+            const telaSelect = document.getElementById('tela_id');
+            if (telaSelect && telaSelect.selectedOptions[0] && telaSelect.value !== '') {
+                const precioFromSelect = telaSelect.selectedOptions[0].getAttribute('data-precio');
+                if (precioFromSelect) {
+                    precioTela = parseFloat(precioFromSelect) || 0;
+                    if (document.getElementById('precio_m2_tela')) {
+                        document.getElementById('precio_m2_tela').value = precioTela.toFixed(2);
+                    }
+                }
+            }
+        }
+
+        // TERGAL - Obtener precio del select si el campo está vacío
         const noLienzosTergal = parseFloat(document.getElementById('no_lienzos_redondeado_tergal')?.value) || 0;
         const largoTergal = parseFloat(document.getElementById('largo_tergal')?.value) || 0;
         const bastillaTergal = parseFloat(document.getElementById('valor_bastilla_tergal')?.value) || 0;
-        const precioTergal = parseFloat(document.getElementById('precio_m2_tergal')?.value) || 0;
 
-        // Forro
+        let precioTergal = parseFloat(document.getElementById('precio_m2_tergal')?.value) || 0;
+        if (precioTergal === 0) {
+            const tergalSelect = document.getElementById('tergal_id');
+            if (tergalSelect && tergalSelect.selectedOptions[0] && tergalSelect.value !== '') {
+                const precioFromSelect = tergalSelect.selectedOptions[0].getAttribute('data-precio');
+                if (precioFromSelect) {
+                    precioTergal = parseFloat(precioFromSelect) || 0;
+                    if (document.getElementById('precio_m2_tergal')) {
+                        document.getElementById('precio_m2_tergal').value = precioTergal.toFixed(2);
+                    }
+                }
+            }
+        }
+
+        // FORRO - Obtener precio del select si el campo está vacío
         const noLienzosForro = parseFloat(document.getElementById('no_lienzos_redondeado_forro')?.value) || 0;
         const largoForro = parseFloat(document.getElementById('largo_forro')?.value) || 0;
         const bastillaForro = parseFloat(document.getElementById('valor_bastilla_forro')?.value) || 0;
-        const precioForro = parseFloat(document.getElementById('precio_m2_forro')?.value) || 0;
 
-        // CLAVE: Sumar bastilla SOLO en el cálculo, NO modificar los campos
-        const totalTela = (noLienzosCortina > 0 && largoCortina > 0) ?
-            (noLienzosCortina * (largoCortina + bastillaCortina)) : 0;
+        let precioForro = parseFloat(document.getElementById('precio_m2_forro')?.value) || 0;
+        if (precioForro === 0) {
+            const forroSelect = document.getElementById('forro_id');
+            if (forroSelect && forroSelect.selectedOptions[0] && forroSelect.value !== '') {
+                const precioFromSelect = forroSelect.selectedOptions[0].getAttribute('data-precio');
+                if (precioFromSelect) {
+                    precioForro = parseFloat(precioFromSelect) || 0;
+                    if (document.getElementById('precio_m2_forro')) {
+                        document.getElementById('precio_m2_forro').value = precioForro.toFixed(2);
+                    }
+                }
+            }
+        }
 
-        const totalTergal = (noLienzosTergal > 0 && largoTergal > 0) ?
-            (noLienzosTergal * (largoTergal + bastillaTergal)) : 0;
+        // Calcular totales de m2
+        const totalTela = noLienzosCortina * (largoCortina + bastillaCortina);
+        const totalTergal = noLienzosTergal * (largoTergal + bastillaTergal);
+        const totalForro = noLienzosForro * (largoForro + bastillaForro);
 
-        const totalForro = (noLienzosForro > 0 && largoForro > 0) ?
-            (noLienzosForro * (largoForro + bastillaForro)) : 0;
-
-        // Actualizar campos de totales de m2
+        // Actualizar campos de m2
         if (document.getElementById('total_tela')) {
             document.getElementById('total_tela').value = totalTela > 0 ? totalTela.toFixed(2) : '';
         }
@@ -1068,12 +1126,12 @@
             document.getElementById('total_forro').value = totalForro > 0 ? totalForro.toFixed(2) : '';
         }
 
-        // Calcular costos finales (precio por m2)
+        // Calcular costos finales
         const totalTelaFinal = totalTela * precioTela;
         const totalTergalFinal = totalTergal * precioTergal;
         const totalForroFinal = totalForro * precioForro;
 
-        // Actualizar campos de costos finales
+        // Actualizar campos finales
         if (document.getElementById('total_tela_final')) {
             document.getElementById('total_tela_final').value = totalTelaFinal > 0 ? totalTelaFinal.toFixed(2) : '';
         }
@@ -1084,9 +1142,52 @@
             document.getElementById('total_final_forro').value = totalForroFinal > 0 ? totalForroFinal.toFixed(2) : '';
         }
 
-        // Después de actualizar estos valores, llamar calcularTotales
-        calcularTotales();
+        // Calcular suma total
+        const costoTotalFinal = totalTelaFinal + totalTergalFinal + totalForroFinal;
+
+        if (document.getElementById('costo_total_tela_tergal_forro')) {
+            document.getElementById('costo_total_tela_tergal_forro').value = costoTotalFinal > 0 ? costoTotalFinal.toFixed(2) : '';
+        }
+
+        // Llamar a otras funciones si existen
+        if (typeof calcularTotales === 'function') {
+            calcularTotales();
+        }
+        if (typeof actualizarTablaTotales === 'function') {
+            actualizarTablaTotales();
+        }
+    }
+
+    // Eventos para campos normales
+    document.addEventListener('change', function(e) {
+        // Solo ejecutar para campos relevantes
+        const camposRelevantes = [
+            'no_lienzos_redondeado', 'largo', 'valor_bastilla', 'precio_m2_tela',
+            'no_lienzos_redondeado_tergal', 'largo_tergal', 'valor_bastilla_tergal', 'precio_m2_tergal',
+            'no_lienzos_redondeado_forro', 'largo_forro', 'valor_bastilla_forro', 'precio_m2_forro',
+            'tela_id' // Agregar el select de tela
+        ];
+
+        if (camposRelevantes.includes(e.target.id)) {
+            calcularTotalesTelaTergalForro();
+        }
     });
+
+    // eventos input en campos numéricos (cálculo en tiempo real)
+    document.addEventListener('input', function(e) {
+        const camposNumericos = [
+            'no_lienzos_redondeado', 'largo', 'valor_bastilla',
+            'no_lienzos_redondeado_tergal', 'largo_tergal', 'valor_bastilla_tergal',
+            'no_lienzos_redondeado_forro', 'largo_forro', 'valor_bastilla_forro'
+        ];
+
+        if (camposNumericos.includes(e.target.id)) {
+            calcularTotalesTelaTergalForro();
+        }
+    });
+
+    // evento change para otros campos
+    document.addEventListener('change', calcularTotalesTelaTergalForro);
 
     //listener para input
     document.addEventListener('input', function(e) {
