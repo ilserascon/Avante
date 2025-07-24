@@ -1841,4 +1841,12 @@
         }
     });
 </script>
+<script>
+    // Bloquea el envío del formulario al presionar Enter en los inputs
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && event.target.tagName === 'INPUT') {
+        event.preventDefault();
+    }
+});
+</script>
 @endsection

@@ -1597,20 +1597,21 @@
         const costoCortina = totalTelaFinal + totalTergalFinal + totalForroFinal + costoManoObra + costoMateriales;
         document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
 
-        // Utilidad, decorador y precio público
+        // Utilidad
         const utilidad = costoCortina * 0.15;
         document.querySelectorAll('input[name="totales[utilidad]"]').forEach(function(input) {
             input.value = utilidad > 0 ? utilidad.toFixed(2) : '';
         });
 
+        // Costo decorador
         const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
         const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
         const costoDecorador = costoCortina + (costoCortina * (decoradorPorcentaje / 100));
-        document.querySelectorAll('input[name="totales[costo_decorador]"]').forEach(function(input) {
-            input.value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
-        });
+        if (document.getElementById('costo_decorador')) {
+            document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
+        }
 
-        // --- NUEVO: Descuento e IVA ---
+        // Precio público
         let precioPublico = costoCortina * 2;
 
         // Descuento
@@ -1857,28 +1858,39 @@
         }
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const decoradorPorcentaje = document.getElementById('decorador_porcentaje');
-        if (decoradorPorcentaje) {
-            decoradorPorcentaje.addEventListener('input', actualizarTablaTotales);
-            decoradorPorcentaje.addEventListener('change', actualizarTablaTotales);
+    // Event listeners globales
+    document.addEventListener('input', function(e) {
+        // Recalcula cuando cambian campos relevantes
+        if (
+            e.target.id === 'total_tela_final' ||
+            e.target.id === 'total_tergal_final' ||
+            e.target.id === 'total_final_forro' ||
+            e.target.name === 'detalle[costo_total_mano_obra]' ||
+            e.target.id === 'costo_total_materiales' ||
+            e.target.name === 'totales[decorador_porcentaje]' ||
+            e.target.id === 'decorador_porcentaje' ||
+            e.target.id === 'descuento' ||
+            e.target.id === 'aplicar_iva'
+        ) {
+            console.log('Event listener activado por:', e.target.id || e.target.name);
+            actualizarTablaTotales();
         }
     });
 
-    // Actualiza el valor del campo oculto al cambiar el porcentaje del decorador
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('form');
-        const decoradorPorcentaje = document.getElementById('decorador_porcentaje');
-        const decoradorPorcentajeHidden = document.getElementById('decorador_porcentaje_hidden');
-        if (form && decoradorPorcentaje && decoradorPorcentajeHidden) {
-            // Sincroniza en cada cambio
-            decoradorPorcentaje.addEventListener('input', function() {
-                decoradorPorcentajeHidden.value = decoradorPorcentaje.value;
-            });
-            // Y justo antes de enviar
-            form.addEventListener('submit', function() {
-                decoradorPorcentajeHidden.value = decoradorPorcentaje.value;
-            });
+    document.addEventListener('change', function(e) {
+        if (
+            e.target.id === 'total_tela_final' ||
+            e.target.id === 'total_tergal_final' ||
+            e.target.id === 'total_final_forro' ||
+            e.target.name === 'detalle[costo_total_mano_obra]' ||
+            e.target.id === 'costo_total_materiales' ||
+            e.target.name === 'totales[decorador_porcentaje]' ||
+            e.target.id === 'decorador_porcentaje' ||
+            e.target.id === 'descuento' ||
+            e.target.id === 'aplicar_iva'
+        ) {
+            console.log('Change event activado por:', e.target.id || e.target.name);
+            actualizarTablaTotales();
         }
     });
 
