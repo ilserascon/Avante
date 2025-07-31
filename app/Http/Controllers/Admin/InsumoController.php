@@ -7,6 +7,8 @@ use App\Models\Insumo;
 use App\Models\TipoInsumo;
 use App\Models\Proveedor;
 use Illuminate\Http\Request;
+use App\Imports\InsumosImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InsumoController extends Controller
 {
@@ -190,5 +192,17 @@ class InsumoController extends Controller
             }
         }
         return response()->json($campos);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'id_tipo_insumo' => 'required|exists:tipo_insumo,id',
+            'archivo' => 'required|file|mimes:xlsx,csv,xls',
+        ]);
+
+        Excel::import(new InsumosImport($request->id_tipo_insumo), $request->file('archivo'));
+
+        return redirect()->back()->with('success', 'Insumos importados correctamente');
     }
 }

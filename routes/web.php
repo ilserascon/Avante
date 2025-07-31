@@ -16,7 +16,7 @@ use App\Http\Controllers\Admin\CotizacionController;
 */
 
 Route::get('/', function () {
-    return redirect('/login'); 
+    return redirect('/login');
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
@@ -63,4 +63,5 @@ Route::middleware(['auth', 'role:Administrador,Cotizador'])->prefix('admin')->na
     Route::post('cotizaciones/{cotizacion}/cambiar-estatus', [CotizacionController::class, 'cambiarEstatus'])->name('cotizaciones.cambiar-estatus');
     Route::get('cotizaciones/{cotizacion}/pdf', [CotizacionController::class, 'generarPdf'])->name('cotizaciones.pdf');
     Route::get('cotizaciones/{cotizacion}/pdfdecorador', [CotizacionController::class, 'pdfDecorador'])->name('cotizaciones.pdf-decorador');
+    Route::post('/insumos/importar', [InsumoController::class, 'import'])->name('insumos.import');
 });
