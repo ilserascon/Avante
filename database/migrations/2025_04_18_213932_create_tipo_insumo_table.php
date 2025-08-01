@@ -51,6 +51,64 @@ return new class extends Migration
                 'created_at' => now(),
             ]
         );
+
+        DB::table('tipo_insumo')->updateOrInsert(
+            ['nombre' => 'Accesorios'],
+            [
+                'created_at' => now(),
+            ]
+        );
+
+        DB::table('tipo_insumo')->updateOrInsert(
+            ['nombre' => 'Mano de Obra'],
+            [
+                'created_at' => now(),
+            ]
+        );
+
+        DB::table('tipo_insumo')->updateOrInsert(
+            ['nombre' => 'Tergal'],
+            [
+                'Campo1' => 'Ancho',
+                'Campo2' => 'Largo',
+                'created_at' => now(),
+            ]
+        );
+
+        DB::table('tipo_insumo')->updateOrInsert(
+            ['nombre' => 'Forro'],
+            [
+                'Campo1' => 'Ancho',
+                'Campo2' => 'Largo',
+                'created_at' => now(),
+            ]
+        );
+
+        DB::table('tipo_insumo')->updateOrInsert(
+            ['nombre' => 'Cortinero'],
+            [
+                'campo1' => 'Modelo',
+                'campo2' => 'Medida Minima (Mts)',
+                'campo3' => 'Medida Maxima (Mts)',
+                'campo4' => '1 Jalon (Izquierda o Derecha)',
+                'campo5' => '2 Jalones (Centro o Lateral)',
+                'campo6' => 'Con Control',
+                'campo7' => 'Sin Control',
+                'campo8' => 'Riplefold',
+                'campo9' => 'Tradicional',
+                'created_at' => now(),
+            ]
+        );
+
+        DB::table('tipo_insumo')->updateOrInsert(
+            ['nombre' => 'Baston'],
+            [
+                'Campo1' => 'Medida',
+                'Campo2' => 'Precio Deco',
+                'Campo3' => 'Proveedor',
+                'created_at' => now(),
+            ]
+        );
     }
 
     /**

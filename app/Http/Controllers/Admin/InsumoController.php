@@ -39,9 +39,16 @@ class InsumoController extends Controller
             $query->where('id_tipo_insumo', $tipoSeleccionado);
         }
 
+        $estado = $request->get('estado', 'habilitado');
+        if ($estado === 'habilitado') {
+            $query->where('borrado', 0);
+        } elseif ($estado === 'inhabilitado') {
+            $query->where('borrado', 1);
+        }
+
         $insumos = $query->paginate(10)->appends($request->query());
 
-        return view('admin.insumos.index', compact('insumos', 'tipos', 'tipoSeleccionado', 'camposDinamicos'));
+        return view('admin.insumos.index', compact('insumos', 'tipos', 'tipoSeleccionado', 'camposDinamicos', 'estado'));
     }
 
     public function create()
@@ -114,8 +121,9 @@ class InsumoController extends Controller
             $insumo->$campo = $request->$campo ?? null;
         }
 
+        $insumo->borrado = 0;
         $insumo->save();
-
+        
         return redirect()->route('admin.insumos.index')->with('success', 'Insumo creado exitosamente');
     }
 
@@ -204,5 +212,19 @@ class InsumoController extends Controller
         Excel::import(new InsumosImport($request->id_tipo_insumo), $request->file('archivo'));
 
         return redirect()->back()->with('success', 'Insumos importados correctamente');
+    }
+
+    public function destroy($id)
+    {
+        $insumo = insumo::findOrFail($id);
+        $insumo->update(['borrado' => 1]);
+        return redirect()->route('admin.insumos.index')->with('success', 'insumo inhabilitado exitosamente');
+    }
+
+    public function habilitar($id)
+    {
+        $insumo = insumo::findOrFail($id);
+        $insumo->update(['borrado' => 0]);
+        return redirect()->route('admin.insumos.index', ['estado' => 'inhabilitado'])->with('success', 'insumo habilitado exitosamente');
     }
 }

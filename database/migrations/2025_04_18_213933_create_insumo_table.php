@@ -34,6 +34,7 @@ return new class extends Migration
             $table->string('campo13')->nullable();
             $table->string('campo14')->nullable();
             $table->string('campo15')->nullable();
+            $table->boolean('borrado')->default(0);
             $table->timestamp('created_at')->nullable();
         });
     }
