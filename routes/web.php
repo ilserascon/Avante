@@ -28,7 +28,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::post('users/{user}/habilitar', [App\Http\Controllers\Admin\UserController::class, 'habilitar'])->name('users.habilitar');
     Route::resource('tipo-insumos', TiposInsumosController::class)->except(['destroy']);
-    Route::resource('insumos', InsumoController::class)->except(['destroy']);
+    Route::resource('insumos', InsumoController::class);
     Route::get('insumos/campos-dinamicos', [InsumoController::class, 'camposDinamicosPorTipo'])->name('insumos.campos-dinamicos');
     Route::resource('productos', ProductoController::class)->parameters(['productos' => 'producto']);
     Route::get('productos/{id}/insumos', [ProductoController::class, 'verInsumos'])->name('productos.insumos');
@@ -53,7 +53,8 @@ Route::middleware(['auth', 'role:Administrador,Almacén,Almacen'])->prefix('admi
 
 // Rutas para Administrador y Cotizador
 Route::middleware(['auth', 'role:Administrador,Cotizador'])->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('insumos', App\Http\Controllers\Admin\InsumoController::class)->except(['destroy']);
+    Route::resource('insumos', App\Http\Controllers\Admin\InsumoController::class);
+    Route::post('insumos/{insumo}/habilitar', [App\Http\Controllers\Admin\InsumoController::class, 'habilitar'])->name('insumos.habilitar');
     Route::resource('productos', App\Http\Controllers\Admin\ProductoController::class)->parameters(['productos' => 'producto']);
     Route::get('productos/{id}/insumos', [ProductoController::class, 'verInsumos'])->name('productos.insumos');
     Route::resource('clientes', App\Http\Controllers\Admin\ClienteController::class);

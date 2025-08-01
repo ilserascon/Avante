@@ -34,6 +34,12 @@
                     </select>
                 </div>
                 <div class="col">
+                    <select name="estado" class="form-control">
+                        <option value="habilitado" {{ $estado == 'habilitado' ? 'selected' : '' }}>Habilitados</option>
+                        <option value="inhabilitado" {{ $estado == 'inhabilitado' ? 'selected' : '' }}>Inhabilitados</option>
+                    </select>
+                </div>
+                <div class="col">
                     <button type="submit" class="btn btn-primary">Buscar</button>
                     <a href="{{ route('admin.insumos.index') }}" class="btn btn-secondary">Limpiar</a>
                 </div>
@@ -78,12 +84,30 @@
                                 <td>{{ $insumo->precio_publico }}</td>
                                 <td>{{ $insumo->utilidad }}</td>
                                 @foreach($camposDinamicos as $campo => $valor)
-                                    <td>{{ $insumo->$campo }}</td>
+                                <td>{{ $insumo->$campo }}</td>
                                 @endforeach
                                 <td>
-                                    <a href="{{ route('admin.insumos.edit', $insumo->id) }}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
-                                </td>
-                            </tr>
+                                    @if($insumo->borrado == 0)
+                                    <a href="{{ route('admin.insumos.edit', $insumo->id) }}" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ route('admin.insumos.destroy', $insumo->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-danger btn-sm" onclick="return confirm('¿Inhabilitar insumo?')">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('admin.insumos.habilitar', $insumo->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button class="btn btn-success btn-sm" onclick="return confirm('¿Habilitar insumo?')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>

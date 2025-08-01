@@ -32,7 +32,8 @@ class Insumo extends Model
         'campo12',
         'campo13',
         'campo14',
-        'campo15'
+        'campo15',
+        'borrado',
     ];
 
 
