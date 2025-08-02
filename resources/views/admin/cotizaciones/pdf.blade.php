@@ -42,30 +42,20 @@
         </tr>
     </table>
 
-    <div class="section-title">Resumen de Cortina, Tergal y Forro</div>
+    <div class="section-title">Detalle de Cotización</div>
     <table>
-        <thead>
-            <tr>
-                <th>¿Lleva Cortina?</th>
-                <th>¿Lleva Tergal?</th>
-                <th>¿Lleva Forro?</th>
-                <th>m² Cortina</th>
-                <th>m² Tergal</th>
-                <th>m² Forro</th>
-                <th>Precio Público</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{{ $cotizacion->lleva_cortina ? 'Sí' : 'No' }}</td>
-                <td>{{ $cotizacion->lleva_tergal ? 'Sí' : 'No' }}</td>
-                <td>{{ $cotizacion->lleva_forro ? 'Sí' : 'No' }}</td>
-                <td>{{ $cotizacion->total_m2_tela ?? '-' }}</td>
-                <td>{{ $cotizacion->total_m2_tergal ?? '-' }}</td>
-                <td>{{ $cotizacion->total_m2_forro ?? '-' }}</td>
-                <td>${{ number_format($cotizacion->precio_publico ?? 0, 2) }}</td>
-            </tr>
-        </tbody>
+        <tr>
+            <th style="width: 40%;">Tipo de Cortina</th>
+            <th style="width: 60%;">Precio Público</th>
+        </tr>
+        <tr>
+            <td>
+                {{ $cotizacion->detalleCotizacion->tipo_cortina ?? '-' }}
+            </td>
+            <td>
+                ${{ number_format($cotizacion->precio_publico ?? 0, 2) }}
+            </td>
+        </tr>
     </table>
 
     <div class="section-title">Insumos utilizados</div>
@@ -81,9 +71,48 @@
         <tbody>
             @php
                 $subtotal = 0;
+                $detalle = $cotizacion->detalleCotizacion;
+
             @endphp
+
+            @if($detalle && $detalle->cortinero_id)
+                <tr>
+                    <td>
+                        Cortinero cortina
+                        @php
+                            $cortinero = \App\Models\Insumo::find($detalle->cortinero_id);
+                        @endphp
+                        {{ $cortinero ? ' - ' . $cortinero->nombre : '' }}
+                    </td>
+                    <td>{{ $detalle->cortinero_cantidad }}</td>
+                    <td>${{ number_format($detalle->cortinero_precio, 2) }}</td>
+                    <td>
+                        ${{ number_format($detalle->cortinero_cantidad * $detalle->cortinero_precio, 2) }}
+                        @php $subtotal += $detalle->cortinero_cantidad * $detalle->cortinero_precio; @endphp
+                    </td>
+                </tr>
+            @endif
+
+            @if($detalle && $detalle->cortinero_tergal_id)
+                <tr>
+                    <td>
+                        Cortinero tergal
+                        @php
+                            $cortineroTergal = \App\Models\Insumo::find($detalle->cortinero_tergal_id);
+                        @endphp
+                        {{ $cortineroTergal ? ' - ' . $cortineroTergal->nombre : '' }}
+                    </td>
+                    <td>{{ $detalle->cortinero_tergal_cantidad }}</td>
+                    <td>${{ number_format($detalle->cortinero_tergal_precio, 2) }}</td>
+                    <td>
+                        ${{ number_format($detalle->cortinero_tergal_cantidad * $detalle->cortinero_tergal_precio, 2) }}
+                        @php $subtotal += $detalle->cortinero_tergal_cantidad * $detalle->cortinero_tergal_precio; @endphp
+                    </td>
+                </tr>
+            @endif
+
             @foreach($cotizacion->insumos as $insumo)
-                @if($insumo->nombre === 'Cortinero' && $insumo->id_tipo_insumo != 6)
+                @if($insumo->id_tipo_insumo == 6)
                     @continue
                 @endif
                 <tr>

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Cotización Decorador #{{ $cotizacion->id }}</title>
+    <title>Cotización #{{ $cotizacion->id }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -25,7 +25,9 @@
             <td><strong>FECHA:</strong> {{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}</td>
         </tr>
         <tr>
-            <td colspan="2"><strong>ASESOR DE VENTAS:</strong> {{ $cotizacion->asesor ?? 'Karla Pota' }}</td>
+            <td colspan="2">
+                <strong>ASESOR DE VENTAS:</strong>
+            </td>
         </tr>
         <tr>
             <td colspan="2"><strong>CLIENTE:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->nombre : '' }}</td>
@@ -40,42 +42,124 @@
         </tr>
     </table>
 
-    <div class="section-title">DETALLE</div>
+    <div class="section-title">Resumen de Cortina, Tergal y Forro</div>
     <table>
         <thead>
             <tr>
-                <th style="width:7%;">CANT.</th>
-                <th style="width:38%;">DESCRIPCIÓN</th>
-                <th style="width:15%;">MODELO</th>
-                <th style="width:15%;">COLOR</th>
-                <th style="width:12%;">PRECIO UNITARIO</th>
-                <th style="width:13%;">TOTAL</th>
+                <th>¿Lleva Cortina?</th>
+                <th>¿Lleva Tergal?</th>
+                <th>¿Lleva Forro?</th>
+                <th>m² Cortina</th>
+                <th>m² Tergal</th>
+                <th>m² Forro</th>
+                <th>Costo Decorador</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($cotizacion->insumos as $insumo)
+            <tr>
+                <td>{{ $cotizacion->lleva_cortina ? 'Sí' : 'No' }}</td>
+                <td>{{ $cotizacion->lleva_tergal ? 'Sí' : 'No' }}</td>
+                <td>{{ $cotizacion->lleva_forro ? 'Sí' : 'No' }}</td>
+                <td>{{ $cotizacion->total_m2_tela ?? '-' }}</td>
+                <td>{{ $cotizacion->total_m2_tergal ?? '-' }}</td>
+                <td>{{ $cotizacion->total_m2_forro ?? '-' }}</td>
+                <td>${{ number_format($cotizacion->costo_decorador ?? 0, 2) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-title">Insumos utilizados</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Cantidad</th>
+                <th>Precio unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                $subtotal = 0;
+                $detalle = $cotizacion->detalleCotizacion;
+
+            @endphp
+
+            @if($detalle && $detalle->cortinero_id)
                 <tr>
-                    <td class="text-right">{{ $insumo->pivot->cantidad }}</td>
+                    <td>
+                        Cortinero cortina
+                        @php
+                            $cortinero = \App\Models\Insumo::find($detalle->cortinero_id);
+                        @endphp
+                        {{ $cortinero ? ' - ' . $cortinero->nombre : '' }}
+                    </td>
+                    <td>{{ $detalle->cortinero_cantidad }}</td>
+                    <td>${{ number_format($detalle->cortinero_precio, 2) }}</td>
+                    <td>
+                        ${{ number_format($detalle->cortinero_cantidad * $detalle->cortinero_precio, 2) }}
+                        @php $subtotal += $detalle->cortinero_cantidad * $detalle->cortinero_precio; @endphp
+                    </td>
+                </tr>
+            @endif
+
+            @if($detalle && $detalle->cortinero_tergal_id)
+                <tr>
+                    <td>
+                        Cortinero tergal
+                        @php
+                            $cortineroTergal = \App\Models\Insumo::find($detalle->cortinero_tergal_id);
+                        @endphp
+                        {{ $cortineroTergal ? ' - ' . $cortineroTergal->nombre : '' }}
+                    </td>
+                    <td>{{ $detalle->cortinero_tergal_cantidad }}</td>
+                    <td>${{ number_format($detalle->cortinero_tergal_precio, 2) }}</td>
+                    <td>
+                        ${{ number_format($detalle->cortinero_tergal_cantidad * $detalle->cortinero_tergal_precio, 2) }}
+                        @php $subtotal += $detalle->cortinero_tergal_cantidad * $detalle->cortinero_tergal_precio; @endphp
+                    </td>
+                </tr>
+            @endif
+
+            @foreach($cotizacion->insumos as $insumo)
+                @if($insumo->id_tipo_insumo == 6)
+                    @continue
+                @endif
+                <tr>
                     <td>{{ $insumo->nombre }}</td>
-                    <td>{{ $insumo->campo9 ?? '' }}</td>
-                    <td>{{ $insumo->campo1 ?? '' }}</td>
-                    <td class="text-right">&#36;{{ number_format($insumo->pivot->precio_unitario, 2) }}</td>
-                    <td class="text-right">&#36;{{ number_format($insumo->pivot->subtotal, 2) }}</td>
+                    <td>{{ $insumo->pivot->cantidad }}</td>
+                    <td>${{ number_format($insumo->pivot->precio_unitario, 2) }}</td>
+                    <td>
+                        ${{ number_format($insumo->pivot->subtotal, 2) }}
+                        @php $subtotal += $insumo->pivot->subtotal; @endphp
+                    </td>
                 </tr>
             @endforeach
+            @for($i = 0; $i < 2; $i++)
+                <tr>
+                    <td style="height:22px;"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            @endfor
         </tbody>
         <tfoot>
+            @php
+                $iva = $subtotal * 0.16;
+                $total = $subtotal + $iva;
+            @endphp
             <tr>
-                <td colspan="5" class="text-right"><strong>SUBTOTAL</strong></td>
-                <td class="text-right">&#36;{{ number_format($cotizacion->subtotal ?? $cotizacion->insumos->sum(fn($i) => $i->pivot->subtotal), 2) }}</td>
+                <td colspan="3" class="text-right"><strong>Subtotal</strong></td>
+                <td>${{ number_format($subtotal, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="5" class="text-right"><strong>IVA</strong></td>
-                <td class="text-right">&#36;{{ number_format($cotizacion->iva ?? 0, 2) }}</td>
+                <td colspan="3" class="text-right"><strong>IVA (16%)</strong></td>
+                <td>${{ number_format($iva, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="5" class="text-right"><strong>TOTAL</strong></td>
-                <td class="text-right">&#36;{{ number_format($cotizacion->total ?? ($cotizacion->subtotal ?? $cotizacion->insumos->sum(fn($i) => $i->pivot->subtotal)), 2) }}</td>
+                <td colspan="3" class="text-right"><strong>Total</strong></td>
+                <td>${{ number_format($total, 2) }}</td>
             </tr>
         </tfoot>
     </table>
@@ -114,5 +198,14 @@
     <p style="margin-top: 10px; font-size: 11px;">
         Si usted tiene alguna duda sobre esta cotización, por favor, póngase en contacto con nosotros.
     </p>
+
+    @php
+        // Insumos fijos por nombre
+        $insumosFijos = ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'];
+        // Buscar el cortinero dinámico (tipo 6) si existe
+        $cortineroDinamico = $cotizacion->insumos->first(function($insumo) {
+            return $insumo->id_tipo_insumo == 6;
+        });
+    @endphp
 </body>
 </html>
