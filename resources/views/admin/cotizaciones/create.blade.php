@@ -1338,26 +1338,6 @@
         if (costoTotalMO) costoTotalMO.value = (totalMano1 + totalMano2).toFixed(2);
     });
 
-    // Cambia el precio de mano de obra según el ancho de la tela
-    function actualizarPrecioManoObra() {
-        const anchoTelaInput = document.getElementById('ancho_tela');
-        const manoObraInput = document.querySelector('input[name="detalle[costo_mano_obra_1]"]');
-
-        if (anchoTelaInput && manoObraInput) {
-            const ancho = parseFloat(anchoTelaInput.value) || 0;
-
-            if (ancho >= 280) {
-                manoObraInput.value = "240.00";
-            } else {
-                manoObraInput.value = "120.00";
-            }
-
-            if (typeof actualizarTablaTotales === 'function') {
-                actualizarTablaTotales();
-            }
-        }
-    }
-
     // Actualizar el precio de mano de obra al cambiar el ancho de la tela
     function actualizarPrecioManoObra() {
         const anchoTelaInput = document.getElementById('ancho_tela');
@@ -1373,9 +1353,10 @@
             const ancho = parseFloat(anchoTelaInput.value) || 0;
 
             if (ancho >= 280) {
-                manoObraInput.value = "240.00";
+                const valorBase = parseFloat(manoObraInput.value) || 0;
+                manoObraInput.value = (valorBase * 2).toFixed(2);
             } else {
-                manoObraInput.value = "120.00";
+
             }
 
             // Recalcular total de mano de obra cortina
