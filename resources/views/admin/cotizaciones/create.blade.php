@@ -199,6 +199,8 @@
                                                 step="0.01"
                                                 value="{{ old('detalle.costo_mano_obra_1', $detalleCotizacion->costo_mano_obra_1 ?? ($manoObra['Mano de Obra Cortina']->precio_publico ?? '')) }}"
                                                 readonly>
+                                            <input type="hidden" id="valor_base_mano_obra"
+                                                value="{{ $manoObra['Mano de Obra Cortina']->precio_publico ?? 120 }}">
                                         </div>
                                     </td>
                                     <td>
@@ -1352,11 +1354,17 @@
         if (anchoTelaInput && manoObraInput) {
             const ancho = parseFloat(anchoTelaInput.value) || 0;
 
-            if (ancho >= 280) {
-                const valorBase = parseFloat(manoObraInput.value) || 0;
-                manoObraInput.value = (valorBase * 2).toFixed(2);
-            } else {
+            const valorBaseManoObra = obtenerValorBaseManoObra();
 
+            let anchoEnCm = ancho;
+            if (ancho <= 10) {
+                anchoEnCm = ancho * 100;
+            }
+
+            if (anchoEnCm >= 280) {
+                manoObraInput.value = (valorBaseManoObra * 2).toFixed(2);
+            } else {
+                manoObraInput.value = valorBaseManoObra.toFixed(2);
             }
 
             // Recalcular total de mano de obra cortina
@@ -1378,6 +1386,15 @@
                 actualizarTablaTotales();
             }
         }
+    }
+
+    function obtenerValorBaseManoObra() {
+        const valorBase = document.querySelector('#valor_base_mano_obra')?.value;
+        if (valorBase) {
+            return parseFloat(valorBase);
+        }
+
+        return 120;
     }
 
     // Ejecutar cuando el DOM esté listo
