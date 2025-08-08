@@ -562,20 +562,31 @@
 <select id="plantilla_tergal" class="d-none">
     <option value="">Seleccione un tergal</option>
     @foreach($tergales as $tergal)
-    <option value="{{ $tergal->id }}" data-precio="{{ is_numeric($tergal->precio_publico) ? $tergal->precio_publico : 0 }}">
-        {{ $tergal->nombre }} - {{ $tergal->campo1 }} - {{ $tergal->campo2 }}
-    </option>
+        <option
+            value="{{ $tergal->id }}"
+            data-precio="{{ is_numeric($tergal->precio_publico) ? $tergal->precio_publico : 0 }}"
+            data-campo1="{{ $tergal->campo1 }}"
+            data-campo2="{{ $tergal->campo2 }}"
+        >
+            {{ $tergal->nombre }} - {{ $tergal->campo1 }} - {{ $tergal->campo2 }}
+        </option>
     @endforeach
 </select>
+
 
 <select id="plantilla_forro" class="d-none">
     <option value="">Seleccione un forro</option>
     @foreach($forros as $forro)
-    <option value="{{ $forro->id }}" data-precio="{{ is_numeric($forro->precio_publico) ? $forro->precio_publico : 0 }}">
+    <option
+        value="{{ $forro->id }}"
+        data-precio="{{ is_numeric($forro->precio_publico) ? $forro->precio_publico : 0 }}"
+        data-campo1="{{ $forro->campo1 }}"
+        data-campo2="{{ $forro->campo2 }}">
         {{ $forro->nombre }} - {{ $forro->campo1 }} - {{ $forro->campo2 }}
     </option>
     @endforeach
 </select>
+
 <script>
     //Script para mostrar y ocultar formularios dinámicos
     document.addEventListener('DOMContentLoaded', function() {
@@ -760,6 +771,9 @@
                                                 <option value="">Seleccione un tergal</option>
                                                 @foreach($tergales as $tergal)
                                                     <option value="{{ $tergal->id }}"
+                                                        data-precio="{{ $tergal->precio ?? 0 }}"
+                                                        data-campo1="{{ $tergal->campo1 ?? '' }}"
+                                                        data-campo2="{{ $tergal->campo2 ?? '' }}"
                                                         {{ old('detalle.tergal_id', $detalleCotizacion->tergal_id ?? '') == $tergal->id ? 'selected' : '' }}>
                                                         {{ $tergal->nombre }} - {{ $tergal->campo1 ?? '' }} - {{ $tergal->campo2 ?? '' }}
                                                     </option>
@@ -813,80 +827,54 @@
                                 </div>
                             `;
                             setTimeout(() => {
-                                const anchoCortina = document.getElementById('ancho');
-                                const largoCortina = document.getElementById('largo');
-                                const anchoTelaCortina = document.getElementById('ancho_tela');
-
-                                const anchoTergal = document.getElementById('ancho_tergal_real');
-                                const largoTergal = document.getElementById('largo_tergal');
-                                const anchoTelaTergal = document.getElementById('ancho_tergal');
-                                const noLienzosTergal = document.getElementById('no_lienzos_tergal');
-                                const noLienzosRedondeadoTergal = document.getElementById('no_lienzos_redondeado_tergal');
-
-                                largoTergal.addEventListener('blur', () => {
-                                    let val = parseFloat(largoTergal.value);
-                                    if (!isNaN(val)) {
-                                        largoTergal.value = val.toFixed(2);
-                                    }
-                                });
-
-                                function calcularTergal() {
-                                    // Usa los campos de tergal, no los de cortina
-                                    let ancho = parseFloat(document.getElementById('ancho_tergal_real')?.value);
-                                    let anchoTela = parseFloat(document.getElementById('ancho_tergal')?.value);
-
-                                    if (!isNaN(ancho) && !isNaN(anchoTela) && anchoTela > 0) {
-                                        let lienzos = (ancho * 2.5) / anchoTela;
-                                        document.getElementById('no_lienzos_tergal').value = lienzos.toFixed(2);
-                                        document.getElementById('no_lienzos_redondeado_tergal').value = Math.ceil(lienzos);
-                                    } else {
-                                        document.getElementById('no_lienzos_tergal').value = '';
-                                        document.getElementById('no_lienzos_redondeado_tergal').value = '';
-                                    }
-                                }
-
-                                // Función para sincronizar ancho_tela con ancho_tergal
-                                function sincronizarAnchoTelaConTergal() {
-                                    const anchoTelaValue = document.getElementById('ancho_tela')?.value;
-                                    const anchoTelaTergal = document.getElementById('ancho_tergal');
-
-                                    if (anchoTelaValue && anchoTelaTergal) {
-                                        anchoTelaTergal.value = anchoTelaValue;
-                                        calcularTergal(); // Recalcular después de sincronizar
-                                    }
-                                }
-
-                                // Interceptar el evento change del select de tela para sincronizar inmediatamente
-                                function interceptarCambioTela() {
-                                    const telaSelect = document.getElementById('tela_id');
-                                    if (telaSelect) {
-                                        $(telaSelect).on('change', function() {
-                                            setTimeout(() => {
-                                                sincronizarAnchoTelaConTergal();
-                                            }, 10);
-                                        });
-                                    }
-                                }
-
-                                // escuchar cambios manuales en ancho_tela
-                                const anchoTelaElement = document.getElementById('ancho_tela');
-                                if (anchoTelaElement) {
-                                    anchoTelaElement.addEventListener('input', sincronizarAnchoTelaConTergal);
-                                    anchoTelaElement.addEventListener('change', sincronizarAnchoTelaConTergal);
-                                }
-
                                 const plantillaTergal = document.getElementById('plantilla_tergal');
                                 const tergalSelect = document.getElementById('tergal_id');
+                                const anchoTergalInput = document.getElementById('ancho_tergal');
+                                const anchoTergalRealInput = document.getElementById('ancho_tergal_real');
+                                const largoTergalInput = document.getElementById('largo_tergal');
+                                const noLienzosTergalInput = document.getElementById('no_lienzos_tergal');
+                                const noLienzosRedondeadoTergalInput = document.getElementById('no_lienzos_redondeado_tergal');
+
                                 tergalSelect.innerHTML = plantillaTergal.innerHTML;
 
-                                if (tergalSeleccionado) {
+                                if (typeof tergalSeleccionado !== 'undefined' && tergalSeleccionado) {
                                     $(tergalSelect).val(tergalSeleccionado);
                                 }
 
                                 $(tergalSelect).select2();
 
-                                $(tergalSelect).on('change', function() {
-                                    const precio = $(this).find('option:selected').data('precio');
+                                // Calcular lienzos tergal
+                                function calcularTergal() {
+                                    const anchoReal = parseFloat(anchoTergalRealInput.value);
+                                    const anchoTela = parseFloat(anchoTergalInput.value);
+
+                                    if (!isNaN(anchoReal) && !isNaN(anchoTela) && anchoTela > 0) {
+                                        let lienzos = (anchoReal * 2.5) / anchoTela;
+                                        noLienzosTergalInput.value = lienzos.toFixed(2);
+                                        noLienzosRedondeadoTergalInput.value = Math.ceil(lienzos);
+                                    } else {
+                                        noLienzosTergalInput.value = '';
+                                        noLienzosRedondeadoTergalInput.value = '';
+                                    }
+                                }
+
+                                largoTergalInput.addEventListener('blur', () => {
+                                    let val = parseFloat(largoTergalInput.value);
+                                    if (!isNaN(val)) {
+                                        largoTergalInput.value = val.toFixed(2);
+                                    }
+                                });
+
+                                $(tergalSelect).on('change', function () {
+                                    const selected = $(this).find('option:selected');
+                                    const campo1 = selected.data('campo1');
+
+                                    if (campo1 !== undefined && campo1 !== null && campo1 !== '') {
+                                        let limpio = campo1.toString().replace(/[^\d.]/g, '');
+                                        anchoTergalInput.value = limpio;
+                                    }
+
+                                    const precio = selected.data('precio');
                                     $('#precio_m2_tergal').val(Number(precio).toFixed(2)).trigger('input');
 
                                     const metros = parseFloat($('#total_tergal').val()) || 0;
@@ -898,62 +886,49 @@
                                     $('#costo_total_tela_tergal_forro').val((totalTelaFinal + total + totalForroFinal).toFixed(2));
 
                                     actualizarTablaTotales();
+
+                                    sincronizarTergalConCortina();
+
+                                    calcularTergal();
                                 });
 
                                 function sincronizarTergalConCortina() {
-                                    // Campos de cortina
                                     const anchoCortina = document.getElementById('ancho');
                                     const largoCortina = document.getElementById('largo');
                                     const anchoTelaCortina = document.getElementById('ancho_tela');
 
-                                    // Campos de tergal
-                                    const anchoTergal = document.getElementById('ancho_tergal_real');
-                                    const largoTergal = document.getElementById('largo_tergal');
-                                    const anchoTelaTergal = document.getElementById('ancho_tergal');
-
-                                    // Si hay datos en los campos de cortina, se heredan
                                     if (anchoCortina?.value && anchoTelaCortina?.value) {
-                                        anchoTergal.value = anchoCortina.value;
-                                        anchoTelaTergal.value = anchoTelaCortina.value;
+                                        anchoTergalRealInput.value = anchoCortina.value;
+                                        anchoTergalInput.value = anchoTelaCortina.value;
 
-                                        // Copia el largo de cortina al largo de tergal
                                         if (largoCortina && largoCortina.value) {
-                                            largoTergal.value = parseFloat(largoCortina.value).toFixed(2);
+                                            largoTergalInput.value = parseFloat(largoCortina.value).toFixed(2);
                                         } else {
-                                            largoTergal.value = '';
+                                            largoTergalInput.value = '';
                                         }
-
-                                        calcularTergal && calcularTergal();
-                                    } else {
-                                        anchoTergal.readOnly = false;
-                                        largoTergal.readOnly = false;
-                                        anchoTelaTergal.readOnly = false;
-                                    }
-
-                                    const tergalSelect = document.getElementById('tergal_id');
-                                    if (tergalSelect) {
-                                        $(tergalSelect).trigger('change');
                                     }
                                 }
 
-                                // Escuchar cambios en inputs para actualizar tergal si los datos de cortina cambian
                                 ['ancho', 'largo', 'ancho_tela'].forEach(id => {
                                     const input = document.getElementById(id);
                                     if (input) {
-                                        input.addEventListener('input', sincronizarTergalConCortina);
+                                        input.addEventListener('input', () => {
+                                            sincronizarTergalConCortina();
+                                            calcularTergal();
+                                            $(tergalSelect).trigger('change');
+                                        });
                                     }
                                 });
 
-                                // Escuchar cambios manuales para tergal si se escriben directamente
-                                [anchoTergal, anchoTelaTergal].forEach(input => {
+                                [anchoTergalRealInput, anchoTergalInput].forEach(input => {
                                     input.addEventListener('input', calcularTergal);
                                 });
 
                                 sincronizarTergalConCortina();
+                                calcularTergal();
 
-                                interceptarCambioTela();
+                                $(tergalSelect).trigger('change');
 
-                                sincronizarAnchoTelaConTergal();
                             }, 200);
                         }
 
@@ -1026,82 +1001,75 @@
                                 </div>
                             `;
                             setTimeout(() => {
-                                const anchoCortina = document.getElementById('ancho');
-                                const largoCortina = document.getElementById('largo');
-                                const anchoTelaCortina = document.getElementById('ancho_tela');
-
-                                const anchoForro = document.getElementById('ancho_forro_real');
-                                const largoForro = document.getElementById('largo_forro');
-                                const anchoTelaForro = document.getElementById('ancho_forro');
-                                const noLienzosForro = document.getElementById('no_lienzos_forro');
-                                const noLienzosRedondeadoForro = document.getElementById('no_lienzos_redondeado_forro');
-                                const totalForro = document.getElementById('total_forro');
-                                const precioM2 = document.querySelector('[name="detalle[precio_m2_forro]"]');
-                                const totalFinal = document.querySelector('[name="detalle[total_final_forro]"]');
-                                const costoTotal = document.querySelector('[name="detalle[costo_total_forro]"]');
                                 const plantillaForro = document.getElementById('plantilla_forro');
                                 const forroSelect = document.getElementById('forro_id');
-
-                                largoForro.addEventListener('blur', () => {
-                                    let val = parseFloat(largoForro.value);
-                                    if (!isNaN(val)) {
-                                        largoForro.value = val.toFixed(2);
-                                    }
-                                });
-
-                                function calcularForro() {
-                                    let ancho = parseFloat(anchoForro.value);
-                                    let anchoTela = parseFloat(anchoTelaForro.value);
-
-                                    if (!isNaN(ancho) && !isNaN(anchoTela) && anchoTela > 0) {
-                                        let lienzos = (ancho * 2.5) / anchoTela;
-                                        noLienzosForro.value = lienzos.toFixed(2);
-                                        noLienzosRedondeadoForro.value = Math.ceil(lienzos);
-                                    }
-                                }
-
-                                // Función para sincronizar ancho_tela con ancho_forro
-                                function sincronizarAnchoTelaConForro() {
-                                    const anchoTelaValue = document.getElementById('ancho_tela')?.value;
-                                    const anchoTelaForro = document.getElementById('ancho_forro');
-
-                                    if (anchoTelaValue && anchoTelaForro) {
-                                        anchoTelaForro.value = anchoTelaValue;
-                                        calcularForro();
-
-                                        const changeEvent = new Event('change', { bubbles: true });
-                                        document.dispatchEvent(changeEvent);
-                                    }
-                                }
-
-                                function interceptarCambioTelaForro() {
-                                    const telaSelect = document.getElementById('tela_id');
-                                    if (telaSelect) {
-                                        $(telaSelect).on('change', function() {
-                                            setTimeout(() => {
-                                                sincronizarAnchoTelaConForro();
-                                            }, 10);
-                                        });
-                                    }
-                                }
-
-                                // escuchar cambios manuales en ancho_tela
-                                const anchoTelaElement = document.getElementById('ancho_tela');
-                                if (anchoTelaElement) {
-                                    anchoTelaElement.addEventListener('input', sincronizarAnchoTelaConForro);
-                                    anchoTelaElement.addEventListener('change', sincronizarAnchoTelaConForro);
-                                }
+                                const anchoForroRealInput = document.getElementById('ancho_forro_real');
+                                const largoForroInput = document.getElementById('largo_forro');
+                                const anchoForroInput = document.getElementById('ancho_forro');
+                                const noLienzosForroInput = document.getElementById('no_lienzos_forro');
+                                const noLienzosRedondeadoForroInput = document.getElementById('no_lienzos_redondeado_forro');
 
                                 forroSelect.innerHTML = plantillaForro.innerHTML;
 
-                                if (forroSeleccionado) {
+                                if (typeof forroSeleccionado !== 'undefined' && forroSeleccionado) {
                                     $(forroSelect).val(forroSeleccionado);
                                 }
 
                                 $(forroSelect).select2();
 
-                                $(forroSelect).on('change', function() {
-                                    const precio = $(this).find('option:selected').data('precio');
+                                largoForroInput.addEventListener('blur', () => {
+                                    let val = parseFloat(largoForroInput.value);
+                                    if (!isNaN(val)) {
+                                        largoForroInput.value = val.toFixed(2);
+                                    }
+                                });
+
+                                function calcularForro() {
+                                    const anchoReal = parseFloat(anchoForroRealInput.value);
+                                    const anchoTela = parseFloat(anchoForroInput.value);
+
+                                    if (!isNaN(anchoReal) && !isNaN(anchoTela) && anchoTela > 0) {
+                                        let lienzos = (anchoReal * 2.5) / anchoTela;
+                                        noLienzosForroInput.value = lienzos.toFixed(2);
+                                        noLienzosRedondeadoForroInput.value = Math.ceil(lienzos);
+                                    } else {
+                                        noLienzosForroInput.value = '';
+                                        noLienzosRedondeadoForroInput.value = '';
+                                    }
+                                }
+
+                                function sincronizarDimensionesForro() {
+                                    const anchoCortina = document.getElementById('ancho')?.value;
+                                    const largoCortina = document.getElementById('largo')?.value;
+
+                                    const anchoTergal = document.getElementById('ancho_tergal_real')?.value;
+                                    const largoTergal = document.getElementById('largo_tergal')?.value;
+
+                                    let anchoBase = anchoCortina || anchoTergal || '';
+                                    let largoBase = largoCortina || largoTergal || '';
+
+                                    if (anchoBase) {
+                                        anchoForroRealInput.value = anchoBase;
+                                    }
+                                    if (largoBase) {
+                                        largoForroInput.value = parseFloat(largoBase).toFixed(2);
+                                    }
+
+                                    calcularForro();
+                                    const changeEvent = new Event('change', { bubbles: true });
+                                    document.dispatchEvent(changeEvent);
+                                }
+
+                                $(forroSelect).on('change', function () {
+                                    const selected = $(this).find('option:selected');
+                                    const campo1 = selected.text().split('-')[1]?.trim();
+
+                                    if (campo1 !== undefined && campo1 !== null && campo1 !== '') {
+                                        let limpio = campo1.toString().replace(/[^\d.]/g, '');
+                                        anchoForroInput.value = limpio;
+                                    }
+
+                                    const precio = selected.data('precio');
                                     $('#precio_m2_forro').val(Number(precio).toFixed(2)).trigger('input');
 
                                     const metros = parseFloat($('#total_forro').val()) || 0;
@@ -1115,73 +1083,22 @@
                                     actualizarTablaTotales();
                                 });
 
-                                function sincronizarForroConCortina() {
-                                    // Campos de cortina
-                                    const anchoCortina = document.getElementById('ancho');
-                                    const largoCortina = document.getElementById('largo');
-                                    const anchoTelaCortina = document.getElementById('ancho_tela');
-
-                                    // Campos de tergal
-                                    const anchoTergal = document.getElementById('ancho_tergal_real');
-                                    const largoTergal = document.getElementById('largo_tergal');
-                                    const anchoTelaTergal = document.getElementById('ancho_tergal');
-
-                                    // Campos de forro
-                                    const anchoForro = document.getElementById('ancho_forro_real');
-                                    const largoForro = document.getElementById('largo_forro');
-                                    const anchoTelaForro = document.getElementById('ancho_forro');
-
-                                    // Prioridad: cortina > tergal
-                                    let anchoBase = (anchoCortina && anchoCortina.value) ? anchoCortina.value : (anchoTergal && anchoTergal.value ? anchoTergal.value : '');
-                                    let largoBase = (largoCortina && largoCortina.value) ? largoCortina.value : (largoTergal && largoTergal.value ? largoTergal.value : '');
-                                    let anchoTelaBase = (anchoTelaCortina && anchoTelaCortina.value) ? anchoTelaCortina.value : (anchoTelaTergal && anchoTelaTergal.value ? anchoTelaTergal.value : '');
-
-                                    if (anchoBase && anchoTelaBase) {
-                                        anchoForro.value = anchoBase;
-                                        anchoTelaForro.value = anchoTelaBase;
-
-                                        if (largoBase) {
-                                            largoForro.value = parseFloat(largoBase).toFixed(2);
-                                            largoForro.dataset.original = largoBase;
-                                        } else {
-                                            largoForro.value = '';
-                                            largoForro.dataset.original = '';
-                                        }
-                                        if (typeof calcularForro === 'function') calcularForro();
-
-                                        // Disparar evento change para que se actualice la tabla de totales
-                                        const changeEvent = new Event('change', { bubbles: true });
-                                        document.dispatchEvent(changeEvent);
-                                    } else {
-                                        anchoForro.readOnly = false;
-                                        largoForro.readOnly = false;
-                                        anchoTelaForro.readOnly = false;
-                                    }
-
-                                    // Actualiza select2 y totales
-                                    $(document.getElementById('forro_id')).trigger('change');
-                                }
-
-                                // Escuchar cambios en inputs para actualizar forro si los datos de cortina/tergal cambian
-                                ['ancho', 'largo', 'ancho_tela', 'ancho_tergal_real', 'largo_tergal', 'ancho_tergal'].forEach(id => {
+                                ['ancho', 'largo', 'ancho_tergal_real', 'largo_tergal'].forEach(id => {
                                     const input = document.getElementById(id);
                                     if (input) {
-                                        input.addEventListener('input', sincronizarForroConCortina);
+                                        input.addEventListener('input', sincronizarDimensionesForro);
                                     }
                                 });
 
-                                // Escuchar cambios manuales para forro si se escriben directamente
-                                [anchoForro, anchoTelaForro].forEach(input => {
+                                [anchoForroRealInput, anchoForroInput].forEach(input => {
                                     if (input) {
                                         input.addEventListener('input', calcularForro);
                                     }
                                 });
 
-                                sincronizarForroConCortina();
+                                sincronizarDimensionesForro();
 
-                                interceptarCambioTelaForro();
-
-                                sincronizarAnchoTelaConForro();
+                                $(forroSelect).trigger('change');
                             }, 200);
                         }
 
