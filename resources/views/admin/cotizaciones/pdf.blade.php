@@ -25,19 +25,17 @@
             <td><strong>FECHA:</strong> {{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}</td>
         </tr>
         <tr>
-            <td colspan="2">
-                <strong>ASESOR DE VENTAS:</strong>
-            </td>
+            <td colspan="2"><strong>ASESOR DE VENTAS:</strong></td>
         </tr>
         <tr>
-            <td colspan="2"><strong>CLIENTE:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->nombre : '' }}</td>
+            <td colspan="2"><strong>CLIENTE:</strong> {{ $cotizacion->cliente->nombre ?? '' }}</td>
         </tr>
         <tr>
-            <td colspan="3"><strong>DIRECCIÓN:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->direccion : '' }}</td>
+            <td colspan="3"><strong>DIRECCIÓN:</strong> {{ $cotizacion->cliente->direccion ?? '' }}</td>
         </tr>
         <tr>
-            <td><strong>CELULAR:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->telefono : '' }}</td>
-            <td><strong>TELÉFONO:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->telefono : '' }}</td>
+            <td><strong>CELULAR:</strong> {{ $cotizacion->cliente->telefono ?? '' }}</td>
+            <td><strong>TELÉFONO:</strong> {{ $cotizacion->cliente->telefono ?? '' }}</td>
             <td></td>
         </tr>
     </table>
@@ -49,12 +47,8 @@
             <th style="width: 60%;">Precio Público</th>
         </tr>
         <tr>
-            <td>
-                {{ $cotizacion->detalleCotizacion->tipo_cortina ?? '-' }}
-            </td>
-            <td>
-                ${{ number_format($cotizacion->precio_publico ?? 0, 2) }}
-            </td>
+            <td>{{ $cotizacion->detalleCotizacion->tipo_cortina ?? '-' }}</td>
+            <td>${{ number_format($cotizacion->precio_publico ?? 0, 2) }}</td>
         </tr>
     </table>
 
@@ -72,59 +66,54 @@
             @php
                 $subtotal = 0;
                 $detalle = $cotizacion->detalleCotizacion;
-
+                function filaInsumo($id, $cantidad, &$subtotal) {
+                    if(!$id) return;
+                    $insumo = \App\Models\Insumo::find($id);
+                    if(!$insumo) return;
+                    $precio = $insumo->precio_publico ?? 0;
+                    $sub = $cantidad * $precio;
+                    $subtotal += $sub;
+                    echo "<tr>
+                        <td>{$insumo->nombre}</td>
+                        <td>{$cantidad}</td>
+                        <td>$" . number_format($precio, 2) . "</td>
+                        <td>$" . number_format($sub, 2) . "</td>
+                    </tr>";
+                }
             @endphp
 
-            @if($detalle && $detalle->cortinero_id)
-                <tr>
-                    <td>
-                        Cortinero cortina
-                        @php
-                            $cortinero = \App\Models\Insumo::find($detalle->cortinero_id);
-                        @endphp
-                        {{ $cortinero ? ' - ' . $cortinero->nombre : '' }}
-                    </td>
-                    <td>{{ $detalle->cortinero_cantidad }}</td>
-                    <td>${{ number_format($detalle->cortinero_precio, 2) }}</td>
-                    <td>
-                        ${{ number_format($detalle->cortinero_cantidad * $detalle->cortinero_precio, 2) }}
-                        @php $subtotal += $detalle->cortinero_cantidad * $detalle->cortinero_precio; @endphp
-                    </td>
-                </tr>
-            @endif
+            {{-- Cortinero cortina --}}
+            @php filaInsumo($detalle->cortinero_id ?? null, $detalle->cortinero_cantidad ?? 0, $subtotal); @endphp
 
-            @if($detalle && $detalle->cortinero_tergal_id)
-                <tr>
-                    <td>
-                        Cortinero tergal
-                        @php
-                            $cortineroTergal = \App\Models\Insumo::find($detalle->cortinero_tergal_id);
-                        @endphp
-                        {{ $cortineroTergal ? ' - ' . $cortineroTergal->nombre : '' }}
-                    </td>
-                    <td>{{ $detalle->cortinero_tergal_cantidad }}</td>
-                    <td>${{ number_format($detalle->cortinero_tergal_precio, 2) }}</td>
-                    <td>
-                        ${{ number_format($detalle->cortinero_tergal_cantidad * $detalle->cortinero_tergal_precio, 2) }}
-                        @php $subtotal += $detalle->cortinero_tergal_cantidad * $detalle->cortinero_tergal_precio; @endphp
-                    </td>
-                </tr>
-            @endif
+            {{-- Cortinero tergal --}}
+            @php filaInsumo($detalle->cortinero_tergal_id ?? null, $detalle->cortinero_tergal_cantidad ?? 0, $subtotal); @endphp
 
+            {{-- Tela --}}
+            @php filaInsumo($detalle->tela_id ?? null, $detalle->tela_cantidad ?? 0, $subtotal); @endphp
+
+            {{-- Tergal --}}
+            @php filaInsumo($detalle->tergal_id ?? null, $detalle->tergal_cantidad ?? 0, $subtotal); @endphp
+
+            {{-- Accesorios --}}
+            @php filaInsumo($detalle->accesorios_id ?? null, $detalle->accesorios_cantidad ?? 0, $subtotal); @endphp
+
+            {{-- Otros insumos --}}
             @foreach($cotizacion->insumos as $insumo)
-                @if($insumo->id_tipo_insumo == 6)
-                    @continue
+                @if($insumo->id_tipo_insumo != 6)
+                    @php
+                        $precio = $insumo->precio_publico ?? 0;
+                        $sub = $insumo->pivot->cantidad * $precio;
+                        $subtotal += $sub;
+                    @endphp
+                    <tr>
+                        <td>{{ $insumo->nombre }}</td>
+                        <td>{{ $insumo->pivot->cantidad }}</td>
+                        <td>${{ number_format($precio, 2) }}</td>
+                        <td>${{ number_format($sub, 2) }}</td>
+                    </tr>
                 @endif
-                <tr>
-                    <td>{{ $insumo->nombre }}</td>
-                    <td>{{ $insumo->pivot->cantidad }}</td>
-                    <td>${{ number_format($insumo->pivot->precio_unitario, 2) }}</td>
-                    <td>
-                        ${{ number_format($insumo->pivot->subtotal, 2) }}
-                        @php $subtotal += $insumo->pivot->subtotal; @endphp
-                    </td>
-                </tr>
             @endforeach
+
             @for($i = 0; $i < 2; $i++)
                 <tr>
                     <td style="height:22px;"></td>
@@ -179,7 +168,7 @@
         </tr>
         <tr>
             <td class="no-border"><strong>NOMBRE DEL CLIENTE</strong></td>
-            <td class="no-border" style="border-bottom: 1px solid #ccc;">{{ $cotizacion->cliente ? $cotizacion->cliente->nombre : '' }}</td>
+            <td class="no-border" style="border-bottom: 1px solid #ccc;">{{ $cotizacion->cliente->nombre ?? '' }}</td>
             <td class="no-border"><strong>FIRMA DEL CLIENTE</strong></td>
             <td class="no-border firma"></td>
         </tr>
@@ -188,14 +177,5 @@
     <p style="margin-top: 10px; font-size: 11px;">
         Si usted tiene alguna duda sobre esta cotización, por favor, póngase en contacto con nosotros.
     </p>
-
-    @php
-        // Insumos fijos por nombre
-        $insumosFijos = ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'];
-        // Buscar el cortinero dinámico (tipo 6) si existe
-        $cortineroDinamico = $cotizacion->insumos->first(function($insumo) {
-            return $insumo->id_tipo_insumo == 6;
-        });
-    @endphp
 </body>
 </html>
