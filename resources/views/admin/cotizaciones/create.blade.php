@@ -228,6 +228,8 @@
                                                 step="0.01"
                                                 value="{{ old('detalle.costo_mano_obra_2', $detalleCotizacion->costo_mano_obra_2 ?? ($manoObra['Mano de Obra Tergal']->precio_publico ?? '')) }}"
                                                 readonly>
+                                            <input type="hidden" id="valor_base_mano_obra_tergal"
+                                                value="{{ $manoObra['Mano de Obra Tergal']->precio_publico ?? 100 }}">
                                         </div>
                                     </td>
                                     <td>
@@ -888,6 +890,8 @@
                                     actualizarTablaTotales();
 
                                     sincronizarTergalConCortina();
+                                    actualizarPrecioManoObra();
+
 
                                     calcularTergal();
                                 });
@@ -899,7 +903,6 @@
 
                                     if (anchoCortina?.value && anchoTelaCortina?.value) {
                                         anchoTergalRealInput.value = anchoCortina.value;
-                                        anchoTergalInput.value = anchoTelaCortina.value;
 
                                         if (largoCortina && largoCortina.value) {
                                             largoTergalInput.value = parseFloat(largoCortina.value).toFixed(2);
@@ -908,6 +911,7 @@
                                         }
                                     }
                                 }
+
 
                                 ['ancho', 'largo', 'ancho_tela'].forEach(id => {
                                     const input = document.getElementById(id);
@@ -1259,49 +1263,57 @@
 
     // Actualizar el precio de mano de obra al cambiar el ancho de la tela
     function actualizarPrecioManoObra() {
+        // --- CORTINA ---
         const anchoTelaInput = document.getElementById('ancho_tela');
         const manoObraInput = document.querySelector('input[name="detalle[costo_mano_obra_1]"]');
         const m2CortinaInput = document.querySelector('[name="detalle[m2_1]"]');
         const totalMO1 = document.querySelector('[name="detalle[total_mano_obra_1]"]');
-        const costoMO2 = parseFloat(document.querySelector('[name="detalle[costo_mano_obra_2]"]')?.value) || 0;
-        const m2TergalInput = document.querySelector('[name="detalle[m2_2]"]');
-        const totalMO2 = document.querySelector('[name="detalle[total_mano_obra_2]"]');
-        const costoTotalMO = document.querySelector('[name="detalle[costo_total_mano_obra]"]');
 
         if (anchoTelaInput && manoObraInput) {
-            const ancho = parseFloat(anchoTelaInput.value) || 0;
-
+            let ancho = parseFloat(anchoTelaInput.value) || 0;
+            let anchoEnCm = ancho <= 10 ? ancho * 100 : ancho;
             const valorBaseManoObra = obtenerValorBaseManoObra();
 
-            let anchoEnCm = ancho;
-            if (ancho <= 10) {
-                anchoEnCm = ancho * 100;
-            }
-
-            if (anchoEnCm >= 280) {
-                manoObraInput.value = (valorBaseManoObra * 2).toFixed(2);
-            } else {
-                manoObraInput.value = valorBaseManoObra.toFixed(2);
-            }
+            // Actualizar costo unitario de mano de obra cortina
+            manoObraInput.value = (anchoEnCm >= 280 ? valorBaseManoObra * 2 : valorBaseManoObra).toFixed(2);
 
             // Recalcular total de mano de obra cortina
             const costoMO1 = parseFloat(manoObraInput.value) || 0;
             const totalTela = parseFloat(m2CortinaInput?.value) || 0;
             const totalMano1 = totalTela * costoMO1;
             if (totalMO1) totalMO1.value = totalMano1.toFixed(2);
+        }
+
+        // --- TERGAL ---
+        const anchoTergalInput = document.getElementById('ancho_tergal');
+        const manoObraTergalInput = document.querySelector('input[name="detalle[costo_mano_obra_2]"]');
+        const m2TergalInput = document.querySelector('[name="detalle[m2_2]"]');
+        const totalMO2 = document.querySelector('[name="detalle[total_mano_obra_2]"]');
+
+        if (anchoTergalInput && manoObraTergalInput) {
+            let anchoTergal = parseFloat(anchoTergalInput.value) || 0;
+            let anchoTergalEnCm = anchoTergal <= 10 ? anchoTergal * 100 : anchoTergal;
+            const valorBaseManoObraTergal = obtenerValorBaseManoObraTergal();
+
+            // Actualizar costo unitario de mano de obra tergal
+            manoObraTergalInput.value = (anchoTergalEnCm >= 280 ? valorBaseManoObraTergal * 2 : valorBaseManoObraTergal).toFixed(2);
 
             // Recalcular total de mano de obra tergal
+            const costoMO2 = parseFloat(manoObraTergalInput.value) || 0;
             const totalTergal = parseFloat(m2TergalInput?.value) || 0;
             const totalMano2 = totalTergal * costoMO2;
             if (totalMO2) totalMO2.value = totalMano2.toFixed(2);
+        }
 
-            // Actualizar costo total mano de obra
-            if (costoTotalMO) costoTotalMO.value = (totalMano1 + totalMano2).toFixed(2);
+        const costoTotalMO = document.querySelector('[name="detalle[costo_total_mano_obra]"]');
+        if (costoTotalMO) {
+            const totalMano1 = parseFloat(totalMO1?.value) || 0;
+            const totalMano2 = parseFloat(totalMO2?.value) || 0;
+            costoTotalMO.value = (totalMano1 + totalMano2).toFixed(2);
+        }
 
-            // Recalcular totales generales
-            if (typeof actualizarTablaTotales === 'function') {
-                actualizarTablaTotales();
-            }
+        if (typeof actualizarTablaTotales === 'function') {
+            actualizarTablaTotales();
         }
     }
 
@@ -1310,22 +1322,33 @@
         if (valorBase) {
             return parseFloat(valorBase);
         }
-
         return 120;
+    }
+
+    function obtenerValorBaseManoObraTergal() {
+        const valorBase = document.querySelector('#valor_base_mano_obra_tergal')?.value;
+        if (valorBase) {
+            return parseFloat(valorBase);
+        }
+        return 100;
     }
 
     // Ejecutar cuando el DOM esté listo
     document.addEventListener('DOMContentLoaded', function() {
         const anchoTelaInput = document.getElementById('ancho_tela');
+        const anchoTergalInput = document.getElementById('ancho_tergal');
 
         if (anchoTelaInput) {
-            // Ejecutar cuando cambie el input
             anchoTelaInput.addEventListener('input', actualizarPrecioManoObra);
             anchoTelaInput.addEventListener('change', actualizarPrecioManoObra);
-
-            // Ejecutar inicial
-            actualizarPrecioManoObra();
         }
+
+        if (anchoTergalInput) {
+            anchoTergalInput.addEventListener('input', actualizarPrecioManoObra);
+            anchoTergalInput.addEventListener('change', actualizarPrecioManoObra);
+        }
+
+        actualizarPrecioManoObra();
     });
 
     let contadorOtros = 1;
