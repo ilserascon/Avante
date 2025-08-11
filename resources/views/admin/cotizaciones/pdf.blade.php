@@ -34,7 +34,7 @@
             <td colspan="3"><strong>DIRECCIÓN:</strong> {{ $cotizacion->cliente->direccion ?? '' }}</td>
         </tr>
         <tr>
-            <td><strong>CELULAR:</strong> {{ $cotizacion->cliente->telefono ?? '' }}</td>
+            <td><strong>CELULAR:</strong> {{ $cotizacion->cliente->celular ?? '' }}</td>
             <td><strong>TELÉFONO:</strong> {{ $cotizacion->cliente->telefono ?? '' }}</td>
             <td></td>
         </tr>
@@ -63,55 +63,59 @@
             </tr>
         </thead>
         <tbody>
-            @php
-                $subtotal = 0;
-                $detalle = $cotizacion->detalleCotizacion;
-                function filaInsumo($id, $cantidad, &$subtotal) {
-                    if(!$id) return;
-                    $insumo = \App\Models\Insumo::find($id);
-                    if(!$insumo) return;
-                    $precio = $insumo->precio_publico ?? 0;
-                    $sub = $cantidad * $precio;
-                    $subtotal += $sub;
-                    echo "<tr>
-                        <td>{$insumo->nombre}</td>
-                        <td>{$cantidad}</td>
-                        <td>$" . number_format($precio, 2) . "</td>
-                        <td>$" . number_format($sub, 2) . "</td>
-                    </tr>";
+            @php 
+                $subtotal = 0; 
+                $insumosUsados = collect();
+
+                if($cotizacion->detalleCotizacion) {
+                    foreach($cotizacion->detalleCotizacion->toArray() as $campo => $valor) {
+                        if(str_ends_with($campo, '_id') && $valor) {
+                            $cantidadCampo = str_replace('_id', '_cantidad', $campo);
+                            $cantidad = $cotizacion->detalleCotizacion->$cantidadCampo ?? 0;
+                            $insumo = \App\Models\Insumo::find($valor);
+                            if($insumo) {
+                                $insumosUsados->push([
+                                    'insumo' => $insumo,
+                                    'cantidad' => $cantidad
+                                ]);
+                            }
+                        }
+                    }
+                }
+
+                foreach($cotizacion->insumos as $insumoRel) {
+                    $insumosUsados->push([
+                        'insumo' => $insumoRel,
+                        'cantidad' => $insumoRel->pivot->cantidad
+                    ]);
+                }
+
+                $insumosAgrupados = [];
+                foreach ($insumosUsados as $item) {
+                    $id = $item['insumo']->id;
+                    if(isset($insumosAgrupados[$id])) {
+                        $insumosAgrupados[$id]['cantidad'] += $item['cantidad'];
+                    } else {
+                        $insumosAgrupados[$id] = [
+                            'insumo' => $item['insumo'],
+                            'cantidad' => $item['cantidad']
+                        ];
+                    }
                 }
             @endphp
 
-            {{-- Cortinero cortina --}}
-            @php filaInsumo($detalle->cortinero_id ?? null, $detalle->cortinero_cantidad ?? 0, $subtotal); @endphp
-
-            {{-- Cortinero tergal --}}
-            @php filaInsumo($detalle->cortinero_tergal_id ?? null, $detalle->cortinero_tergal_cantidad ?? 0, $subtotal); @endphp
-
-            {{-- Tela --}}
-            @php filaInsumo($detalle->tela_id ?? null, $detalle->tela_cantidad ?? 0, $subtotal); @endphp
-
-            {{-- Tergal --}}
-            @php filaInsumo($detalle->tergal_id ?? null, $detalle->tergal_cantidad ?? 0, $subtotal); @endphp
-
-            {{-- Accesorios --}}
-            @php filaInsumo($detalle->accesorios_id ?? null, $detalle->accesorios_cantidad ?? 0, $subtotal); @endphp
-
-            {{-- Otros insumos --}}
-            @foreach($cotizacion->insumos as $insumo)
-                @if($insumo->id_tipo_insumo != 6)
-                    @php
-                        $precio = $insumo->precio_publico ?? 0;
-                        $sub = $insumo->pivot->cantidad * $precio;
-                        $subtotal += $sub;
-                    @endphp
-                    <tr>
-                        <td>{{ $insumo->nombre }}</td>
-                        <td>{{ $insumo->pivot->cantidad }}</td>
-                        <td>${{ number_format($precio, 2) }}</td>
-                        <td>${{ number_format($sub, 2) }}</td>
-                    </tr>
-                @endif
+            @foreach($insumosAgrupados as $item)
+                @php
+                    $precio = $item['insumo']->precio_publico ?? 0;
+                    $sub = $precio * $item['cantidad'];
+                    $subtotal += $sub;
+                @endphp
+                <tr>
+                    <td>{{ $item['insumo']->nombre }}</td>
+                    <td>{{ $item['cantidad'] }}</td>
+                    <td>${{ number_format($precio, 2) }}</td>
+                    <td>${{ number_format($sub, 2) }}</td>
+                </tr>
             @endforeach
 
             @for($i = 0; $i < 2; $i++)
