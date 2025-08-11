@@ -74,6 +74,10 @@
                             $cantidad = $cotizacion->detalleCotizacion->$cantidadCampo ?? 0;
                             $insumo = \App\Models\Insumo::find($valor);
                             if($insumo) {
+                                $tipoNombre = $insumo->tipoInsumo->nombre ?? '';
+                                if(in_array($tipoNombre, ['Telas', 'Forro', 'Tergal']) && (!$cantidad || $cantidad <= 0)) {
+                                    $cantidad = 1;
+                                }
                                 $insumosUsados->push([
                                     'insumo' => $insumo,
                                     'cantidad' => $cantidad
@@ -84,21 +88,27 @@
                 }
 
                 foreach($cotizacion->insumos as $insumoRel) {
+                    $cantidad = $insumoRel->pivot->cantidad;
+                    $tipoNombre = $insumoRel->tipoInsumo->nombre ?? '';
+                    if(in_array($tipoNombre, ['Telas', 'Forro', 'Tergal']) && (!$cantidad || $cantidad <= 0)) {
+                        $cantidad = 1;
+                    }
                     $insumosUsados->push([
                         'insumo' => $insumoRel,
-                        'cantidad' => $insumoRel->pivot->cantidad
+                        'cantidad' => $cantidad
                     ]);
                 }
+
 
                 $insumosAgrupados = [];
                 foreach ($insumosUsados as $item) {
                     $id = $item['insumo']->id;
-                    if(isset($insumosAgrupados[$id])) {
+                    if (isset($insumosAgrupados[$id])) {
                         $insumosAgrupados[$id]['cantidad'] += $item['cantidad'];
                     } else {
                         $insumosAgrupados[$id] = [
                             'insumo' => $item['insumo'],
-                            'cantidad' => $item['cantidad']
+                            'cantidad' => $item['cantidad'],
                         ];
                     }
                 }
@@ -117,6 +127,7 @@
                     <td>${{ number_format($sub, 2) }}</td>
                 </tr>
             @endforeach
+
 
             @for($i = 0; $i < 2; $i++)
                 <tr>
