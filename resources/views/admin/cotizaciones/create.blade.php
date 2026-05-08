@@ -1599,13 +1599,13 @@
         // Costo decorador
         const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
         const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
-        const costoDecorador = (costoCortina + utilidad) * (decoradorPorcentaje / 100);
+        const costoDecorador = costoCortina * (1 + decoradorPorcentaje / 100);
         if (document.getElementById('costo_decorador')) {
             document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
         }
 
         // Precio público
-        let precioPublico = costoCortina + utilidad + costoDecorador;
+        let precioPublico = costoCortina * 2;
 
         // Descuento
         const descuentoInput = document.getElementById('descuento');
