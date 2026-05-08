@@ -197,8 +197,7 @@
                                                 name="detalle[costo_mano_obra_1]"
                                                 class="form-control"
                                                 step="0.01"
-                                                value="{{ old('detalle.costo_mano_obra_1', $detalleCotizacion->costo_mano_obra_1 ?? ($manoObra['Mano de Obra Cortina']->precio_publico ?? '')) }}"
-                                                readonly>
+                                                value="{{ old('detalle.costo_mano_obra_1', $detalleCotizacion->costo_mano_obra_1 ?? ($manoObra['Mano de Obra Cortina']->precio_publico ?? '')) }}">
                                             <input type="hidden" id="valor_base_mano_obra"
                                                 value="{{ $manoObra['Mano de Obra Cortina']->precio_publico ?? 120 }}">
                                         </div>
@@ -226,8 +225,7 @@
                                                 name="detalle[costo_mano_obra_2]"
                                                 class="form-control"
                                                 step="0.01"
-                                                value="{{ old('detalle.costo_mano_obra_2', $detalleCotizacion->costo_mano_obra_2 ?? ($manoObra['Mano de Obra Tergal']->precio_publico ?? '')) }}"
-                                                readonly>
+                                                value="{{ old('detalle.costo_mano_obra_2', $detalleCotizacion->costo_mano_obra_2 ?? ($manoObra['Mano de Obra Tergal']->precio_publico ?? '')) }}">
                                             <input type="hidden" id="valor_base_mano_obra_tergal"
                                                 value="{{ $manoObra['Mano de Obra Tergal']->precio_publico ?? 100 }}">
                                         </div>
@@ -288,7 +286,7 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="number" name="detalle[cortinero_cantidad]" id="cortinero_cantidad" class="form-control" oninput="calcularSubtotalCortinero()" autocomplete="off">
+                                        <input type="number" name="detalle[cortinero_cantidad]" step="0.01" id="cortinero_cantidad" class="form-control" oninput="calcularSubtotalCortinero()" autocomplete="off">
                                     </td>
                                     <td>
                                         <div class="input-group">
@@ -317,7 +315,7 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="number" name="detalle[cortinero_tergal_cantidad]" id="cortinero_tergal_cantidad" class="form-control" oninput="calcularSubtotalCortineroTergal()" autocomplete="off">
+                                        <input type="number" name="detalle[cortinero_tergal_cantidad]" step="0.01" id="cortinero_tergal_cantidad" class="form-control" oninput="calcularSubtotalCortineroTergal()" autocomplete="off">
                                     </td>
                                     <td>
                                         <div class="input-group">
@@ -545,11 +543,11 @@
     <option value="">Seleccione una tela</option>
     @foreach($telas as $tela)
     @php
-    if(limpiarPrecio($tela->precio_publico) > 0) {
+    if(limpiarPrecio($tela->precio_publico) > 0) { // Prioriza precio_publico si es un número válido y mayor a 0
     $precio = limpiarPrecio($tela->precio_publico);
-    } elseif(limpiarPrecio($tela->campo6) > 0) {
+    } elseif(limpiarPrecio($tela->campo6) > 0) { // Si campo6 es un número válido y mayor a 0, úsalo como precio
     $precio = limpiarPrecio($tela->campo6);
-    } elseif(limpiarPrecio($tela->campo13) > 0) {
+    } elseif(limpiarPrecio($tela->campo13) > 0) { // Si campo13 es un número válido y mayor a 0, úsalo como precio
     $precio = limpiarPrecio($tela->campo13);
     } else {
     $precio = 100;
@@ -1296,7 +1294,8 @@
             const valorBaseManoObraTergal = obtenerValorBaseManoObraTergal();
 
             // Actualizar costo unitario de mano de obra tergal
-            manoObraTergalInput.value = (anchoTergalEnCm >= 280 ? valorBaseManoObraTergal * 2 : valorBaseManoObraTergal).toFixed(2);
+            //manoObraTergalInput.value = (anchoTergalEnCm >= 280 ? valorBaseManoObraTergal * 2 : valorBaseManoObraTergal).toFixed(2);
+            manoObraTergalInput.value = (valorBaseManoObraTergal).toFixed(2);
 
             // Recalcular total de mano de obra tergal
             const costoMO2 = parseFloat(manoObraTergalInput.value) || 0;
@@ -1508,14 +1507,8 @@
         let total = 0;
 
         Array.from(tbody.querySelectorAll('tr')).forEach(fila => {
-            // Busca el input de cantidad
             const cantidadInput = fila.querySelector('input[name*="_cantidad"]');
-            // Busca el input de precio (puede ser readonly o editable)
-            let precioInput = fila.querySelector('input[type="number"].form-control[readonly]');
-            if (!precioInput) {
-                // Si no es readonly, busca el editable (para insumos "otros")
-                precioInput = fila.querySelector('input[name*="_precio"]');
-            }
+            const precioInput = fila.querySelector('input[name*="_precio"]');
 
             const cantidad = parseFloat(cantidadInput?.value) || 0;
             const precio = parseFloat(precioInput?.value) || 0;
@@ -1548,13 +1541,13 @@
         // Costo decorador
         const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
         const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
-        const costoDecorador = costoCortina + (costoCortina * (decoradorPorcentaje / 100));
+        const costoDecorador = costoCortina * (decoradorPorcentaje / 100);
         if (document.getElementById('costo_decorador')) {
             document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
         }
 
         // Precio público
-        let precioPublico = costoCortina * 2;
+        let precioPublico = costoCortina + utilidad + costoDecorador;
 
         // Descuento
         const descuentoInput = document.getElementById('descuento');
@@ -1594,6 +1587,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('aplicar_iva')?.addEventListener('change', actualizarTablaTotales);
         document.getElementById('descuento')?.addEventListener('input', actualizarTablaTotales);
+        document.getElementById('decorador_porcentaje')?.addEventListener('input', actualizarTablaTotales);
     });
 
     // Escuchar cambios en los campos de lienzos redondeados, total_forro, total_tela y total_tergal
@@ -1612,6 +1606,9 @@
     document.addEventListener('input', function(e) {
         if (['ancho', 'ancho_tela'].includes(e.target.id)) {
             calcularLienzos();
+        }
+        if (e.target.name && e.target.name.startsWith('detalle[otros')) {
+            actualizarCostoTotal();
         }
     });
 
