@@ -1599,7 +1599,7 @@
         // Costo decorador
         const decoradorPorcentajeInput = document.getElementById('decorador_porcentaje');
         const decoradorPorcentaje = decoradorPorcentajeInput ? (parseFloat(decoradorPorcentajeInput.value) || 0) : 15;
-        const costoDecorador = costoCortina * (decoradorPorcentaje / 100);
+        const costoDecorador = (costoCortina + utilidad) * (decoradorPorcentaje / 100);
         if (document.getElementById('costo_decorador')) {
             document.getElementById('costo_decorador').value = costoDecorador > 0 ? costoDecorador.toFixed(2) : '';
         }
