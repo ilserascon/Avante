@@ -81,6 +81,18 @@
                         </a>
                         @php
                             $cliente = $cotizacion->cliente;
+                            $telefono = 6623165287;
+                            $urlPdf = asset('storage/pdfs/cotizacion_' . $cotizacion->id . '.pdf');
+                            $mensaje = urlencode("Cotización para el Cliente: {$cliente->nombre}, \n{$urlPdf}");
+                        @endphp
+                        <a href="https://wa.me/52{{ $telefono }}?text={{ $mensaje }}" target="_blank"
+                            class="btn btn-success btn-sm flex-fill"
+                            style="background-color: #4aa46b; border-color: #4aa46b; max-width:200px;">
+                            <i class="fab fa-whatsapp"></i> Enviar a WhatsApp Personal
+                        </a>&nbsp;
+
+                        @php
+                            $cliente = $cotizacion->cliente;
                             $telefono = preg_replace('/[^0-9]/', '', $cliente->telefono ?? '');
                             $urlPdf = asset('storage/pdfs/cotizacion_' . $cotizacion->id . '.pdf');
                             $mensaje = urlencode("Hola {$cliente->nombre}, aquí puedes descargar tu cotización en PDF:\n{$urlPdf}");
