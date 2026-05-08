@@ -102,7 +102,7 @@
                             <a href="https://wa.me/52{{ $telefono }}?text={{ $mensaje }}" target="_blank"
                                 class="btn btn-success btn-sm flex-fill"
                                 style="background-color: #25D366; border-color: #25D366; max-width:200px;">
-                                <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
+                                <i class="fab fa-whatsapp"></i> Enviar por WhatsApp a Cliente
                             </a>
                         @else
                             <button class="btn btn-success btn-sm flex-fill" style="max-width:200px;" disabled>WhatsApp no disponible</button>
