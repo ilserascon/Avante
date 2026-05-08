@@ -856,6 +856,37 @@
                                         noLienzosTergalInput.value = '';
                                         noLienzosRedondeadoTergalInput.value = '';
                                     }
+
+                                    const largoTergal = parseFloat(largoTergalInput.value) || 0;
+                                    const bastillaTergal = parseFloat(document.getElementById('valor_bastilla_tergal')?.value) || 0;
+                                    const lienzosRedondeado = parseFloat(noLienzosRedondeadoTergalInput.value) || 0;
+                                    const totalTergal = (!isNaN(lienzosRedondeado) && !isNaN(largoTergal)) ? (lienzosRedondeado * (largoTergal + bastillaTergal)) : 0;
+
+                                    const totalTergalInput = document.getElementById('total_tergal');
+                                    if (totalTergalInput) {
+                                        totalTergalInput.value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
+                                    }
+
+                                    const m2TergalInput = document.querySelector('[name="detalle[m2_2]"]');
+                                    if (m2TergalInput) {
+                                        m2TergalInput.value = totalTergal > 0 ? totalTergal.toFixed(2) : '';
+                                    }
+
+                                    const precioTergal = parseFloat(document.getElementById('precio_m2_tergal')?.value) || 0;
+                                    const totalTergalFinalInput = document.getElementById('total_tergal_final');
+                                    if (totalTergalFinalInput) {
+                                        totalTergalFinalInput.value = (totalTergal * precioTergal).toFixed(2);
+                                    }
+
+                                    const totalTelaFinal = parseFloat(document.getElementById('total_tela_final')?.value) || 0;
+                                    const totalForroFinal = parseFloat(document.getElementById('total_final_forro')?.value) || 0;
+                                    const costoTotalTelaTergalForroInput = document.getElementById('costo_total_tela_tergal_forro');
+                                    if (costoTotalTelaTergalForroInput) {
+                                        costoTotalTelaTergalForroInput.value = (totalTelaFinal + (totalTergal * precioTergal) + totalForroFinal).toFixed(2);
+                                    }
+
+                                    actualizarPrecioManoObra();
+                                    actualizarTablaTotales();
                                 }
 
                                 largoTergalInput.addEventListener('blur', () => {
@@ -922,7 +953,7 @@
                                     }
                                 });
 
-                                [anchoTergalRealInput, anchoTergalInput].forEach(input => {
+                                [anchoTergalRealInput, anchoTergalInput, largoTergalInput, noLienzosRedondeadoTergalInput].forEach(input => {
                                     input.addEventListener('input', calcularTergal);
                                 });
 
@@ -1038,6 +1069,31 @@
                                         noLienzosForroInput.value = '';
                                         noLienzosRedondeadoForroInput.value = '';
                                     }
+
+                                    const largoForro = parseFloat(largoForroInput.value) || 0;
+                                    const bastillaForro = parseFloat(document.getElementById('valor_bastilla_forro')?.value) || 0;
+                                    const lienzosRedondeado = parseFloat(noLienzosRedondeadoForroInput.value) || 0;
+                                    const totalForro = (!isNaN(lienzosRedondeado) && !isNaN(largoForro)) ? (lienzosRedondeado * (largoForro + bastillaForro)) : 0;
+
+                                    const totalForroInput = document.getElementById('total_forro');
+                                    if (totalForroInput) {
+                                        totalForroInput.value = totalForro > 0 ? totalForro.toFixed(2) : '';
+                                    }
+
+                                    const precioForro = parseFloat(document.getElementById('precio_m2_forro')?.value) || 0;
+                                    const totalFinalForroInput = document.getElementById('total_final_forro');
+                                    if (totalFinalForroInput) {
+                                        totalFinalForroInput.value = (totalForro * precioForro).toFixed(2);
+                                    }
+
+                                    const totalTelaFinal = parseFloat(document.getElementById('total_tela_final')?.value) || 0;
+                                    const totalTergalFinal = parseFloat(document.getElementById('total_tergal_final')?.value) || 0;
+                                    const costoTotalTelaTergalForroInput = document.getElementById('costo_total_tela_tergal_forro');
+                                    if (costoTotalTelaTergalForroInput) {
+                                        costoTotalTelaTergalForroInput.value = (totalTelaFinal + totalTergalFinal + (totalForro * precioForro)).toFixed(2);
+                                    }
+
+                                    actualizarTablaTotales();
                                 }
 
                                 function sincronizarDimensionesForro() {
@@ -1083,6 +1139,8 @@
                                     $('#costo_total_tela_tergal_forro').val((totalTelaFinal + totalTergalFinal + total).toFixed(2));
 
                                     actualizarTablaTotales();
+
+                                    calcularForro();
                                 });
 
                                 ['ancho', 'largo', 'ancho_tergal_real', 'largo_tergal'].forEach(id => {
@@ -1092,7 +1150,7 @@
                                     }
                                 });
 
-                                [anchoForroRealInput, anchoForroInput].forEach(input => {
+                                [anchoForroRealInput, anchoForroInput, largoForroInput].forEach(input => {
                                     if (input) {
                                         input.addEventListener('input', calcularForro);
                                     }
@@ -1832,6 +1890,70 @@
             actualizarTablaTotales();
         }
     });
+
+    /* function actualizarLargoTergal() {
+        const largoCortinaInput = document.getElementById('largo');
+        const largoTergalInput = document.getElementById('largo_tergal');
+        const bastillaTergalInput = document.getElementById('valor_bastilla_tergal');
+        
+        if (!largoTergalInput) return;
+        
+        // Base: largo de cortina si existe, sino el valor actual del tergal (sin restar bastillas previas)
+        let valorBase = 0;
+        if (largoCortinaInput && largoCortinaInput.value) {
+            valorBase = parseSafeFloat(largoCortinaInput.value);
+        } else {
+            valorBase = parseSafeFloat(largoTergalInput.value); // Usa el valor actual como base si no hay cortina
+        }
+        
+        const bastilla = bastillaTergalInput ? parseSafeFloat(bastillaTergalInput.value) : 0;
+        const nuevoValor = (valorBase + bastilla).toFixed(2);
+        
+        if (largoTergalInput.value !== nuevoValor) {
+            largoTergalInput.value = nuevoValor;
+            
+            // Guardar último valor de bastilla para referencia futura
+            if (bastillaTergalInput) {
+                bastillaTergalInput.dataset.lastValue = bastilla;
+            }
+            
+            const event = new Event('input', { bubbles: true });
+            largoTergalInput.dispatchEvent(event);
+        }
+    } */
+
+    // Función para actualizar forro (prioriza cortina, luego tergal, como sincronizarDimensionesForro)
+    function actualizarLargoForro() {
+        const largoCortinaInput = document.getElementById('largo');
+        const largoTergalInput = document.getElementById('largo_tergal');
+        const largoForroInput = document.getElementById('largo_forro');
+        const bastillaForroInput = document.getElementById('valor_bastilla_forro');
+        
+        if (!largoForroInput) return;
+        
+        // Base: largo de cortina primero, luego tergal (consistente con sincronizarDimensionesForro)
+        let valorBase = 0;
+        if (largoCortinaInput && largoCortinaInput.value) {
+            valorBase = parseSafeFloat(largoCortinaInput.value);
+        } else if (largoTergalInput && largoTergalInput.value) {
+            valorBase = parseSafeFloat(largoTergalInput.value);
+        }
+        
+        const bastilla = bastillaForroInput ? parseSafeFloat(bastillaForroInput.value) : 0;
+        const nuevoValor = (valorBase + bastilla).toFixed(2);
+        
+        if (largoForroInput.value !== nuevoValor) {
+            largoForroInput.value = nuevoValor;
+            
+            // Guardar último valor de bastilla del forro
+            if (bastillaForroInput) {
+                bastillaForroInput.dataset.lastValue = bastilla;
+            }
+            
+            const event = new Event('input', { bubbles: true });
+            largoForroInput.dispatchEvent(event);
+        }
+    }
 
 
 </script>
