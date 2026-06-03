@@ -164,7 +164,7 @@
                                 if($discountPercentage && $discountPercentage > 0) {
                                     $descuentoMonto = $subtotal * ($discountPercentage / 100);
                                 }
-                                $precioPublicoComputed = $cotizacion->precio_publico ?? ($subtotal - $descuentoMonto);
+                                $precioPublicoComputed = $subtotal - $descuentoMonto;
                             @endphp
                             <tfoot>
                                 <tr>
