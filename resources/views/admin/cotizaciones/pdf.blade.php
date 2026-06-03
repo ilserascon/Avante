@@ -198,11 +198,13 @@
                     $detalleC = $cotizacion->detalleCotizacion;
                     $totalCalculated = ((($detalleC->total_tela_final ?? 0) + ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_final_forro ?? 0) + ($detalleC->costo_total_mano_obra ?? 0) + (($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0)) + (($detalleC->cortinero_tergal_cantidad ?? 0) * ($detalleC->cortinero_tergal_precio ?? 0))) * 2);
                 }
-                $precioPublico = $cotizacion->precio_publico ?? $totalCalculated;
-                $discountAmount = 0;
+                // Base for public price is subtotal; apply percentual discount if present
+                $precioPublicoBase = $subtotal;
+                $descuentoMonto = 0;
                 if($discountPercentage && $discountPercentage > 0) {
-                    $discountAmount = $totalCalculated - $precioPublico;
+                    $descuentoMonto = $precioPublicoBase * ($discountPercentage / 100);
                 }
+                $precioPublico = $precioPublicoBase - $descuentoMonto;
             @endphp
             <tr>
                 <td colspan="6" class="text-right"><strong>SUBTOTAL</strong></td>
@@ -211,7 +213,7 @@
             @if($discountPercentage && $discountPercentage > 0)
                 <tr style="background-color: #f8d7da;">
                     <td colspan="6" class="text-right"><strong>DESCUENTO ({{ number_format($discountPercentage, 2) }}%)</strong></td>
-                    <td class="text-right">-${{ number_format($discountAmount, 2) }}</td>
+                    <td class="text-right">-${{ number_format($descuentoMonto, 2) }}</td>
                 </tr>
             @endif
             <!-- <tr style="background-color: #d4edda;">

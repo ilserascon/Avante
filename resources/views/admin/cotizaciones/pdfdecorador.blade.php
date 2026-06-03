@@ -26,49 +26,27 @@
 <body>
     <table class="header-table">
         <tr>
-            <td style="width: 30%; border:none; vertical-align: top;">
-                <img src="{{ public_path('stisla/assets/img/Logo.jpg') }}" alt="logo" style="width: 180px;">
+            <td rowspan="3" style="width: 35%;">
+                <img src="{{ public_path('stisla/assets/img/Logo.jpg') }}" alt="logo" style="width: 150px;">
             </td>
-            <td style="width: 70%; border:none; vertical-align: top; padding-left: 10px;">
-                <div class="empresa-info" style="text-align: left; margin-bottom: 0;">
-                    <div class="empresa-nombre" style="font-size: 14px;">AVANTE DECORACIONES</div>
-                    <div style="font-size: 10px;">BULEVAR MORELOS 471, SABINOS RESIDENCIAL</div>
-                    <div style="font-size: 10px;">HERMOSILLO, SONORA CP 83148</div>
-                    <div style="font-size: 10px; margin-top: 2px;">TELÉFONO | CELULAR</div>
-                    <div class="empresa-redes" style="font-size: 10px; margin-top: 3px;">FACEBOOK: Avante Decoraciones | INSTAGRAM: @avantedecoraciones</div>
-                </div>
+            <td><strong>FOLIO:</strong> {{ str_pad($cotizacion->id, 4, '0', STR_PAD_LEFT) }}</td>
+            <td><strong>FECHA:</strong> {{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}</td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <strong>ASESOR DE VENTAS:</strong>
             </td>
         </tr>
         <tr>
-            <td style="width: 50%; border-bottom: 1px solid #ccc;">
-                <strong>COTIZACIÓN Nº:</strong> {{ str_pad($cotizacion->id, 4, '0', STR_PAD_LEFT) }}
-            </td>
-            <td style="width: 50%; border-bottom: 1px solid #ccc;">
-                <strong>FECHA:</strong> {{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}
-            </td>
+            <td colspan="2"><strong>CLIENTE:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->nombre : '' }}</td>
         </tr>
         <tr>
-            <td colspan="2" style="border-bottom: 1px solid #ccc;">
-                <strong>ASESOR DE VENTA:</strong> IRACEMA SANCHEZ
-            </td>
+            <td colspan="3"><strong>DIRECCIÓN:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->direccion : '' }}</td>
         </tr>
         <tr>
-            <td colspan="2" style="border-bottom: 1px solid #ccc;">
-                <strong>CLIENTE:</strong> {{ $cotizacion->cliente->nombre ?? '-' }}
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2" style="border-bottom: 1px solid #ccc;">
-                <strong>DIRECCIÓN:</strong> {{ $cotizacion->cliente->direccion ?? '-' }}
-            </td>
-        </tr>
-        <tr>
-            <td style="border-bottom: 1px solid #ccc;">
-                <strong>CELULAR:</strong> {{ $cotizacion->cliente->celular ?? '-' }}
-            </td>
-            <td style="border-bottom: 1px solid #ccc;">
-                <strong>TELÉFONO:</strong> {{ $cotizacion->cliente->telefono ?? '-' }}
-            </td>
+            <td><strong>CELULAR:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->telefono : '' }}</td>
+            <td><strong>TELÉFONO:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->telefono : '' }}</td>
+            <td></td>
         </tr>
     </table>
 
@@ -215,11 +193,13 @@
                     $detalleC = $cotizacion->detalleCotizacion;
                     $totalCalculated = ((($detalleC->total_tela_final ?? 0) + ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_final_forro ?? 0) + ($detalleC->costo_total_mano_obra ?? 0) + (($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0)) + (($detalleC->cortinero_tergal_cantidad ?? 0) * ($detalleC->cortinero_tergal_precio ?? 0))) * 2);
                 }
-                $precioPublico = $cotizacion->precio_publico ?? $totalCalculated;
-                $discountAmount = 0;
+                // Base for public price is subtotal; apply percentual discount if present
+                $precioPublicoBase = $subtotal;
+                $descuentoMonto = 0;
                 if($discountPercentage && $discountPercentage > 0) {
-                    $discountAmount = $totalCalculated - $precioPublico;
+                    $descuentoMonto = $precioPublicoBase * ($discountPercentage / 100);
                 }
+                $precioPublico = $precioPublicoBase - $descuentoMonto;
             @endphp
             <tr>
                 <td colspan="6" class="text-right"><strong>SUBTOTAL</strong></td>
@@ -228,7 +208,7 @@
             @if($discountPercentage && $discountPercentage > 0)
                 <tr style="background-color: #f8d7da;">
                     <td colspan="6" class="text-right"><strong>DESCUENTO ({{ number_format($discountPercentage, 2) }}%)</strong></td>
-                    <td class="text-right">-${{ number_format($discountAmount, 2) }}</td>
+                    <td class="text-right">-${{ number_format($descuentoMonto, 2) }}</td>
                 </tr>
             @endif
             <tr>
