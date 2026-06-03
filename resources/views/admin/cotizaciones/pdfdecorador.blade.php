@@ -26,47 +26,52 @@
 <body>
     <table class="header-table">
         <tr>
-            <td rowspan="3" style="width: 35%;">
-                <img src="{{ public_path('stisla/assets/img/Logo.jpg') }}" alt="logo" style="width: 150px;">
+            <td style="width: 30%; border:none; vertical-align: top;">
+                <img src="{{ public_path('stisla/assets/img/Logo.jpg') }}" alt="logo" style="width: 180px;">
             </td>
-            <td><strong>FOLIO:</strong> {{ str_pad($cotizacion->id, 4, '0', STR_PAD_LEFT) }}</td>
-            <td><strong>FECHA:</strong> {{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}</td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <strong>ASESOR DE VENTAS:</strong>
+            <td style="width: 70%; border:none; vertical-align: top; padding-left: 10px;">
+                <div class="empresa-info" style="text-align: left; margin-bottom: 0;">
+                    <div class="empresa-nombre" style="font-size: 14px;">AVANTE DECORACIONES</div>
+                    <div style="font-size: 10px;">BULEVAR MORELOS 471, SABINOS RESIDENCIAL</div>
+                    <div style="font-size: 10px;">HERMOSILLO, SONORA CP 83148</div>
+                    <div style="font-size: 10px; margin-top: 2px;">TELÉFONO | CELULAR</div>
+                    <div class="empresa-redes" style="font-size: 10px; margin-top: 3px;">FACEBOOK: Avante Decoraciones | INSTAGRAM: @avantedecoraciones</div>
+                </div>
             </td>
         </tr>
         <tr>
-            <td colspan="2"><strong>CLIENTE:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->nombre : '' }}</td>
+            <td style="width: 50%; border-bottom: 1px solid #ccc;">
+                <strong>COTIZACIÓN Nº:</strong> {{ str_pad($cotizacion->id, 4, '0', STR_PAD_LEFT) }}
+            </td>
+            <td style="width: 50%; border-bottom: 1px solid #ccc;">
+                <strong>FECHA:</strong> {{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}
+            </td>
         </tr>
         <tr>
-            <td colspan="3"><strong>DIRECCIÓN:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->direccion : '' }}</td>
+            <td colspan="2" style="border-bottom: 1px solid #ccc;">
+                <strong>ASESOR DE VENTA:</strong> IRACEMA SANCHEZ
+            </td>
         </tr>
         <tr>
-            <td><strong>CELULAR:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->telefono : '' }}</td>
-            <td><strong>TELÉFONO:</strong> {{ $cotizacion->cliente ? $cotizacion->cliente->telefono : '' }}</td>
-            <td></td>
+            <td colspan="2" style="border-bottom: 1px solid #ccc;">
+                <strong>CLIENTE:</strong> {{ $cotizacion->cliente->nombre ?? '-' }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="border-bottom: 1px solid #ccc;">
+                <strong>DIRECCIÓN:</strong> {{ $cotizacion->cliente->direccion ?? '-' }}
+            </td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid #ccc;">
+                <strong>CELULAR:</strong> {{ $cotizacion->cliente->celular ?? '-' }}
+            </td>
+            <td style="border-bottom: 1px solid #ccc;">
+                <strong>TELÉFONO:</strong> {{ $cotizacion->cliente->telefono ?? '-' }}
+            </td>
         </tr>
     </table>
 
-    <div class="section-title">Resumen de Cortina, Tergal y Forro</div>
-    <table>
-        <thead>
-            <tr>
-                <th>¿Lleva Cortina?</th>
-                <th>¿Lleva Tergal?</th>
-                <th>¿Lleva Forro?</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{{ $cotizacion->lleva_cortina ? 'Sí' : 'No' }}</td>
-                <td>{{ $cotizacion->lleva_tergal ? 'Sí' : 'No' }}</td>
-                <td>{{ $cotizacion->lleva_forro ? 'Sí' : 'No' }}</td>
-            </tr>
-        </tbody>
-    </table>
 
     <div class="section-title">DETALLE DE COTIZACIÓN</div>
     <table>
@@ -150,6 +155,17 @@
                         'tela' => $insumoRel->tipoInsumo?->nombre ?? '',
                         'tipo_cortina' => '',
                         'precio' => $detallePrecio
+                    ];
+                }
+
+                if($cotizacion->costo_decorador && $cotizacion->costo_decorador > 0) {
+                    $detalles[] = [
+                        'descripcion' => 'DECORADOR',
+                        'cantidad' => 1,
+                        'area' => '',
+                        'tela' => '',
+                        'tipo_cortina' => '',
+                        'precio' => $cotizacion->costo_decorador
                     ];
                 }
             @endphp
