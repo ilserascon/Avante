@@ -102,33 +102,38 @@
                     $idsExcluidos = array_filter([$detalleC->tela_id, $detalleC->tergal_id, $detalleC->forro_id]);
 
                     if($detalleC->total_tela_final && $detalleC->total_tela_final > 0) {
+                        $cortineroSum = ($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0);
+                        $precioTela = ($detalleC->total_tela_final + ($detalleC->total_mano_obra_1 ?? 0) + $cortineroSum) * 2;
                         $detalles[] = [
                             'descripcion' => 'CORTINA',
                             'cantidad' => 1,
                             'area' => $cotizacion->area ?? '',
                             'tela' => $insumoTela?->nombre ?? $detalleC->descripcion_tela ?? '',
                             'tipo_cortina' => $detalleC->tipo_cortina ?? '',
-                            'precio' => $detalleC->total_tela_final
+                            'precio' => $precioTela
                         ];
                     }
                     if($detalleC->total_tergal_final && $detalleC->total_tergal_final > 0) {
+                        $cortineroTergalSum = ($detalleC->cortinero_tergal_cantidad ?? 0) * ($detalleC->cortinero_tergal_precio ?? 0);
+                        $precioTergal = ($detalleC->total_tergal_final + ($detalleC->total_mano_obra_2 ?? 0) + $cortineroTergalSum) * 2;
                         $detalles[] = [
                             'descripcion' => 'TERGAL',
                             'cantidad' => 1,
                             'area' => '',
                             'tela' => $insumoTergal?->nombre ?? $detalleC->descripcion_tergal ?? '',
                             'tipo_cortina' => '',
-                            'precio' => $detalleC->total_tergal_final
+                            'precio' => $precioTergal
                         ];
                     }
                     if($detalleC->total_final_forro && $detalleC->total_final_forro > 0) {
+                        $precioForro = $detalleC->total_final_forro * 2;
                         $detalles[] = [
                             'descripcion' => 'FORRO',
                             'cantidad' => 1,
                             'area' => '',
                             'tela' => $insumoForro?->nombre ?? $detalleC->descripcion_forro ?? '',
                             'tipo_cortina' => '',
-                            'precio' => $detalleC->total_final_forro
+                            'precio' => $precioForro
                         ];
                     }
                 }
@@ -141,6 +146,7 @@
                     $cantidad = $insumoRel->pivot->cantidad ?: 1;
                     $precioUnitario = $insumoRel->pivot->precio_unitario ?? 0;
                     $subtotalItem = $insumoRel->pivot->subtotal ?? ($precioUnitario * $cantidad);
+                    $detallePrecio = ($precioUnitario * $cantidad) * 2;
 
                     $detalles[] = [
                         'descripcion' => $insumoRel->nombre,
@@ -148,7 +154,7 @@
                         'area' => '',
                         'tela' => $insumoRel->tipoInsumo?->nombre ?? '',
                         'tipo_cortina' => '',
-                        'precio' => $subtotalItem
+                        'precio' => $detallePrecio
                     ];
                 }
             @endphp
@@ -186,20 +192,35 @@
         </tbody>
         <tfoot>
             @php
-                $iva = $subtotal * 0.16;
-                $total = $subtotal + $iva;
+                $discountPercentage = $cotizacion->descuento ?? 0;
+                $totalCalculated = 0;
+                if($cotizacion->detalleCotizacion) {
+                    $detalleC = $cotizacion->detalleCotizacion;
+                    $totalCalculated = ((($detalleC->total_tela_final ?? 0) + ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_final_forro ?? 0) + ($detalleC->costo_total_mano_obra ?? 0) + (($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0)) + (($detalleC->cortinero_tergal_cantidad ?? 0) * ($detalleC->cortinero_tergal_precio ?? 0))) * 2);
+                }
+                $precioPublico = $cotizacion->precio_publico ?? $totalCalculated;
+                $discountAmount = 0;
+                if($discountPercentage && $discountPercentage > 0) {
+                    $discountAmount = $totalCalculated - $precioPublico;
+                }
             @endphp
             <tr>
                 <td colspan="6" class="text-right"><strong>SUBTOTAL</strong></td>
                 <td class="text-right">${{ number_format($subtotal, 2) }}</td>
             </tr>
-            <tr style="background-color: #fff3cd;">
-                <td colspan="6" class="text-right"><strong>IVA (16%)</strong></td>
-                <td class="text-right"><strong>${{ number_format($iva, 2) }}</strong></td>
-            </tr>
-            <tr style="background-color: #d4edda;">
-                <td colspan="6" class="text-right"><strong>TOTAL</strong></td>
-                <td class="text-right"><strong>${{ number_format($total, 2) }}</strong></td>
+            @if($discountPercentage && $discountPercentage > 0)
+                <tr style="background-color: #f8d7da;">
+                    <td colspan="6" class="text-right"><strong>DESCUENTO ({{ number_format($discountPercentage, 2) }}%)</strong></td>
+                    <td class="text-right">-${{ number_format($discountAmount, 2) }}</td>
+                </tr>
+            @endif
+            <!-- <tr style="background-color: #d4edda;">
+                <td colspan="6" class="text-right"><strong>TOTAL CALCULADO</strong></td>
+                <td class="text-right"><strong>${{ number_format($totalCalculated, 2) }}</strong></td>
+            </tr> -->
+            <tr>
+                <td colspan="6" class="text-right"><strong>PRECIO PÚBLICO</strong></td>
+                <td class="text-right">${{ number_format($precioPublico, 2) }}</td>
             </tr>
         </tfoot>
     </table>
