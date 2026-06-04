@@ -107,7 +107,7 @@
                     $idsExcluidos = array_filter([$detalleC->tela_id, $detalleC->tergal_id, $detalleC->forro_id]);
 
                     if($detalleC->total_tela_final && $detalleC->total_tela_final > 0) {
-                        $baseTela = ($detalleC->total_tela_final ?? 0) + ($detalleC->total_mano_obra_1 ?? 0) + (($detalleC->cortinero_cantidad ?? 0) + ($detalleC->cortinero_precio ?? 0));
+                        $baseTela = ($detalleC->total_tela_final ?? 0) + ($detalleC->total_mano_obra_1 ?? 0) + (($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0));
                         $precioTela = $baseTela * $decoradorFactor;
                         $detalles[] = [
                             'descripcion' => 'CORTINA',
@@ -119,7 +119,7 @@
                         ];
                     }
                     if($detalleC->total_tergal_final && $detalleC->total_tergal_final > 0) {
-                        $baseTergal = ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_mano_obra_2 ?? 0) + (($detalleC->cortinero_tergal_cantidad ?? 0) + ($detalleC->cortinero_tergal_precio ?? 0));
+                        $baseTergal = ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_mano_obra_2 ?? 0) + (($detalleC->cortinero_tergal_cantidad ?? 0) * ($detalleC->cortinero_tergal_precio ?? 0));
                         $precioTergal = $baseTergal * $decoradorFactor;
                         $detalles[] = [
                             'descripcion' => 'TERGAL',
