@@ -92,9 +92,12 @@
                 $subtotal = 0;
                 $detalles = [];
                 $idsExcluidos = [];
+                $decoradorPorcentaje = 0;
 
                 if($cotizacion->detalleCotizacion) {
                     $detalleC = $cotizacion->detalleCotizacion;
+                    $decoradorPorcentaje = $detalleC->decorador_porcentaje ?? 0;
+                    $decoradorFactor = 1 + ($decoradorPorcentaje / 100);
 
                     $insumoTela = $detalleC->tela_id ? \App\Models\Insumo::find($detalleC->tela_id) : null;
                     $insumoTergal = $detalleC->tergal_id ? \App\Models\Insumo::find($detalleC->tergal_id) : null;
@@ -103,8 +106,8 @@
                     $idsExcluidos = array_filter([$detalleC->tela_id, $detalleC->tergal_id, $detalleC->forro_id]);
 
                     if($detalleC->total_tela_final && $detalleC->total_tela_final > 0) {
-                        $cortineroSum = ($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0);
-                        $precioTela = ($detalleC->total_tela_final + ($detalleC->total_mano_obra_1 ?? 0) + $cortineroSum) * 2;
+                        $baseTela = ($detalleC->total_tela_final ?? 0) + ($detalleC->total_mano_obra_1 ?? 0) + (($detalleC->cortinero_cantidad ?? 0) + ($detalleC->cortinero_precio ?? 0));
+                        $precioTela = $baseTela * $decoradorFactor;
                         $detalles[] = [
                             'descripcion' => 'CORTINA',
                             'cantidad' => 1,
@@ -115,8 +118,8 @@
                         ];
                     }
                     if($detalleC->total_tergal_final && $detalleC->total_tergal_final > 0) {
-                        $cortineroTergalSum = ($detalleC->cortinero_tergal_cantidad ?? 0) * ($detalleC->cortinero_tergal_precio ?? 0);
-                        $precioTergal = ($detalleC->total_tergal_final + ($detalleC->total_mano_obra_2 ?? 0) + $cortineroTergalSum) * 2;
+                        $baseTergal = ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_mano_obra_2 ?? 0) + (($detalleC->cortinero_tergal_cantidad ?? 0) + ($detalleC->cortinero_tergal_precio ?? 0));
+                        $precioTergal = $baseTergal * $decoradorFactor;
                         $detalles[] = [
                             'descripcion' => 'TERGAL',
                             'cantidad' => 1,
@@ -127,7 +130,8 @@
                         ];
                     }
                     if($detalleC->total_final_forro && $detalleC->total_final_forro > 0) {
-                        $precioForro = $detalleC->total_final_forro * 2;
+                        $baseForro = $detalleC->total_final_forro ?? 0;
+                        $precioForro = $baseForro * $decoradorFactor;
                         $detalles[] = [
                             'descripcion' => 'FORRO',
                             'cantidad' => 1,
@@ -146,7 +150,8 @@
 
                     $cantidad = $insumoRel->pivot->cantidad ?: 1;
                     $precioUnitario = $insumoRel->pivot->precio_unitario ?? 0;
-                    $detallePrecio = ($precioUnitario * $cantidad) * 2;
+                    $baseInsumo = ($precioUnitario * $cantidad);
+                    $detallePrecio = $baseInsumo * ($decoradorPorcentaje ? (1 + ($decoradorPorcentaje / 100)) : 1);
 
                     $detalles[] = [
                         'descripcion' => $insumoRel->nombre,
@@ -155,17 +160,6 @@
                         'tela' => $insumoRel->tipoInsumo?->nombre ?? '',
                         'tipo_cortina' => '',
                         'precio' => $detallePrecio
-                    ];
-                }
-
-                if($cotizacion->costo_decorador && $cotizacion->costo_decorador > 0) {
-                    $detalles[] = [
-                        'descripcion' => 'DECORADOR',
-                        'cantidad' => 1,
-                        'area' => '',
-                        'tela' => '',
-                        'tipo_cortina' => '',
-                        'precio' => $cotizacion->costo_decorador
                     ];
                 }
             @endphp
@@ -203,33 +197,24 @@
         </tbody>
         <tfoot>
             @php
-                $discountPercentage = $cotizacion->descuento ?? 0;
                 $totalCalculated = 0;
                 if($cotizacion->detalleCotizacion) {
                     $detalleC = $cotizacion->detalleCotizacion;
-                    $totalCalculated = ((($detalleC->total_tela_final ?? 0) + ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_final_forro ?? 0) + ($detalleC->costo_total_mano_obra ?? 0) + (($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0)) + (($detalleC->cortinero_tergal_cantidad ?? 0) * ($detalleC->cortinero_tergal_precio ?? 0))) * 2);
+                    $decoradorPorcentaje = $detalleC->decorador_porcentaje ?? 0;
+                    $decoradorFactor = 1 + ($decoradorPorcentaje / 100);
+                    $baseTela = ($detalleC->total_tela_final ?? 0) + ($detalleC->total_mano_obra_1 ?? 0) + (($detalleC->cortinero_cantidad ?? 0) + ($detalleC->cortinero_precio ?? 0));
+                    $baseTergal = ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_mano_obra_2 ?? 0) + (($detalleC->cortinero_tergal_cantidad ?? 0) + ($detalleC->cortinero_tergal_precio ?? 0));
+                    $baseForro = $detalleC->total_final_forro ?? 0;
+                    $totalCalculated = ($baseTela + $baseTergal + $baseForro) * $decoradorFactor;
                 }
-                // Base for public price is subtotal; apply percentual discount if present
-                $precioPublicoBase = $subtotal;
-                $descuentoMonto = 0;
-                if($discountPercentage && $discountPercentage > 0) {
-                    $descuentoMonto = $precioPublicoBase * ($discountPercentage / 100);
-                }
-                $precioPublico = $precioPublicoBase - $descuentoMonto;
             @endphp
             <tr>
                 <td colspan="6" class="text-right"><strong>SUBTOTAL</strong></td>
                 <td class="text-right">${{ number_format($subtotal, 2) }}</td>
             </tr>
-            @if($discountPercentage && $discountPercentage > 0)
-                <tr style="background-color: #f8d7da;">
-                    <td colspan="6" class="text-right"><strong>DESCUENTO ({{ number_format($discountPercentage, 2) }}%)</strong></td>
-                    <td class="text-right">-${{ number_format($descuentoMonto, 2) }}</td>
-                </tr>
-            @endif
             <tr>
-                <td colspan="6" class="text-right"><strong>PRECIO PÚBLICO</strong></td>
-                <td class="text-right">${{ number_format($precioPublico, 2) }}</td>
+                <td colspan="6" class="text-right"><strong>PRECIO DECORADOR</strong></td>
+                <td class="text-right">${{ number_format($cotizacion->costo_decorador ?? 0, 2) }}</td>
             </tr>
         </tfoot>
     </table>
