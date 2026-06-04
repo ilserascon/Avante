@@ -93,6 +93,7 @@
                 $detalles = [];
                 $idsExcluidos = [];
                 $decoradorPorcentaje = 0;
+                $costoTotalInsumos = 0;
 
                 if($cotizacion->detalleCotizacion) {
                     $detalleC = $cotizacion->detalleCotizacion;
@@ -152,6 +153,7 @@
                     $precioUnitario = $insumoRel->pivot->precio_unitario ?? 0;
                     $baseInsumo = ($precioUnitario * $cantidad);
                     $detallePrecio = $baseInsumo * ($decoradorPorcentaje ? (1 + ($decoradorPorcentaje / 100)) : 1);
+                    $costoTotalInsumos += $baseInsumo;
 
                     $detalles[] = [
                         'descripcion' => $insumoRel->nombre,
@@ -205,7 +207,9 @@
                     $baseTela = ($detalleC->total_tela_final ?? 0) + ($detalleC->total_mano_obra_1 ?? 0) + (($detalleC->cortinero_cantidad ?? 0) + ($detalleC->cortinero_precio ?? 0));
                     $baseTergal = ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_mano_obra_2 ?? 0) + (($detalleC->cortinero_tergal_cantidad ?? 0) + ($detalleC->cortinero_tergal_precio ?? 0));
                     $baseForro = $detalleC->total_final_forro ?? 0;
-                    $totalCalculated = ($baseTela + $baseTergal + $baseForro) * $decoradorFactor;
+                    $costoTotalMateriales = $costoTotalInsumos;
+                    $costoCortina = $baseTela + $baseTergal + $baseForro + $costoTotalMateriales;
+                    $totalCalculated = $costoCortina * $decoradorFactor;
                 }
             @endphp
             <tr>
@@ -214,7 +218,7 @@
             </tr>
             <tr>
                 <td colspan="6" class="text-right"><strong>PRECIO DECORADOR</strong></td>
-                <td class="text-right">${{ number_format($cotizacion->costo_decorador ?? 0, 2) }}</td>
+                <td class="text-right">${{ number_format($cotizacion->costo_decorador ?? $totalCalculated, 2) }}</td>
             </tr>
         </tfoot>
     </table>
