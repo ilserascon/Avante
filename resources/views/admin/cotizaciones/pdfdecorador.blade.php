@@ -107,10 +107,11 @@
                     $idsExcluidos = array_filter([$detalleC->tela_id, $detalleC->tergal_id, $detalleC->forro_id]);
 
                     if($detalleC->total_tela_final && $detalleC->total_tela_final > 0) {
-                        $baseTela = ($detalleC->total_tela_final ?? 0) + ($detalleC->total_mano_obra_1 ?? 0) + (($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0));
+                        $baseTela = ($detalleC->total_tela_final ?? 0) + ($detalleC->total_mano_obra_1 ?? 0) + (($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0)) + ($detalleC->total_final_forro ?? 0);
                         $precioTela = $baseTela * $decoradorFactor;
+                        $descripcionCortina = 'CORTINA' . (($detalleC->total_final_forro ?? 0) > 0 ? ' CON FORRO' : '');
                         $detalles[] = [
-                            'descripcion' => 'CORTINA',
+                            'descripcion' => $descripcionCortina,
                             'cantidad' => 1,
                             'area' => $cotizacion->area ?? '',
                             'tela' => $insumoTela?->nombre ?? $detalleC->descripcion_tela ?? '',
@@ -128,18 +129,6 @@
                             'tela' => $insumoTergal?->nombre ?? $detalleC->descripcion_tergal ?? '',
                             'tipo_cortina' => '',
                             'precio' => $precioTergal
-                        ];
-                    }
-                    if($detalleC->total_final_forro && $detalleC->total_final_forro > 0) {
-                        $baseForro = $detalleC->total_final_forro ?? 0;
-                        $precioForro = $baseForro * $decoradorFactor;
-                        $detalles[] = [
-                            'descripcion' => 'FORRO',
-                            'cantidad' => 1,
-                            'area' => '',
-                            'tela' => $insumoForro?->nombre ?? $detalleC->descripcion_forro ?? '',
-                            'tipo_cortina' => '',
-                            'precio' => $precioForro
                         ];
                     }
                 }

@@ -103,9 +103,10 @@
 
                     if($detalleC->total_tela_final && $detalleC->total_tela_final > 0) {
                         $cortineroSum = ($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0);
-                        $precioTela = ($detalleC->total_tela_final + ($detalleC->total_mano_obra_1 ?? 0) + $cortineroSum) * 2;
+                        $precioTela = ($detalleC->total_tela_final + ($detalleC->total_mano_obra_1 ?? 0) + $cortineroSum + ($detalleC->total_final_forro ?? 0)) * 2;
+                        $descripcionCortina = 'CORTINA' . (($detalleC->total_final_forro ?? 0) > 0 ? ' CON FORRO' : '');
                         $detalles[] = [
-                            'descripcion' => 'CORTINA',
+                            'descripcion' => $descripcionCortina,
                             'cantidad' => 1,
                             'area' => $cotizacion->area ?? '',
                             'tela' => $insumoTela?->nombre ?? $detalleC->descripcion_tela ?? '',
@@ -123,17 +124,6 @@
                             'tela' => $insumoTergal?->nombre ?? $detalleC->descripcion_tergal ?? '',
                             'tipo_cortina' => '',
                             'precio' => $precioTergal
-                        ];
-                    }
-                    if($detalleC->total_final_forro && $detalleC->total_final_forro > 0) {
-                        $precioForro = $detalleC->total_final_forro * 2;
-                        $detalles[] = [
-                            'descripcion' => 'FORRO',
-                            'cantidad' => 1,
-                            'area' => '',
-                            'tela' => $insumoForro?->nombre ?? $detalleC->descripcion_forro ?? '',
-                            'tipo_cortina' => '',
-                            'precio' => $precioForro
                         ];
                     }
                 }
