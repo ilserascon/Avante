@@ -12,6 +12,9 @@ class DetalleCotizacion extends Model
 
     protected $fillable = [
         'cotizacion_id',
+        'lleva_cortina',
+        'lleva_tergal',
+        'lleva_forro',
         'tela_id',
         'ancho_tela',
         'ancho',
@@ -19,7 +22,8 @@ class DetalleCotizacion extends Model
         'no_lienzos',
         'no_lienzos_redondeado',
         'bastilla',
-        'tipo_cortina',
+        'descripcion',
+        'area',
 
         'tergal_id',
         'ancho_tergal',

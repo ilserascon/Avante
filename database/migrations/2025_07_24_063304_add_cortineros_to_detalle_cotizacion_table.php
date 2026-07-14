@@ -13,12 +13,12 @@ return new class extends Migration
         Schema::table('detalle_cotizacion', function (Blueprint $table) {
             // columnas para cortinero cortina
             $table->unsignedBigInteger('cortinero_id')->nullable()->after('decorador_porcentaje');
-            $table->integer('cortinero_cantidad')->nullable()->after('cortinero_id');
+            $table->decimal('cortinero_cantidad', 10, 2)->nullable()->after('cortinero_id');
             $table->decimal('cortinero_precio', 10, 2)->nullable()->after('cortinero_cantidad');
 
             // columnas para cortinero tergal
             $table->unsignedBigInteger('cortinero_tergal_id')->nullable()->after('cortinero_precio');
-            $table->integer('cortinero_tergal_cantidad')->nullable()->after('cortinero_tergal_id');
+            $table->decimal('cortinero_tergal_cantidad', 10, 2)->nullable()->after('cortinero_tergal_id');
             $table->decimal('cortinero_tergal_precio', 10, 2)->nullable()->after('cortinero_tergal_cantidad');
 
             // foreign keys

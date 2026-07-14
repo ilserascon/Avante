@@ -16,6 +16,14 @@
       <div class="form-group mr-2">
         <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="{{ request('nombre') }}">
       </div>
+      <div class="form-group mr-2">
+        <select name="id_tipo_producto" class="form-control">
+          <option value="">Todos los tipos</option>
+          @foreach ($tiposProducto as $tipo)
+            <option value="{{ $tipo->id }}" {{ request('id_tipo_producto') == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
+          @endforeach
+        </select>
+      </div>
       <button type="submit" class="btn btn-primary">Buscar</button>
     </form>
 
@@ -25,20 +33,26 @@
           <thead>
             <tr>
               <th>Nombre</th>
+              <th>Tipo de Producto</th>
               <th>Descripción</th>
-              <th>Insumos</th>
+              <th>Precio</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             @foreach ($productos as $producto)
+              @php
+                $esCortinero = $producto->id_tipo_producto == 1 || strtolower($producto->tipoProducto->nombre ?? '') === 'cortinero';
+              @endphp
               <tr>
                 <td>{{ $producto->nombre }}</td>
+                <td>{{ $producto->tipoProducto->nombre ?? 'Sin tipo' }}</td>
                 <td>{{ $producto->descripcion }}</td>
+                <td>{{ $producto->precio ?? '-' }}</td>
                 <td>
-                  <a href="{{ route('admin.productos.insumos', $producto->id) }}" class="btn btn-info btn-sm">Ver Insumos</a>
-                </td>
-                <td>
+                  @if ($esCortinero)
+                    <a href="{{ route('admin.productos.insumos', $producto->id) }}" class="btn btn-info btn-sm">Ver Insumos</a>
+                  @endif
                   <a href="{{ route('admin.productos.edit', $producto->id) }}" class="btn btn-warning btn-sm">Editar</a>
                 </td>
               </tr>
@@ -46,7 +60,7 @@
 
             @if ($productos->isEmpty())
               <tr>
-                <td colspan="4" class="text-center">No se encontraron productos.</td>
+                <td colspan="5" class="text-center">No se encontraron productos.</td>
               </tr>
             @endif
           </tbody>

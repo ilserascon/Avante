@@ -11,7 +11,8 @@ class Producto extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
-        // otros campos si los hay
+        'precio',
+        'id_tipo_producto',
     ];
 
     public $timestamps = true;
@@ -32,6 +33,11 @@ class Producto extends Model
         return $this->belongsToMany(Entrada::class, 'detalle_entradas', 'id_producto', 'id_entrada')
                     ->withPivot('cantidad', 'precio_unitario')
                     ->withTimestamps();
+    }
+
+    public function tipoProducto()
+    {
+        return $this->belongsTo(TipoProducto::class, 'id_tipo_producto');
     }
     private function syncInsumos(Producto $producto, $insumos)
     {

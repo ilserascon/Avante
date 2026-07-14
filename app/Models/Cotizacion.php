@@ -46,4 +46,16 @@ class Cotizacion extends Model
     {
         return $this->hasOne(DetalleCotizacion::class);
     }
+
+    public function detallesCotizacion()
+    {
+        return $this->hasMany(DetalleCotizacion::class);
+    }
+
+    public function productos()
+    {
+        return $this->belongsToMany(Producto::class, 'cotizacion_producto')
+            ->withPivot('cantidad', 'precio_unitario', 'subtotal')
+            ->withTimestamps();
+    }
 }

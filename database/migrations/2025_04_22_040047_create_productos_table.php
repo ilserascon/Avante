@@ -11,10 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::create('tipo_producto', function (Blueprint $table) {
+            $table->id();
+            $table->string('nombre');
+            $table->string('descripcion')->nullable();
+            $table->timestamp('created_at')->nullable();
+        });
+
         Schema::create('productos', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
             $table->string('descripcion')->nullable();
+            $table->decimal('precio', 10, 2);
+            $table->foreignId('id_tipo_producto')->nullable()->constrained('tipo_producto')->nullOnDelete();
             $table->timestamp('created_at')->nullable();
         });
     }

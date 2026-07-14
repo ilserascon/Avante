@@ -14,19 +14,48 @@
         <form method="POST" action="{{ route('admin.productos.store') }}">
           @csrf
 
-          <div class="form-group">
-            <label for="nombre">Nombre</label>
-            <input name="nombre" class="form-control @error('nombre') is-invalid @enderror" value="{{ old('nombre') }}" required>
-            @error('nombre') <div class="invalid-feedback">{{ $message }}</div> @enderror
+          <div class="row">
+            <div class="col-md-4 col-sm-6 col-xs-12">
+              <div class="form-group">
+                <label for="id_tipo_producto">Tipo de Producto</label>
+                <select name="id_tipo_producto" id="id_tipo_producto" class="form-control @error('id_tipo_producto') is-invalid @enderror">
+                  <option value="">Seleccione un tipo</option>
+                  @foreach ($tiposProducto as $tipo)
+                    <option value="{{ $tipo->id }}" {{ old('id_tipo_producto') == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
+                  @endforeach
+                </select>
+                @error('id_tipo_producto') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              </div>
+            </div>
+
+            <div class="col-md-8 col-sm-6 col-xs-12">
+              <div class="form-group">
+                <label for="nombre">Nombre</label>
+                <input name="nombre" class="form-control @error('nombre') is-invalid @enderror" value="{{ old('nombre') }}" required>
+                @error('nombre') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              </div>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="descripcion">Descripción</label>
-            <textarea name="descripcion" class="form-control @error('descripcion') is-invalid @enderror">{{ old('descripcion') }}</textarea>
-            @error('descripcion') <div class="invalid-feedback">{{ $message }}</div> @enderror
+          <div class="row">
+            <div class="col-md-4 col-sm-6 col-xs-12">
+              <div class="form-group">
+                <label for="precio">Precio</label>
+                <input type="number" name="precio" id="precio" class="form-control @error('precio') is-invalid @enderror" min="0" step="0.01" value="{{ old('precio') }}">
+                @error('precio') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              </div>
+            </div>
+
+            <div class="col-md-8 col-sm-6 col-xs-12">
+              <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                <textarea name="descripcion" class="form-control @error('descripcion') is-invalid @enderror" rows="1">{{ old('descripcion') }}</textarea>
+                @error('descripcion') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              </div>
+            </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group" id="insumos-section" style="display: none;">
             <label>Insumos</label>
             <button type="button" class="btn btn-info btn-sm mb-2" id="add-insumo">Agregar Insumo</button>
             <div id="insumos-container">
@@ -63,6 +92,18 @@
       dropdownParent: $(element).parent()
     });
   }
+
+  const tipoProductoSelect = document.getElementById('id_tipo_producto');
+  const insumosSection = document.getElementById('insumos-section');
+
+  function toggleInsumosSection() {
+    const selectedValue = tipoProductoSelect.value;
+    const isCortinero = selectedValue === '1' || (tipoProductoSelect.options[tipoProductoSelect.selectedIndex]?.text || '').toLowerCase() === 'cortinero';
+    insumosSection.style.display = isCortinero ? 'block' : 'none';
+  }
+
+  tipoProductoSelect.addEventListener('change', toggleInsumosSection);
+  toggleInsumosSection();
 
   document.getElementById('add-insumo').addEventListener('click', function () {
     const container = document.getElementById('insumos-container');

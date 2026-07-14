@@ -11,15 +11,24 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('cotizaciones', function ($table) {
-            $table->string('area')->nullable()->after('fecha');
-        });
+        if (!Schema::hasColumn('detalle_cotizacion', 'area')) {
+            Schema::table('detalle_cotizacion', function (Blueprint $table) {
+                if (Schema::hasColumn('detalle_cotizacion', 'descripcion')) {
+                    $table->string('area')->nullable()->after('descripcion');
+                    return;
+                }
+
+                $table->string('area')->nullable();
+            });
+        }
     }
 
     public function down()
     {
-        Schema::table('cotizaciones', function ($table) {
-            $table->dropColumn('area');
-        });
+        if (Schema::hasColumn('detalle_cotizacion', 'area')) {
+            Schema::table('detalle_cotizacion', function (Blueprint $table) {
+                $table->dropColumn('area');
+            });
+        }
     }
 };

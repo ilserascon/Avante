@@ -1,4 +1,4 @@
-# SistemaCotizador
+# Avante
 
 | Requisito     | Versión Mínima   | 
 |---------------|------------------|
@@ -9,4 +9,4 @@
 | Node.js       | 16.x o superior  | 
 | npm           | 8.x o superior   | 
 
-Usuario por default admin@einsoft.com contraseña: admin
+Usuario por default admin@avante.com contraseña: admin

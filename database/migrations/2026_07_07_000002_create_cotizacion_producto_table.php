@@ -9,12 +9,12 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
-        Schema::create('cotizacion_insumo', function (Blueprint $table) {
+        Schema::create('cotizacion_producto', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cotizacion_id')->constrained('cotizaciones')->onDelete('cascade');
-            $table->foreignId('insumo_id')->constrained('insumo')->onDelete('cascade');
+            $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
 
             $table->decimal('cantidad', 10, 2);
             $table->decimal('precio_unitario', 10, 2);
@@ -24,12 +24,11 @@ return new class extends Migration
         });
     }
 
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('cotizacion_insumo');
+        Schema::dropIfExists('cotizacion_producto');
     }
 };

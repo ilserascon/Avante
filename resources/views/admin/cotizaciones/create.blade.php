@@ -3,79 +3,121 @@
 @section('title', 'Nueva Cotización')
 
 @section('content')
+<style>
+    .cotizacion-type-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .cotizacion-type-card {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.85rem 1rem;
+        border: 1px solid #dfe4ea;
+        border-radius: 0.85rem;
+        background: #fff;
+        min-width: 150px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    .cotizacion-type-card:has(.form-check-input:checked) {
+        border-color: #6777ef;
+        background: #f5f7ff;
+        box-shadow: 0 0 0 0.2rem rgba(103, 119, 239, 0.12);
+    }
+
+    .cotizacion-type-card .form-check-input {
+        width: 1.2rem;
+        height: 1.2rem;
+        margin-top: 0;
+        flex-shrink: 0;
+    }
+
+    .cotizacion-type-card .form-check-label {
+        margin-bottom: 0;
+        font-weight: 600;
+        cursor: pointer;
+    }
+</style>
 <div class="section">
-    <div class="section-header">
-        <h1>Nueva Cotización</h1>
+    <div class="section-header bg-white border rounded shadow-sm px-4 py-3 d-block">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
+            <div>
+                <h1 class="mb-1">Nueva Cotización</h1>
+            </div>
+            <div class="mt-3 mt-lg-0">
+                <button type="button" class="btn btn-success px-4" id="agregar-cotizacion-btn">
+                    <i class="fas fa-plus mr-1"></i> Agregar cotización
+                </button>
+            </div>
+        </div>
+
+        <div class="row align-items-end">
+            <div class="col-lg-7 col-md-6 mb-3 mb-md-0">
+                <label for="cliente_id" class="font-weight-semibold mb-2">Cliente</label>
+                <select name="cliente_id" id="cliente_id" class="form-control select2" required autocomplete="off" form="cotizacion-form">
+                    <option value="">Seleccione un cliente</option>
+                    @foreach(\App\Models\Cliente::where('borrado', 0)->orderBy('nombre')->get() as $cliente)
+                    <option value="{{ $cliente->id }}">{{ $cliente->nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-3 mb-3 mb-md-0">
+                <label for="fecha" class="font-weight-semibold mb-2">Fecha</label>
+                <input type="date" name="fecha" id="fecha" class="form-control" required value="{{ date('Y-m-d') }}" form="cotizacion-form">
+            </div>
+            <div class="col-lg-2 col-md-3">
+                <div class="bg-light border rounded px-3 py-2 text-center">
+                    <div class="text-muted small">Estado</div>
+                    <div class="font-weight-bold">Borrador</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="section-body">
-        <form method="POST" action="{{ route('admin.cotizaciones.store') }}">
+        <form id="cotizacion-form" method="POST" action="{{ route('admin.cotizaciones.store') }}">
             @csrf
-
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <label for="cliente_id">Cliente</label>
-                    <select name="cliente_id" id="cliente_id" class="form-control" required autocomplete="off">
-                        <option value="">Seleccione un cliente</option>
-                        @foreach(\App\Models\Cliente::where('borrado', 0)->orderBy('nombre')->get() as $cliente)
-                        <option value="{{ $cliente->id }}">{{ $cliente->nombre }}</option>
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
                         @endforeach
-                    </select>
+                    </ul>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <label for="fecha">Fecha</label>
-                    <input type="date" name="fecha" id="fecha" class="form-control" required value="{{ date('Y-m-d') }}">
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label for="tipo_cortina" class="form-label">Tipo de Cortina</label>
-                    <input type="text" name="detalle[tipo_cortina]" id="tipo_cortina" class="form-control" placeholder="Ejemplo: plisada, rizada, wave">
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label for="area" class="form-label">Área</label>
-                    <input type="text" name="area" id="area" class="form-control" placeholder="Ejemplo: Cocina, Habitación, etc." value="{{ old('area', $cotizacion->area ?? '') }}">
-                </div>
-            </div>
-            <div class="row mb-3 align-items-center">
-                <div class="col d-flex align-items-center gap-3">
-                    <label class="mb-0 me-3 align-middle" style="vertical-align: middle;">Tipo de Cotización:</label>
-                    <div class="form-check form-check-inline" style="margin-left: 0.5rem;">
-                        <input type="checkbox" id="cortinaCheck" name="tipo[]" value="cortina" class="form-check-input" autocomplete="off">
-                        <label class="form-check-label" for="cortinaCheck">Cortina</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input type="checkbox" id="tergalCheck" name="tipo[]" value="tergal" class="form-check-input" autocomplete="off">
-                        <label class="form-check-label" for="tergalCheck">Tergal</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input type="checkbox" id="forroCheck" name="lleva_forro" value="1" class="form-check-input" autocomplete="off">
-                        <label class="form-check-label" for="forroCheck">Lleva Forro</label>
-                    </div>
+            @endif
+            <div class="card mb-3">
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="cotizacion-tabs" role="tablist"></ul>
+                    <div class="tab-content border border-top-0 p-3" id="cotizacion-tabs-content"></div>
                 </div>
             </div>
 
-            <div id="form-dinamico" class="mb-4">
-                <!-- Formularios dinámicos -->
-            </div>
 
             <!-- Tabla Totales Tela, Tergal y Forro -->
-            <div class="card mt-4" id="tabla-totales-tela-tergal">
-                <div class="card-header">
-                    <h4>Totales Tela, Tergal y Forro</h4>
+            <div class="card mt-4 border-0 shadow-sm d-none" id="tabla-totales-tela-tergal">
+                <div class="card-header bg-light border-bottom-0 py-3">
+                    <h4 class="mb-1">Totales Tela, Tergal y Forro</h4>
+                    <div class="text-muted small">Concentrado de metros cuadrados, precios y total por material textil.</div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-bordered mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Total Tela, Tergal y Forro</th>
-                                    <th>Precio m²</th>
                                     <th>Descripción</th>
+                                    <th>M²</th>
+                                    <th>Precio m²</th>
                                     <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Fila Cortina -->
                                 <tr>
+                                    <td> Cortina </td>
                                     <td>
                                         <input type="number" name="detalle[total_tela]" id="total_tela" class="form-control" step="0.01"
                                             value="{{ old('detalle.total_tela', $detalleCotizacion->total_tela ?? '') }}">
@@ -88,10 +130,6 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <input type="text" name="detalle[descripcion_tela]" class="form-control" placeholder="Cortina"
-                                            value="{{ old('detalle.descripcion_tela', $detalleCotizacion->descripcion_tela ?? '') }}">
-                                    </td>
-                                    <td>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
                                             <input type="number" name="detalle[total_tela_final]" id="total_tela_final" class="form-control" step="0.01"
@@ -101,6 +139,7 @@
                                 </tr>
                                 <!-- Fila Tergal -->
                                 <tr>
+                                    <td> Tergal </td>
                                     <td>
                                         <input type="number" name="detalle[total_tergal]" id="total_tergal" class="form-control" step="0.01"
                                             value="{{ old('detalle.total_tergal', $detalleCotizacion->total_tergal ?? '') }}">
@@ -113,10 +152,6 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <input type="text" name="detalle[descripcion_tergal]" class="form-control" placeholder="Tergal"
-                                            value="{{ old('detalle.descripcion_tergal', $detalleCotizacion->descripcion_tergal ?? '') }}">
-                                    </td>
-                                    <td>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
                                             <input type="number" name="detalle[total_tergal_final]" id="total_tergal_final" class="form-control" step="0.01"
@@ -126,6 +161,7 @@
                                 </tr>
                                 <!-- Fila Forro -->
                                 <tr>
+                                    <td> Forro </td>
                                     <td>
                                         <input type="number" id="total_forro" name="detalle[total_forro]" class="form-control" step="0.01"
                                             value="{{ old('detalle.total_forro', $detalleCotizacion->total_forro ?? '') }}">
@@ -136,10 +172,6 @@
                                             <input type="number" name="detalle[precio_m2_forro]" id="precio_m2_forro" class="form-control" step="0.01"
                                                 value="{{ old('detalle.precio_m2_forro', $detalleCotizacion->precio_m2_forro ?? '35.00') }}">
                                         </div>
-                                    </td>
-                                    <td>
-                                        <input type="text" name="detalle[descripcion_forro]" class="form-control" placeholder="Forro"
-                                            value="{{ old('detalle.descripcion_forro', $detalleCotizacion->descripcion_forro ?? '') }}">
                                     </td>
                                     <td>
                                         <div class="input-group">
@@ -167,9 +199,10 @@
             </div>
 
             <!-- Tabla Mano de Obra -->
-            <div class="card mt-4 d-none" id="tabla-mano-obra">
-                <div class="card-header">
-                    <h4>Mano de Obra</h4>
+            <div class="card mt-4 d-none border-0 shadow-sm" id="tabla-mano-obra">
+                <div class="card-header bg-light border-bottom-0 py-3">
+                    <h4 class="mb-1">Mano de Obra</h4>
+                    <div class="text-muted small">Resumen de costos operativos vinculados a cortina y tergal.</div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -255,9 +288,10 @@
             </div>
 
             <!-- Tabla Materiales Varios -->
-            <div class="card mt-4 d-none" id="tabla-materiales-varios">
-                <div class="card-header">
-                    <h4>Materiales Varios</h4>
+            <div class="card mt-4 d-none border-0 shadow-sm" id="tabla-materiales-varios">
+                <div class="card-header bg-light border-bottom-0 py-3">
+                    <h4 class="mb-1">Materiales Varios</h4>
+                    <div class="text-muted small">Accesorios, cortineros y materiales complementarios para la instalacion.</div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -408,9 +442,10 @@
             </div>
 
             <!-- Totales -->
-            <div class="card mt-4" id="tabla-totales">
-                <div class="card-header pb-1">
+            <div class="card mt-4 border-0 shadow-sm d-none" id="tabla-totales">
+                <div class="card-header bg-light border-bottom-0 py-3">
                     <h4 class="mb-1">Totales</h4>
+                    <div class="text-muted small">Resultado economico final con utilidad, decorador, descuento e IVA.</div>
                 </div>
                 <div class="card-body pt-2">
                     <div class="row">
@@ -526,8 +561,18 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary mt-4">Guardar Cotización</button>
-            <a href="{{ route('admin.cotizaciones.index') }}" class="btn btn-secondary mt-4">Cancelar</a>
+            <div class="bg-white border rounded shadow-sm px-4 py-3 mt-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    <div class="mb-3 mb-md-0">
+                        <div class="font-weight-bold">Acciones de la cotización</div>
+                        <div class="text-muted small">Revisa la información capturada antes de guardar o cancelar el borrador.</div>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row">
+                        <a href="{{ route('admin.cotizaciones.index') }}" class="btn btn-light border mr-sm-2 mb-2 mb-sm-0">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-4">Guardar Cotización</button>
+                    </div>
+                </div>
+            </div>
         </form>
     </div>
 </div>
@@ -588,13 +633,1216 @@
 </select>
 
 <script>
-    //Script para mostrar y ocultar formularios dinámicos
     document.addEventListener('DOMContentLoaded', function() {
+        const tabsNav = document.getElementById('cotizacion-tabs');
+        const tabsContent = document.getElementById('cotizacion-tabs-content');
+        const productosDisponibles = @json($productos ?? []);
+        const insumosDisponibles = @json($insumos ?? []);
+        const tiposInsumoDisponibles = @json($tiposInsumoCotizacion ?? []);
+        const tiposProductoDisponibles = @json($tiposProductoCotizacion ?? []);
+        const cortinerosTabDisponibles = @json($cortineros ?? []);
+        const manoObraBase = {
+            cortina: {{ $manoObra['Mano de Obra Cortina']->precio_publico ?? 120 }},
+            tergal: {{ $manoObra['Mano de Obra Tergal']->precio_publico ?? 100 }}
+        };
+        let detalleIndex = 0;
+
+        function obtenerOpcionesTipoInsumo(selectedId = '') {
+            const opciones = tiposInsumoDisponibles.map(tipo => {
+                const selected = String(tipo.id) === String(selectedId) ? 'selected' : '';
+                return `<option value="${tipo.id}" ${selected}>${tipo.nombre}</option>`;
+            }).join('');
+
+            return `<option value="">Seleccione un tipo</option>${opciones}`;
+        }
+
+        function obtenerOpcionesInsumo(tipoId = '', selectedId = '') {
+            if (!tipoId) {
+                return `<option value="">Seleccione un insumo</option>`;
+            }
+
+            const opciones = insumosDisponibles
+                .filter(insumo => String(insumo.id_tipo_insumo) === String(tipoId))
+                .map(insumo => {
+                    const selected = String(insumo.id) === String(selectedId) ? 'selected' : '';
+                    return `<option value="${insumo.id}" data-precio="${insumo.precio_publico ?? ''}" ${selected}>${insumo.nombre}</option>`;
+                })
+                .join('');
+
+            return `<option value="">Seleccione un insumo</option>${opciones}`;
+        }
+
+        function crearFilaInsumo(index, tipoId = '', insumoId = '', cantidad = '', precio = '') {
+            return `
+                <tr>
+                    <td>
+                        <select name="insumos[${index}][tipo_id]" class="form-control insumo-tipo-select">
+                            ${obtenerOpcionesTipoInsumo(tipoId)}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="insumos[${index}][id]" class="form-control insumo-select select2">
+                            ${obtenerOpcionesInsumo(tipoId, insumoId)}
+                        </select>
+                    </td>
+                    <td><input type="number" name="insumos[${index}][cantidad]" class="form-control" step="0.01" value="${cantidad}"></td>
+                    <td><input type="number" name="insumos[${index}][precio]" class="form-control insumo-precio" step="0.01" value="${precio}" readonly></td>
+                    <td><input type="number" name="insumos[${index}][subtotal]" class="form-control insumo-subtotal" step="0.01" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row">-</button></td>
+                </tr>
+            `;
+        }
+
+        function obtenerOpcionesTipoProducto(selectedId = '') {
+            const opciones = tiposProductoDisponibles.map(tipo => {
+                const selected = String(tipo.id) === String(selectedId) ? 'selected' : '';
+                return `<option value="${tipo.id}" ${selected}>${tipo.nombre}</option>`;
+            }).join('');
+
+            return `<option value="">Seleccione un tipo</option>${opciones}`;
+        }
+
+        function obtenerOpcionesProducto(tipoId = '', selectedId = '') {
+            if (!tipoId) {
+                return `<option value="">Seleccione un producto</option>`;
+            }
+
+            const opciones = productosDisponibles
+                .filter(producto => String(producto.id_tipo_producto) === String(tipoId))
+                .map(producto => {
+                    const selected = String(producto.id) === String(selectedId) ? 'selected' : '';
+                    return `<option value="${producto.id}" data-precio="${producto.precio ?? ''}" ${selected}>${producto.nombre}</option>`;
+                })
+                .join('');
+
+            return `<option value="">Seleccione un producto</option>${opciones}`;
+        }
+
+        function crearFilaProducto(index, tipoId = '', productoId = '', cantidad = '', precio = '') {
+            return `
+                <tr>
+                    <td>
+                        <select name="productos[${index}][tipo_id]" class="form-control producto-tipo-select">
+                            ${obtenerOpcionesTipoProducto(tipoId)}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="productos[${index}][id]" class="form-control producto-select select2">
+                            ${obtenerOpcionesProducto(tipoId, productoId)}
+                        </select>
+                    </td>
+                    <td><input type="number" name="productos[${index}][cantidad]" class="form-control" step="0.01" value="${cantidad}"></td>
+                    <td><input type="number" name="productos[${index}][precio]" class="form-control producto-precio" step="0.01" value="${precio}" readonly></td>
+                    <td><input type="number" name="productos[${index}][subtotal]" class="form-control producto-subtotal" step="0.01" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger remove-row">-</button></td>
+                </tr>
+            `;
+        }
+
+        function actualizarSubtotalFila(fila, prefijo) {
+            const cantidad = parseFloat(fila?.querySelector('input[name*="[cantidad]"]')?.value) || 0;
+            const precio = parseFloat(fila?.querySelector(`.${prefijo}-precio`)?.value) || 0;
+            const subtotalInput = fila?.querySelector(`.${prefijo}-subtotal`);
+
+            if (subtotalInput) {
+                subtotalInput.value = (cantidad * precio).toFixed(2);
+            }
+
+            actualizarTotalesConceptos();
+        }
+
+        function inicializarSelect2EnContenedor(contenedor) {
+            $(contenedor).find('select.select2').each(function() {
+                if ($(this).hasClass('select2-hidden-accessible')) {
+                    $(this).select2('destroy');
+                }
+
+                $(this).select2({
+                    width: '100%'
+                });
+            });
+        }
+
+        function reinicializarSelect2(select) {
+            const $select = $(select);
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.select2('destroy');
+            }
+
+            $select.select2({
+                width: '100%'
+            });
+        }
+
+        function actualizarSelectDependiente(select, opcionesHtml) {
+            select.innerHTML = opcionesHtml;
+            reinicializarSelect2(select);
+            $(select).trigger('change.select2');
+        }
+
+        function sumarSubtotales(selector) {
+            return Array.from(tabsContent.querySelectorAll(selector)).reduce((total, input) => {
+                return total + (parseFloat(input.value) || 0);
+            }, 0);
+        }
+
+        function actualizarTotalesConceptos() {
+            const totalInsumos = sumarSubtotales('.insumo-subtotal');
+            const totalProductos = sumarSubtotales('.producto-subtotal');
+            const totalPrecioPublicoPestanas = getDetallePanes().reduce((total, pane) => {
+                return total + (parseFloat(pane.querySelector('.detalle-precio-publico')?.value) || 0);
+            }, 0);
+            const totalGeneral = totalInsumos + totalProductos + totalPrecioPublicoPestanas;
+
+            const totalInsumosTab = document.getElementById('total-insumos-tab');
+            const totalProductosTab = document.getElementById('total-productos-tab');
+            const totalConceptosGeneral = document.getElementById('total-conceptos-general');
+
+            if (totalInsumosTab) totalInsumosTab.value = totalInsumos.toFixed(2);
+            if (totalProductosTab) totalProductosTab.value = totalProductos.toFixed(2);
+            if (totalConceptosGeneral) totalConceptosGeneral.value = totalGeneral.toFixed(2);
+        }
+
+        function obtenerInsumoPorId(insumoId) {
+            return insumosDisponibles.find(insumo => String(insumo.id) === String(insumoId));
+        }
+
+        function obtenerProductoPorId(productoId) {
+            return productosDisponibles.find(producto => String(producto.id) === String(productoId));
+        }
+
+        function actualizarPrecioFilaInsumo(fila, insumoId) {
+            const precioInput = fila?.querySelector('.insumo-precio');
+            const insumo = obtenerInsumoPorId(insumoId);
+            const precio = insumo?.precio_publico ?? '';
+
+            if (precioInput) {
+                precioInput.value = precio;
+            }
+
+            if (fila) {
+                actualizarSubtotalFila(fila, 'insumo');
+            }
+        }
+
+        function actualizarPrecioFilaProducto(fila, productoId) {
+            const precioInput = fila?.querySelector('.producto-precio');
+            const producto = obtenerProductoPorId(productoId);
+            const precio = producto?.precio ?? '';
+
+            if (precioInput) {
+                precioInput.value = precio;
+            }
+
+            if (fila) {
+                actualizarSubtotalFila(fila, 'producto');
+            }
+        }
+
+        function obtenerOpcionesCortinero(selectedId = '') {
+            const opciones = cortinerosTabDisponibles.map(cortinero => {
+                const selected = String(cortinero.id) === String(selectedId) ? 'selected' : '';
+                return `<option value="${cortinero.id}" data-precio="${cortinero.precio_publico ?? ''}" ${selected}>${cortinero.nombre}</option>`;
+            }).join('');
+
+            return `<option value="">Seleccione un cortinero</option>${opciones}`;
+        }
+
+        function construirTarjetasDetalle(index) {
+            return `
+                <div class="card mt-4 border-0 shadow-sm">
+                    <div class="card-header bg-light border-bottom-0 py-3">
+                        <h4 class="mb-1">Totales Tela, Tergal y Forro</h4>
+                        <div class="text-muted small">Concentrado de materiales textiles para esta pestana.</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Descripción</th>
+                                        <th>M²</th>
+                                        <th>Precio m²</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Cortina</td>
+                                        <td><input type="number" name="detalles[${index}][total_tela]" class="form-control" step="0.01"></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][precio_m2_tela]" class="form-control" step="0.01" value="100.00"></div></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][total_tela_final]" class="form-control" step="0.01" readonly></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tergal</td>
+                                        <td><input type="number" name="detalles[${index}][total_tergal]" class="form-control" step="0.01"></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][precio_m2_tergal]" class="form-control" step="0.01" value="70.00"></div></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][total_tergal_final]" class="form-control" step="0.01" readonly></div></td>
+                                    </tr>
+                                    <tr>
+
+                                        <td>Forro</td>
+                                        <td><input type="number" name="detalles[${index}][total_forro]" class="form-control" step="0.01"></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][precio_m2_forro]" class="form-control" step="0.01" value="35.00"></div></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][total_forro_final]" class="form-control" step="0.01" readonly></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Costo total tela, tergal y forro:</strong></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][costo_total_tela_tergal_forro]" class="form-control" step="0.01" readonly></div></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4 border-0 shadow-sm">
+                    <div class="card-header bg-light border-bottom-0 py-3">
+                        <h4 class="mb-1">Mano de Obra</h4>
+                        <div class="text-muted small">Costos operativos calculados para esta pestana.</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0">
+                                <thead class="table-light">
+                                    <tr><th>m²</th><th>Costo Mano de Obra</th><th>Total</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><div class="d-flex align-items-center"><label class="me-2 mb-0" style="margin-right: 0.6rem;">Cortina</label><input type="number" name="detalles[${index}][m2_1]" class="form-control" step="0.01" readonly></div></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][costo_mano_obra_1]" class="form-control" step="0.01" value="${manoObraBase.cortina}"></div></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][total_mano_obra_1]" class="form-control" step="0.01" readonly></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td><div class="d-flex align-items-center"><label class="me-2 mb-0" style="margin-right: 1rem;">Tergal</label><input type="number" name="detalles[${index}][m2_2]" class="form-control" step="0.01" readonly></div></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][costo_mano_obra_2]" class="form-control" step="0.01" value="${manoObraBase.tergal}"></div></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][total_mano_obra_2]" class="form-control" step="0.01" readonly></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" class="text-end"><strong>Costo Total Mano de Obra:</strong></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][costo_total_mano_obra]" class="form-control" step="0.01" readonly></div></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4 border-0 shadow-sm">
+                    <div class="card-header bg-light border-bottom-0 py-3">
+                        <h4 class="mb-1">Materiales Varios</h4>
+                        <div class="text-muted small">Cortineros y materiales complementarios vinculados a esta pestana.</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr><th>Material</th><th>Cantidad</th><th>Precio Unitario</th><th>Subtotal</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            Cortinero cortina
+                                            <select name="detalles[${index}][cortinero_id]" class="form-select detalle-cortinero-select select2 mt-2">
+                                                ${obtenerOpcionesCortinero()}
+                                            </select>
+                                        </td>
+                                        <td><input type="number" name="detalles[${index}][cortinero_cantidad]" class="form-control detalle-cortinero-cantidad" step="0.01"></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][cortinero_precio]" class="form-control detalle-cortinero-precio" step="0.01" readonly></div></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-cortinero-subtotal" step="0.01" readonly></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Cortinero tergal
+                                            <select name="detalles[${index}][cortinero_tergal_id]" class="form-select detalle-cortinero-tergal-select select2 mt-2">
+                                                ${obtenerOpcionesCortinero()}
+                                            </select>
+                                        </td>
+                                        <td><input type="number" name="detalles[${index}][cortinero_tergal_cantidad]" class="form-control detalle-cortinero-tergal-cantidad" step="0.01"></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][cortinero_tergal_precio]" class="form-control detalle-cortinero-tergal-precio" step="0.01" readonly></div></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-cortinero-tergal-subtotal" step="0.01" readonly></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Costo Total Materiales:</strong></td>
+                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-materiales-total" step="0.01" readonly></div></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4 border-0 shadow-sm">
+                    <div class="card-header bg-light border-bottom-0 py-3">
+                        <h4 class="mb-1">Totales</h4>
+                        <div class="text-muted small">Resultado economico de esta pestana.</div>
+                    </div>
+                    <div class="card-body pt-2">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-bordered mb-0 align-middle">
+                                    <tbody>
+                                        <tr><td><strong>Total No. Lienzos</strong></td><td><input type="number" class="form-control detalle-total-lienzos" step="0.01" readonly></td></tr>
+                                        <tr><td><strong>Total m² Forro</strong></td><td><input type="number" class="form-control detalle-total-m2-forro" step="0.01" readonly></td></tr>
+                                        <tr><td><strong>Total m² Tela</strong></td><td><input type="number" class="form-control detalle-total-m2-tela" step="0.01" readonly></td></tr>
+                                        <tr><td><strong>Total m² Tergal</strong></td><td><input type="number" class="form-control detalle-total-m2-tergal" step="0.01" readonly></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-bordered mb-0 align-middle">
+                                    <tbody>
+                                        <tr><td><strong>Costo Cortina</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-costo-cortina" step="0.01" readonly></div></td></tr>
+                                        <tr><td><strong>Utilidad</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-utilidad" step="0.01" readonly></div></td></tr>
+                                        <tr><td><strong>Costo Decorador</strong></td><td><div class="input-group"><input type="number" name="detalles[${index}][decorador_porcentaje]" class="form-control text-end detalle-decorador-porcentaje" value="15" min="0" max="100" step="0.01" style="max-width: 100px;"><span class="input-group-text">%</span><span class="input-group-text" style="margin-left: 0.5rem;">$</span><input type="number" class="form-control detalle-costo-decorador" step="0.01" readonly></div></td></tr>
+                                        <tr><td><strong>Precio Publico</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-precio-publico" step="0.01" readonly></div></td></tr>
+                                        <tr><td></td><td><div class="row justify-content-end"><div class="col-md-6"><div class="form-check mb-2"><input class="form-check-input detalle-aplicar-iva" type="checkbox" value="1"><label class="form-check-label">Aplicar IVA (16%)</label></div></div><div class="col-md-6"><label class="form-label mb-0">Descuento (%)</label><input type="number" class="form-control detalle-descuento" min="0" max="100" step="0.01" value="0"></div></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getDetallePanes() {
+            return Array.from(tabsContent.querySelectorAll('[data-detalle-pane="1"]'));
+        }
+
+        function sincronizarAjustesGlobales(origenPane) {
+            const decorador = origenPane.querySelector('.detalle-decorador-porcentaje')?.value ?? '15';
+            const descuento = origenPane.querySelector('.detalle-descuento')?.value ?? '0';
+            const iva = origenPane.querySelector('.detalle-aplicar-iva')?.checked ?? false;
+
+            getDetallePanes().forEach(pane => {
+                if (pane === origenPane) return;
+                const decoradorInput = pane.querySelector('.detalle-decorador-porcentaje');
+                const descuentoInput = pane.querySelector('.detalle-descuento');
+                const ivaInput = pane.querySelector('.detalle-aplicar-iva');
+                if (decoradorInput) decoradorInput.value = decorador;
+                if (descuentoInput) descuentoInput.value = descuento;
+                if (ivaInput) ivaInput.checked = iva;
+            });
+
+            const globalDecorador = document.getElementById('decorador_porcentaje');
+            const globalDescuento = document.getElementById('descuento');
+            const globalIva = document.getElementById('aplicar_iva');
+            if (globalDecorador) globalDecorador.value = decorador;
+            if (globalDescuento) globalDescuento.value = descuento;
+            if (globalIva) globalIva.checked = iva;
+        }
+
+        function actualizarTotalesGlobales() {
+            let totalLienzos = 0;
+            let totalM2Forro = 0;
+            let totalM2Tela = 0;
+            let totalM2Tergal = 0;
+            let costoCortina = 0;
+            let utilidad = 0;
+            let costoDecorador = 0;
+            let precioPublico = 0;
+
+            getDetallePanes().forEach(pane => {
+                totalLienzos += parseFloat(pane.querySelector('.detalle-total-lienzos')?.value) || 0;
+                totalM2Forro += parseFloat(pane.querySelector('.detalle-total-m2-forro')?.value) || 0;
+                totalM2Tela += parseFloat(pane.querySelector('.detalle-total-m2-tela')?.value) || 0;
+                totalM2Tergal += parseFloat(pane.querySelector('.detalle-total-m2-tergal')?.value) || 0;
+                costoCortina += parseFloat(pane.querySelector('.detalle-costo-cortina')?.value) || 0;
+                utilidad += parseFloat(pane.querySelector('.detalle-utilidad')?.value) || 0;
+                costoDecorador += parseFloat(pane.querySelector('.detalle-costo-decorador')?.value) || 0;
+                precioPublico += parseFloat(pane.querySelector('.detalle-precio-publico')?.value) || 0;
+            });
+
+            const mappings = {
+                total_lienzos: totalLienzos,
+                total_m2_forro: totalM2Forro,
+                total_m2_tela: totalM2Tela,
+                total_m2_tergal: totalM2Tergal,
+                costo_cortina: costoCortina,
+                utilidad: utilidad,
+                costo_decorador: costoDecorador,
+                precio_publico: precioPublico
+            };
+
+            Object.entries(mappings).forEach(([id, value]) => {
+                const input = document.getElementById(id);
+                if (input) input.value = value > 0 ? value.toFixed(2) : '';
+            });
+
+            actualizarTotalesConceptos();
+        }
+
+        function renumerarPestanasDetalle() {
+            getDetallePanes().forEach((pane, idx) => {
+                const tabLink = tabsNav.querySelector(`[href="#${pane.id}"] .detalle-tab-label`) || tabsNav.querySelector(`[href="#${pane.id}"]`);
+                const labelTarget = tabLink?.classList?.contains('detalle-tab-label') ? tabLink : tabLink?.querySelector?.('.detalle-tab-label');
+                if (labelTarget) {
+                    labelTarget.textContent = `Cortina/Tergal (${idx + 1})`;
+                }
+            });
+        }
+
+        function actualizarAccionesPestanasDetalle() {
+            const detalleTabs = tabsNav.querySelectorAll('[data-detalle-tab="1"]');
+            const mostrarEliminar = detalleTabs.length > 1;
+            detalleTabs.forEach(tab => {
+                const removeBtn = tab.querySelector('.remove-detalle-tab');
+                if (removeBtn) {
+                    removeBtn.classList.toggle('d-none', !mostrarEliminar);
+                }
+            });
+            renumerarPestanasDetalle();
+        }
+
+        function recalcularPestanaDetalle(index, pane) {
+            const field = (name) => pane.querySelector(`[name="detalles[${index}][${name}]"]`);
+            const num = (name) => parseFloat(field(name)?.value) || 0;
+            const set = (name, value) => { const input = field(name); if (input) input.value = value; };
+
+            const telaSelect = field('tela_id');
+            const tergalSelect = field('tergal_id');
+            const forroSelect = field('forro_id');
+            const cortinaChecked = !!pane.querySelector(`input[name="detalles[${index}][tipo][]"][value="cortina"]`)?.checked;
+            const tergalChecked = !!pane.querySelector(`input[name="detalles[${index}][tipo][]"][value="tergal"]`)?.checked;
+            const forroChecked = !!field('lleva_forro')?.checked;
+
+            if (telaSelect) {
+                const selected = telaSelect.selectedOptions[0];
+                const precio = parseFloat(selected?.dataset?.precio) || num('precio_m2_tela');
+                const campo2 = selected?.dataset?.campo2 || '';
+                set('precio_m2_tela', precio ? precio.toFixed(2) : '');
+                if (campo2) {
+                    field('ancho_tela').value = campo2.toString().replace(/[^\d.]/g, '');
+                }
+            }
+
+            if (tergalSelect) {
+                const selected = tergalSelect.selectedOptions[0];
+                const precio = parseFloat(selected?.dataset?.precio) || num('precio_m2_tergal');
+                const campo1 = selected?.dataset?.campo1 || '';
+                set('precio_m2_tergal', precio ? precio.toFixed(2) : '');
+                if (campo1) {
+                    field('ancho_tergal').value = campo1.toString().replace(/[^\d.]/g, '');
+                }
+            }
+
+            if (forroSelect) {
+                const selected = forroSelect.selectedOptions[0];
+                const precio = parseFloat(selected?.dataset?.precio) || num('precio_m2_forro');
+                const campo1 = selected?.dataset?.campo1 || '';
+                set('precio_m2_forro', precio ? precio.toFixed(2) : '');
+                if (campo1) {
+                    field('ancho_forro').value = campo1.toString().replace(/[^\d.]/g, '');
+                }
+            }
+
+            if (cortinaChecked) {
+                const ancho = num('ancho');
+                const anchoTela = num('ancho_tela');
+                const largo = num('largo');
+                const bastilla = num('valor_bastilla');
+                const lienzos = ancho > 0 && anchoTela > 0 ? (ancho * 2.5) / anchoTela : 0;
+                const lienzosRedondeado = lienzos > 0 ? Math.ceil(lienzos) : 0;
+                set('no_lienzos', lienzos ? lienzos.toFixed(2) : '');
+                set('no_lienzos_redondeado', lienzosRedondeado || '');
+                const totalTela = lienzosRedondeado > 0 ? lienzosRedondeado * (largo + bastilla) : 0;
+                set('total_tela', totalTela ? totalTela.toFixed(2) : '');
+                set('total_tela_final', totalTela ? (totalTela * num('precio_m2_tela')).toFixed(2) : '');
+                set('m2_1', totalTela ? totalTela.toFixed(2) : '');
+                const costoMO1 = anchoTela > 0 ? ((anchoTela <= 10 ? anchoTela * 100 : anchoTela) >= 280 ? manoObraBase.cortina * 2 : manoObraBase.cortina) : num('costo_mano_obra_1') || manoObraBase.cortina;
+                set('costo_mano_obra_1', costoMO1.toFixed(2));
+                set('total_mano_obra_1', totalTela ? (totalTela * costoMO1).toFixed(2) : '');
+            } else {
+                ['no_lienzos','no_lienzos_redondeado','total_tela','total_tela_final','m2_1','total_mano_obra_1'].forEach(name => set(name, ''));
+            }
+
+            if (tergalChecked) {
+                if (field('ancho')?.value && !field('ancho_tergal_real')?.value) field('ancho_tergal_real').value = field('ancho').value;
+                if (field('largo')?.value && !field('largo_tergal')?.value) field('largo_tergal').value = field('largo').value;
+                const anchoReal = num('ancho_tergal_real');
+                const anchoTela = num('ancho_tergal');
+                const largo = num('largo_tergal');
+                const bastilla = num('valor_bastilla_tergal');
+                const lienzos = anchoReal > 0 && anchoTela > 0 ? (anchoReal * 2.5) / anchoTela : 0;
+                const lienzosRedondeado = lienzos > 0 ? Math.ceil(lienzos) : 0;
+                set('no_lienzos_tergal', lienzos ? lienzos.toFixed(2) : '');
+                set('no_lienzos_redondeado_tergal', lienzosRedondeado || '');
+                const totalTergal = lienzosRedondeado > 0 ? lienzosRedondeado * (largo + bastilla) : 0;
+                set('total_tergal', totalTergal ? totalTergal.toFixed(2) : '');
+                set('total_tergal_final', totalTergal ? (totalTergal * num('precio_m2_tergal')).toFixed(2) : '');
+                set('m2_2', totalTergal ? totalTergal.toFixed(2) : '');
+                set('costo_mano_obra_2', (num('costo_mano_obra_2') || manoObraBase.tergal).toFixed(2));
+                set('total_mano_obra_2', totalTergal ? (totalTergal * num('costo_mano_obra_2')).toFixed(2) : '');
+            } else {
+                ['no_lienzos_tergal','no_lienzos_redondeado_tergal','total_tergal','total_tergal_final','m2_2','total_mano_obra_2'].forEach(name => set(name, ''));
+            }
+
+            if (forroChecked) {
+                if (field('ancho')?.value && !field('ancho_forro_real')?.value) field('ancho_forro_real').value = field('ancho').value;
+                if (field('largo')?.value && !field('largo_forro')?.value) field('largo_forro').value = field('largo').value;
+                const anchoReal = num('ancho_forro_real');
+                const anchoTela = num('ancho_forro');
+                const largo = num('largo_forro');
+                const bastilla = num('valor_bastilla_forro');
+                const lienzos = anchoReal > 0 && anchoTela > 0 ? (anchoReal * 2.5) / anchoTela : 0;
+                const lienzosRedondeado = lienzos > 0 ? Math.ceil(lienzos) : 0;
+                set('no_lienzos_forro', lienzos ? lienzos.toFixed(2) : '');
+                set('no_lienzos_redondeado_forro', lienzosRedondeado || '');
+                const totalForro = lienzosRedondeado > 0 ? lienzosRedondeado * (largo + bastilla) : 0;
+                set('total_forro', totalForro ? totalForro.toFixed(2) : '');
+                set('total_final_forro', totalForro ? (totalForro * num('precio_m2_forro')).toFixed(2) : '');
+            } else {
+                ['no_lienzos_forro','no_lienzos_redondeado_forro','total_forro','total_final_forro'].forEach(name => set(name, ''));
+            }
+
+            const cortineroSelect = pane.querySelector('.detalle-cortinero-select');
+            const cortineroPrecio = pane.querySelector('.detalle-cortinero-precio');
+            const cortineroCantidad = parseFloat(pane.querySelector('.detalle-cortinero-cantidad')?.value) || 0;
+            const cortineroPrecioVal = parseFloat(cortineroSelect?.selectedOptions[0]?.dataset?.precio) || parseFloat(cortineroPrecio?.value) || 0;
+            if (cortineroPrecio) cortineroPrecio.value = cortineroPrecioVal ? cortineroPrecioVal.toFixed(2) : '';
+            const cortineroSubtotal = cortineroCantidad * cortineroPrecioVal;
+            const cortineroSubtotalInput = pane.querySelector('.detalle-cortinero-subtotal');
+            if (cortineroSubtotalInput) cortineroSubtotalInput.value = cortineroSubtotal ? cortineroSubtotal.toFixed(2) : '';
+
+            const cortineroTergalSelect = pane.querySelector('.detalle-cortinero-tergal-select');
+            const cortineroTergalPrecio = pane.querySelector('.detalle-cortinero-tergal-precio');
+            const cortineroTergalCantidad = parseFloat(pane.querySelector('.detalle-cortinero-tergal-cantidad')?.value) || 0;
+            const cortineroTergalPrecioVal = parseFloat(cortineroTergalSelect?.selectedOptions[0]?.dataset?.precio) || parseFloat(cortineroTergalPrecio?.value) || 0;
+            if (cortineroTergalPrecio) cortineroTergalPrecio.value = cortineroTergalPrecioVal ? cortineroTergalPrecioVal.toFixed(2) : '';
+            const cortineroTergalSubtotal = cortineroTergalCantidad * cortineroTergalPrecioVal;
+            const cortineroTergalSubtotalInput = pane.querySelector('.detalle-cortinero-tergal-subtotal');
+            if (cortineroTergalSubtotalInput) cortineroTergalSubtotalInput.value = cortineroTergalSubtotal ? cortineroTergalSubtotal.toFixed(2) : '';
+
+            const materialesTotal = cortineroSubtotal + cortineroTergalSubtotal;
+            const materialesTotalInput = pane.querySelector('.detalle-materiales-total');
+            if (materialesTotalInput) materialesTotalInput.value = materialesTotal ? materialesTotal.toFixed(2) : '';
+
+            const totalTelaFinal = num('total_tela_final');
+            const totalTergalFinal = num('total_tergal_final');
+            const totalForroFinal = num('total_final_forro');
+            const costoTotalTela = totalTelaFinal + totalTergalFinal + totalForroFinal;
+            set('costo_total_tela_tergal_forro', costoTotalTela ? costoTotalTela.toFixed(2) : '');
+
+            const costoTotalMO = (parseFloat(field('total_mano_obra_1')?.value) || 0) + (parseFloat(field('total_mano_obra_2')?.value) || 0);
+            set('costo_total_mano_obra', costoTotalMO ? costoTotalMO.toFixed(2) : '');
+
+            const localTotalLienzos = (parseFloat(field('no_lienzos_redondeado')?.value) || 0) + (parseFloat(field('no_lienzos_redondeado_tergal')?.value) || 0) + (parseFloat(field('no_lienzos_redondeado_forro')?.value) || 0);
+            const localM2Tela = parseFloat(field('total_tela')?.value) || 0;
+            const localM2Tergal = parseFloat(field('total_tergal')?.value) || 0;
+            const localM2Forro = parseFloat(field('total_forro')?.value) || 0;
+            const localCostoCortina = costoTotalTela + costoTotalMO + materialesTotal;
+            const localUtilidad = localCostoCortina * 0.15;
+            const decoradorPorcentaje = parseFloat(field('decorador_porcentaje')?.value) || 15;
+            const localCostoDecorador = localCostoCortina * (1 + decoradorPorcentaje / 100);
+            const descuento = parseFloat(pane.querySelector('.detalle-descuento')?.value) || 0;
+            const descripcionCompuesta = [
+                field('descripcion_tela')?.value?.trim(),
+                field('descripcion_tergal')?.value?.trim(),
+                field('descripcion_forro')?.value?.trim()
+            ].filter(Boolean).join(' | ');
+            let localPrecioPublico = localCostoCortina * 2;
+            if (descuento > 0) localPrecioPublico -= localPrecioPublico * (descuento / 100);
+            if (pane.querySelector('.detalle-aplicar-iva')?.checked) localPrecioPublico *= 1.16;
+
+            set('descripcion', descripcionCompuesta);
+
+            const setClassValue = (selector, value) => {
+                const input = pane.querySelector(selector);
+                if (input) input.value = value > 0 ? value.toFixed(2) : '';
+            };
+
+            setClassValue('.detalle-total-lienzos', localTotalLienzos);
+            setClassValue('.detalle-total-m2-tela', localM2Tela);
+            setClassValue('.detalle-total-m2-tergal', localM2Tergal);
+            setClassValue('.detalle-total-m2-forro', localM2Forro);
+            setClassValue('.detalle-costo-cortina', localCostoCortina);
+            setClassValue('.detalle-utilidad', localUtilidad);
+            setClassValue('.detalle-costo-decorador', localCostoDecorador);
+            setClassValue('.detalle-precio-publico', localPrecioPublico);
+
+            actualizarTotalesGlobales();
+        }
+
+        function inicializarPestanaDetalle(index, pane) {
+            inicializarSelect2EnContenedor(pane);
+            pane.addEventListener('input', function(event) {
+                if (event.target.matches('input, select')) {
+                    recalcularPestanaDetalle(index, pane);
+                }
+            });
+            pane.addEventListener('change', function(event) {
+                if (event.target.matches('input, select')) {
+                    if (event.target.classList.contains('detalle-decorador-porcentaje') || event.target.classList.contains('detalle-descuento') || event.target.classList.contains('detalle-aplicar-iva')) {
+                        sincronizarAjustesGlobales(pane);
+                    }
+                    recalcularPestanaDetalle(index, pane);
+                }
+            });
+            $(pane).on('change', 'select.select2', function() {
+                recalcularPestanaDetalle(index, pane);
+            });
+            sincronizarAjustesGlobales(pane);
+            recalcularPestanaDetalle(index, pane);
+        }
+
+        function crearPestanasFijas() {
+            tabsNav.innerHTML = `
+                <li class="nav-item" data-static-tab="insumos"><a class="nav-link" data-toggle="tab" href="#insumos-global">Insumos</a></li>
+                <li class="nav-item" data-static-tab="productos"><a class="nav-link" data-toggle="tab" href="#productos-global">Productos</a></li>
+            `;
+
+            tabsContent.innerHTML = `
+                <div class="tab-pane fade" id="insumos-global">
+                    <div class="d-flex justify-content-end mb-3">
+                        <button type="button" class="btn btn-sm btn-primary add-insumo-row">Agregar Insumo</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th width="20%">Tipo de insumo</th><th width="30%">Insumo</th><th width="15%">Cantidad</th><th width="15%">Precio</th><th width="15%">Subtotal</th><th width="5%"></th></tr>
+                            </thead>
+                            <tbody class="insumos-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <div style="min-width: 320px;">
+                            <label class="font-weight-bold mb-1 d-block text-right">Total Insumos</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="total-insumos-tab" class="form-control text-right" step="0.01" readonly value="0.00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="productos-global">
+                    <div class="d-flex justify-content-end mb-3">
+                        <button type="button" class="btn btn-sm btn-primary add-producto-row">Agregar Producto</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th width="20%">Tipo de producto</th><th width="30%">Producto</th><th width="15%">Cantidad</th><th width="15%">Precio</th><th width="15%">Subtotal</th><th width="5%"></th></tr>
+                            </thead>
+                            <tbody class="productos-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <div style="min-width: 320px;">
+                            <label class="font-weight-bold mb-1 d-block text-right">Total Productos</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="total-productos-tab" class="form-control text-right" step="0.01" readonly value="0.00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const totalesPrevios = document.getElementById('totales-conceptos-wrapper');
+            if (totalesPrevios) {
+                totalesPrevios.remove();
+            }
+
+            tabsContent.insertAdjacentHTML('afterend', `
+                <div class="border border-top-0 p-3" id="totales-conceptos-wrapper">
+                    <div class="row g-3">
+                        <div class="col-md-4 ms-auto">
+                            <h5>Total</h5>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="total-conceptos-general" class="form-control" step="0.01" readonly value="0.00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+
+            const insumosBody = tabsContent.querySelector('.insumos-body');
+            if (insumosBody) {
+                insumosBody.innerHTML = crearFilaInsumo(0);
+                inicializarSelect2EnContenedor(insumosBody);
+            }
+
+            const productosBody = tabsContent.querySelector('.productos-body');
+            if (productosBody) {
+                productosBody.innerHTML = crearFilaProducto(0);
+                inicializarSelect2EnContenedor(productosBody);
+            }
+
+            actualizarTotalesConceptos();
+        }
+
+        function crearPestanaDetalle(index = detalleIndex++) {
+            const hasDetalle = tabsNav.querySelector('[data-detalle-tab]');
+            const detalleTabId = `detalle-${index}`;
+            const isFirst = !hasDetalle;
+
+            const tabItem = document.createElement('li');
+            tabItem.className = 'nav-item position-relative';
+            tabItem.dataset.detalleTab = '1';
+            tabItem.innerHTML = `
+                <a class="nav-link pr-5 ${isFirst ? 'active' : ''}" data-toggle="tab" href="#${detalleTabId}">
+                    <span class="detalle-tab-label">Cortina/Tergal (${index + 1})</span>
+                </a>
+                <button type="button" class="btn btn-link text-danger btn-sm px-2 remove-detalle-tab d-none position-absolute" data-target="#${detalleTabId}" title="Eliminar pestaña" style="top: 50%; right: 6px; transform: translateY(-50%); z-index: 2;">
+                    <i class="fas fa-times"></i>
+                </button>`;
+
+            const insumosTab = tabsNav.querySelector('[data-static-tab="insumos"]');
+            if (insumosTab) {
+                tabsNav.insertBefore(tabItem, insumosTab);
+            } else {
+                tabsNav.appendChild(tabItem);
+            }
+
+            const pane = document.createElement('div');
+            pane.className = `tab-pane fade ${isFirst ? 'show active' : ''}`;
+            pane.dataset.detallePane = '1';
+            pane.id = detalleTabId;
+            pane.innerHTML = `
+                <div class="mb-3 border rounded p-3 bg-light">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de cotización</label>
+                            <div class="cotizacion-type-options">
+                                <label class="cotizacion-type-card" style="padding-left: 30px;">
+                                    <input class="form-check-input" type="checkbox" name="detalles[${index}][tipo][]" value="cortina">
+                                    <span class="form-check-label">&nbsp;Cortina</span>
+                                </label>
+                                <label class="cotizacion-type-card" style="padding-left: 30px;">
+                                    <input class="form-check-input" type="checkbox" name="detalles[${index}][tipo][]" value="tergal">
+                                    <span class="form-check-label">&nbsp;Tergal</span>
+                                </label>
+                                <label class="cotizacion-type-card" style="padding-left: 30px;">
+                                    <input class="form-check-input" type="checkbox" name="detalles[${index}][lleva_forro]" value="1">
+                                    <span class="form-check-label">&nbsp;Forro</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Área</label>
+                            <input type="text" name="detalles[${index}][area]" class="form-control" placeholder="Ej. Cocina, Habitación, etc.">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Descripción</label>
+                            <textarea name="detalles[${index}][descripcion]" class="form-control" rows="4" placeholder="Se llenara automaticamente con las descripciones de tela, tergal y forro como sugerencia."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="detalle-wrapper"></div>
+                <div class="detalle-totales-wrapper">${construirTarjetasDetalle(index)}</div>
+            `;
+
+            const insumosPane = tabsContent.querySelector('#insumos-global');
+            if (insumosPane) {
+                tabsContent.insertBefore(pane, insumosPane);
+            } else {
+                tabsContent.appendChild(pane);
+            }
+
+            const wrapper = pane.querySelector('.detalle-wrapper');
+            const actualizarDetalle = () => {
+                const tipos = Array.from(pane.querySelectorAll(`input[name="detalles[${index}][tipo][]"]:checked`)).map(input => input.value);
+                const llevaForro = !!pane.querySelector(`input[name="detalles[${index}][lleva_forro]"]`)?.checked;
+                const valoresPrevios = {};
+
+                wrapper.querySelectorAll('input, select, textarea').forEach(field => {
+                    if (!field.name) {
+                        return;
+                    }
+
+                    if (field.type === 'checkbox' || field.type === 'radio') {
+                        valoresPrevios[field.name] = field.checked;
+                        return;
+                    }
+
+                    valoresPrevios[field.name] = field.value;
+                });
+
+                wrapper.innerHTML = '';
+
+                if (tipos.includes('cortina')) {
+                    wrapper.insertAdjacentHTML('beforeend', `
+                        <div class="card mt-2">
+                            <div class="card-header bg-light py-2"><h6 class="mb-0">Cortina</h6></div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tela</label>
+                                        <select name="detalles[${index}][tela_id]" class="form-control select2">
+                                            <option value="">Seleccione una tela</option>
+                                            @foreach($telas as $tela)
+                                                @php
+                                                    if(limpiarPrecio($tela->precio_publico) > 0) {
+                                                        $precioTelaDetalle = limpiarPrecio($tela->precio_publico);
+                                                    } elseif(limpiarPrecio($tela->campo6) > 0) {
+                                                        $precioTelaDetalle = limpiarPrecio($tela->campo6);
+                                                    } elseif(limpiarPrecio($tela->campo13) > 0) {
+                                                        $precioTelaDetalle = limpiarPrecio($tela->campo13);
+                                                    } else {
+                                                        $precioTelaDetalle = 100;
+                                                    }
+                                                @endphp
+                                                <option value="{{ $tela->id }}" data-precio="{{ $precioTelaDetalle }}" data-campo2="{{ $tela->campo2 }}">{{ $tela->nombre }} - {{ $tela->campo1 }} - {{ $tela->campo2 }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Descripción</label>
+                                        <input type="text" name="detalles[${index}][descripcion_tela]" class="form-control">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Ancho tela (cm)</label>
+                                        <input type="number" name="detalles[${index}][ancho_tela]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Ancho cortina (cm)</label>
+                                        <input type="number" name="detalles[${index}][ancho]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Largo (m)</label>
+                                        <input type="number" name="detalles[${index}][largo]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">No. Lienzos</label>
+                                        <input type="number" name="detalles[${index}][no_lienzos]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">No. Lienzos redondeado</label>
+                                        <input type="number" name="detalles[${index}][no_lienzos_redondeado]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Bastilla (m)</label>
+                                        <input type="number" name="detalles[${index}][valor_bastilla]" class="form-control" step="0.01" value="0.40">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }
+
+                if (tipos.includes('tergal')) {
+                    wrapper.insertAdjacentHTML('beforeend', `
+                        <div class="card mt-2">
+                            <div class="card-header bg-light py-2"><h6 class="mb-0">Tergal</h6></div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tergal</label>
+                                        <select name="detalles[${index}][tergal_id]" class="form-control select2">
+                                            <option value="">Seleccione un tergal</option>
+                                            @foreach($tergales as $tergal)
+                                                <option value="{{ $tergal->id }}" data-precio="{{ is_numeric($tergal->precio_publico) ? $tergal->precio_publico : 0 }}" data-campo1="{{ $tergal->campo1 }}" data-campo2="{{ $tergal->campo2 }}">{{ $tergal->nombre }} - {{ $tergal->campo1 }} - {{ $tergal->campo2 }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Descripción</label>
+                                        <input type="text" name="detalles[${index}][descripcion_tergal]" class="form-control">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Ancho tela (cm)</label>
+                                        <input type="number" name="detalles[${index}][ancho_tergal]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Ancho tergal (cm)</label>
+                                        <input type="number" name="detalles[${index}][ancho_tergal_real]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Largo (m)</label>
+                                        <input type="number" name="detalles[${index}][largo_tergal]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">No. Lienzos</label>
+                                        <input type="number" name="detalles[${index}][no_lienzos_tergal]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">No. Lienzos redondeado</label>
+                                        <input type="number" name="detalles[${index}][no_lienzos_redondeado_tergal]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Bastilla (m)</label>
+                                        <input type="number" name="detalles[${index}][valor_bastilla_tergal]" class="form-control" step="0.01" value="0.65">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }
+
+                if (llevaForro) {
+                    wrapper.insertAdjacentHTML('beforeend', `
+                        <div class="card mt-2">
+                            <div class="card-header bg-light py-2"><h6 class="mb-0">Forro</h6></div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Forro</label>
+                                        <select name="detalles[${index}][forro_id]" class="form-control select2">
+                                            <option value="">Seleccione un forro</option>
+                                            @foreach($forros as $forro)
+                                                <option value="{{ $forro->id }}" data-precio="{{ is_numeric($forro->precio_publico) ? $forro->precio_publico : 0 }}" data-campo1="{{ $forro->campo1 }}" data-campo2="{{ $forro->campo2 }}">{{ $forro->nombre }} - {{ $forro->campo1 }} - {{ $forro->campo2 }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Descripción</label>
+                                        <input type="text" name="detalles[${index}][descripcion_forro]" class="form-control">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Ancho forro (cm)</label>
+                                        <input type="number" name="detalles[${index}][ancho_forro]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Ancho forro real (cm)</label>
+                                        <input type="number" name="detalles[${index}][ancho_forro_real]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Largo (m)</label>
+                                        <input type="number" name="detalles[${index}][largo_forro]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">No. Lienzos</label>
+                                        <input type="number" name="detalles[${index}][no_lienzos_forro]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">No. Lienzos redondeado</label>
+                                        <input type="number" name="detalles[${index}][no_lienzos_redondeado_forro]" class="form-control" step="0.01">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Bastilla (m)</label>
+                                        <input type="number" name="detalles[${index}][valor_bastilla_forro]" class="form-control" step="0.01" value="0.65">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }
+
+                [wrapper.querySelector(`select[name="detalles[${index}][tela_id]"]`), wrapper.querySelector(`select[name="detalles[${index}][tergal_id]"]`), wrapper.querySelector(`select[name="detalles[${index}][forro_id]"]`)].filter(Boolean).forEach(select => $(select).select2());
+
+                wrapper.querySelectorAll('input, select, textarea').forEach(field => {
+                    if (!field.name || !Object.prototype.hasOwnProperty.call(valoresPrevios, field.name)) {
+                        return;
+                    }
+
+                    if (field.type === 'checkbox' || field.type === 'radio') {
+                        field.checked = !!valoresPrevios[field.name];
+                        return;
+                    }
+
+                    field.value = valoresPrevios[field.name];
+                    if (field.tagName === 'SELECT') {
+                        $(field).trigger('change');
+                    }
+                });
+            };
+
+            pane.querySelectorAll(`input[name="detalles[${index}][tipo][]"], input[name="detalles[${index}][lleva_forro]"]`).forEach(input => {
+                input.addEventListener('change', actualizarDetalle);
+            });
+            actualizarDetalle();
+            inicializarPestanaDetalle(index, pane);
+            actualizarAccionesPestanasDetalle();
+            return pane;
+        }
+
+        function agregarFilaDinamica(tipo) {
+            const body = tabsContent.querySelector(tipo === 'insumos' ? '.insumos-body' : '.productos-body');
+            const index = body.children.length;
+
+            if (tipo === 'insumos') {
+                body.insertAdjacentHTML('beforeend', crearFilaInsumo(index));
+                inicializarSelect2EnContenedor(body.lastElementChild);
+                actualizarTotalesConceptos();
+                return;
+            }
+
+            if (tipo === 'productos') {
+                body.insertAdjacentHTML('beforeend', crearFilaProducto(index));
+                inicializarSelect2EnContenedor(body.lastElementChild);
+                actualizarTotalesConceptos();
+                return;
+            }
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <select name="${tipo}[${index}][id]" class="form-control">
+                        <option value="">Seleccione un ${tipo === 'insumos' ? 'insumo' : 'producto'}</option>
+                        ${tipo === 'insumos' ? `@foreach($insumos as $insumo)<option value="{{ $insumo->id }}">{{ $insumo->nombre }}</option>@endforeach` : `@foreach($productos as $producto)<option value="{{ $producto->id }}">{{ $producto->nombre }}</option>@endforeach`}
+                    </select>
+                </td>
+                <td><input type="number" name="${tipo}[${index}][cantidad]" class="form-control" step="0.01"></td>
+                <td><input type="number" name="${tipo}[${index}][precio]" class="form-control" step="0.01"></td>
+                <td><button type="button" class="btn btn-sm btn-danger remove-row">-</button></td>
+            `;
+            body.appendChild(row);
+            row.querySelector('.remove-row').addEventListener('click', () => row.remove());
+        }
+
+        crearPestanasFijas();
+        crearPestanaDetalle();
+
+        document.getElementById('agregar-cotizacion-btn').addEventListener('click', () => {
+            crearPestanaDetalle();
+        });
+
+        tabsNav.addEventListener('click', function(event) {
+            const removeBtn = event.target.closest('.remove-detalle-tab');
+            if (!removeBtn) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const targetSelector = removeBtn.dataset.target;
+            const targetPane = targetSelector ? tabsContent.querySelector(targetSelector) : null;
+            const detalleTabs = Array.from(tabsNav.querySelectorAll('[data-detalle-tab="1"]'));
+
+            if (!targetPane || detalleTabs.length <= 1) {
+                return;
+            }
+
+            if (!window.confirm('Se eliminara esta cotizacion Cortina/Tergal. ¿Deseas continuar?')) {
+                return;
+            }
+
+            const currentTab = removeBtn.closest('[data-detalle-tab="1"]');
+            const currentIndex = detalleTabs.indexOf(currentTab);
+            const isActive = currentTab?.querySelector('.nav-link')?.classList.contains('active');
+
+            currentTab?.remove();
+            targetPane.remove();
+
+            const remainingTabs = Array.from(tabsNav.querySelectorAll('[data-detalle-tab="1"]'));
+            if (isActive && remainingTabs.length) {
+                const nextTab = remainingTabs[currentIndex] || remainingTabs[currentIndex - 1] || remainingTabs[0];
+                const nextLink = nextTab?.querySelector('.nav-link');
+                if (nextLink) {
+                    $(nextLink).tab('show');
+                }
+            }
+
+            actualizarAccionesPestanasDetalle();
+            actualizarTotalesGlobales();
+        });
+
+        tabsContent.addEventListener('click', function(event) {
+            if (event.target.classList.contains('add-insumo-row')) {
+                agregarFilaDinamica('insumos');
+            }
+
+            if (event.target.classList.contains('add-producto-row')) {
+                agregarFilaDinamica('productos');
+            }
+
+            if (event.target.classList.contains('remove-row')) {
+                const fila = event.target.closest('tr');
+                $(fila).find('select.select2').each(function() {
+                    if ($(this).hasClass('select2-hidden-accessible')) {
+                        $(this).select2('destroy');
+                    }
+                });
+                fila?.remove();
+                actualizarTotalesConceptos();
+            }
+        });
+
+        tabsContent.addEventListener('change', function(event) {
+            if (event.target.classList.contains('insumo-tipo-select')) {
+                const fila = event.target.closest('tr');
+                const insumoSelect = fila?.querySelector('.insumo-select');
+                const precioInput = fila?.querySelector('.insumo-precio');
+                const subtotalInput = fila?.querySelector('.insumo-subtotal');
+
+                if (insumoSelect) {
+                    actualizarSelectDependiente(
+                        insumoSelect,
+                        obtenerOpcionesInsumo(event.target.value)
+                    );
+                }
+
+                if (precioInput) {
+                    precioInput.value = '';
+                }
+
+                if (subtotalInput) {
+                    subtotalInput.value = '0.00';
+                }
+
+                actualizarTotalesConceptos();
+            }
+
+            if (event.target.classList.contains('insumo-select')) {
+                const fila = event.target.closest('tr');
+                actualizarPrecioFilaInsumo(fila, event.target.value);
+            }
+
+            if (event.target.classList.contains('producto-tipo-select')) {
+                const fila = event.target.closest('tr');
+                const productoSelect = fila?.querySelector('.producto-select');
+                const precioInput = fila?.querySelector('.producto-precio');
+                const subtotalInput = fila?.querySelector('.producto-subtotal');
+
+                if (productoSelect) {
+                    actualizarSelectDependiente(
+                        productoSelect,
+                        obtenerOpcionesProducto(event.target.value)
+                    );
+                }
+
+                if (precioInput) {
+                    precioInput.value = '';
+                }
+
+                if (subtotalInput) {
+                    subtotalInput.value = '0.00';
+                }
+
+                if (fila) {
+                    actualizarSubtotalFila(fila, 'producto');
+                }
+            }
+
+            if (event.target.classList.contains('producto-select')) {
+                const fila = event.target.closest('tr');
+                actualizarPrecioFilaProducto(fila, event.target.value);
+            }
+        });
+
+        $(tabsContent).on('change', '.insumo-select', function() {
+            actualizarPrecioFilaInsumo(this.closest('tr'), this.value);
+        });
+
+        $(tabsContent).on('change', '.producto-select', function() {
+            actualizarPrecioFilaProducto(this.closest('tr'), this.value);
+        });
+
+        tabsContent.addEventListener('input', function(event) {
+            const fila = event.target.closest('tr');
+            if (!fila) {
+                return;
+            }
+
+            if (event.target.closest('.insumos-body') && event.target.name?.includes('[cantidad]')) {
+                actualizarSubtotalFila(fila, 'insumo');
+            }
+
+            if (event.target.closest('.productos-body') && event.target.name?.includes('[cantidad]')) {
+                actualizarSubtotalFila(fila, 'producto');
+            }
+        });
+
         const cortina = document.getElementById('cortinaCheck');
         const tergal = document.getElementById('tergalCheck');
         const forro = document.getElementById('forroCheck');
         const formDinamico = document.getElementById('form-dinamico');
 
+        if (formDinamico && cortina && tergal && forro) {
         function actualizarFormulario() {
             const valoresPrevios = {};
             const atributosOriginales = {};
@@ -624,9 +1872,10 @@
 
                         if (cortina.checked) {
                             formDinamico.innerHTML += `
-                                <div class="card mt-4">
-                                    <div class="card-header pb-1">
+                                <div class="card mt-4 border-0 shadow-sm">
+                                    <div class="card-header bg-light border-bottom-0 py-3">
                                         <h4 class="mb-1">Datos de la Cortina</h4>
+                                        <div class="text-muted small">Configuracion de tela, dimensiones y lienzos para este concepto.</div>
                                     </div>
                                     <div class="card-body pt-2">
                                         <!-- Select Tela fuera de la tabla -->
@@ -757,9 +2006,10 @@
 
                         if (tergal.checked) {
                             formDinamico.innerHTML += `
-                                <div class="card mt-4">
-                                    <div class="card-header pb-1">
+                                <div class="card mt-4 border-0 shadow-sm">
+                                    <div class="card-header bg-light border-bottom-0 py-3">
                                         <h4 class="mb-1">Datos del Tergal</h4>
+                                        <div class="text-muted small">Medidas, ancho util y calculo de lienzos del tergal.</div>
                                     </div>
                                     <div class="card-body pt-2">
                                         <!-- Select Tergal fuera de la tabla -->
@@ -967,9 +2217,10 @@
 
                         if (forro.checked) {
                             formDinamico.innerHTML += `
-                                <div class="card mt-4">
-                                    <div class="card-header pb-1">
+                                <div class="card mt-4 border-0 shadow-sm">
+                                    <div class="card-header bg-light border-bottom-0 py-3">
                                         <h4 class="mb-1">Datos del Forro</h4>
+                                        <div class="text-muted small">Informacion de soporte para el forro y su calculo asociado.</div>
                                     </div>
                                     <div class="card-body pt-2">
                                         <!-- Select Forro fuera de la tabla -->
@@ -1189,6 +2440,7 @@
         cortina.addEventListener('change', actualizarFormulario);
         tergal.addEventListener('change', actualizarFormulario);
         forro.addEventListener('change', actualizarFormulario);
+        }
     });
 
     // Función auxiliar para obtener float seguro
@@ -1212,7 +2464,9 @@
     // Inicializar valores al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
         // Inicializar todos los campos
-        actualizarLargoTergal();
+        if (typeof actualizarLargoTergal === 'function') {
+            actualizarLargoTergal();
+        }
         actualizarLargoForro();
 
         // Inicializar bastillas si ya tienen valores
@@ -1683,18 +2937,14 @@
         ];
 
         function mostrarOcultarTablas() {
-            if (cortina.checked || tergal.checked || forro.checked) {
-                tablas.forEach(tabla => tabla && tabla.classList.remove('d-none'));
-            } else {
-                tablas.forEach(tabla => tabla && tabla.classList.add('d-none'));
-            }
+            const haySeleccion = !!(cortina?.checked || tergal?.checked || forro?.checked);
+            tablas.forEach(tabla => tabla && tabla.classList.toggle('d-none', !haySeleccion));
         }
 
-        cortina.addEventListener('change', mostrarOcultarTablas);
-        tergal.addEventListener('change', mostrarOcultarTablas);
-        forro.addEventListener('change', mostrarOcultarTablas);
+        if (cortina) cortina.addEventListener('change', mostrarOcultarTablas);
+        if (tergal) tergal.addEventListener('change', mostrarOcultarTablas);
+        if (forro) forro.addEventListener('change', mostrarOcultarTablas);
 
-        // Oculta al cargar la página
         mostrarOcultarTablas();
     });
 

@@ -11,59 +11,99 @@
     <div class="section-body">
         <div class="card">
             <div class="card-body">
+                @php
+                    $esCortinero = $producto->id_tipo_producto == 1 || strtolower($producto->tipoProducto->nombre ?? '') === 'cortinero';
+                @endphp
+
                 <form method="POST" action="{{ route('admin.productos.update', $producto) }}">
                     @csrf
                     @method('PUT')
 
-                    <div class="form-group">
-                        <label for="nombre">Nombre</label>
-                        <input type="text" id="nombre" name="nombre" class="form-control @error('nombre') is-invalid @enderror"
-                               value="{{ old('nombre', $producto->nombre) }}" required>
-                        @error('nombre')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                <label for="id_tipo_producto">Tipo de Producto</label>
+                                <select id="id_tipo_producto" name="id_tipo_producto" class="form-control @error('id_tipo_producto') is-invalid @enderror">
+                                    <option value="">Seleccione un tipo</option>
+                                    @foreach ($tiposProducto as $tipo)
+                                        <option value="{{ $tipo->id }}" {{ old('id_tipo_producto', $producto->id_tipo_producto) == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
+                                    @endforeach
+                                </select>
+                                @error('id_tipo_producto')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="descripcion">Descripción</label>
-                        <textarea id="descripcion" name="descripcion" class="form-control @error('descripcion') is-invalid @enderror">{{ old('descripcion', $producto->descripcion) }}</textarea>
-                        @error('descripcion')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <h5>Insumos</h5>
-                        <button type="button" id="add-insumo" class="btn btn-sm btn-success mb-3">Agregar Insumo</button>
-                        <div id="insumos-container">
-                            @if ($producto->insumos && $producto->insumos->isNotEmpty())
-                                @foreach ($producto->insumos as $index => $insumo)
-                                <div class="row mb-3 insumo-row">
-                                    <div class="col-md-6">
-                                        <label>Insumo</label>
-                                        <select name="insumos[{{ $index }}][id]" class="form-control insumo-select" required>
-                                            <option value="">Seleccione un insumo</option>
-                                            @foreach ($insumos as $opcion)
-                                                <option value="{{ $opcion->id }}" {{ $insumo->id == $opcion->id ? 'selected' : '' }}>
-                                                    {{ $opcion->nombre_completo }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label>Cantidad</label>
-                                        <input type="number" name="insumos[{{ $index }}][cantidad]" class="form-control" min="0" step="0.01" value="{{ $insumo->pivot->cantidad ?? '' }}" required>
-                                    </div>
-                                    <div class="col-md-2 d-flex align-items-end">
-                                        <button type="button" class="btn btn-danger btn-remove-insumo">Eliminar</button>
-                                    </div>
-                                </div>
-                                @endforeach
-                            @else
-                                <p>No hay insumos asociados a este producto.</p>
-                            @endif
+                        <div class="col-md-8 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                <label for="nombre">Nombre</label>
+                                <input type="text" id="nombre" name="nombre" class="form-control @error('nombre') is-invalid @enderror"
+                                       value="{{ old('nombre', $producto->nombre) }}" required>
+                                @error('nombre')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
+
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                <label for="precio">Precio</label>
+                                <input type="number" id="precio" name="precio" class="form-control @error('precio') is-invalid @enderror" min="0" step="0.01"
+                                       value="{{ old('precio', $producto->precio) }}">
+                                @error('precio')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="col-md-8 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                <label for="descripcion">Descripción</label>
+                                <textarea id="descripcion" name="descripcion" class="form-control @error('descripcion') is-invalid @enderror" rows="1">{{ old('descripcion', $producto->descripcion) }}</textarea>
+                                @error('descripcion')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    @if ($esCortinero)
+                        <div class="form-group">
+                            <h5>Insumos</h5>
+                            <button type="button" id="add-insumo" class="btn btn-sm btn-success mb-3">Agregar Insumo</button>
+                            <div id="insumos-container">
+                                @if ($producto->insumos && $producto->insumos->isNotEmpty())
+                                    @foreach ($producto->insumos as $index => $insumo)
+                                    <div class="row mb-3 insumo-row">
+                                        <div class="col-md-6">
+                                            <label>Insumo</label>
+                                            <select name="insumos[{{ $index }}][id]" class="form-control insumo-select" required>
+                                                <option value="">Seleccione un insumo</option>
+                                                @foreach ($insumos as $opcion)
+                                                    <option value="{{ $opcion->id }}" {{ $insumo->id == $opcion->id ? 'selected' : '' }}>
+                                                        {{ $opcion->nombre_completo }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label>Cantidad</label>
+                                            <input type="number" name="insumos[{{ $index }}][cantidad]" class="form-control" min="0" step="0.01" value="{{ $insumo->pivot->cantidad ?? '' }}" required>
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="button" class="btn btn-danger btn-remove-insumo">Eliminar</button>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                @else
+                                    <p>No hay insumos asociados a este producto.</p>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
 
                     <button type="submit" class="btn btn-primary">Actualizar Producto</button>
                     <a href="{{ route('admin.productos.index') }}" class="btn btn-secondary">Cancelar</a>

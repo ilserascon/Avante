@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ClienteController;
 use App\Http\Controllers\Admin\ProductoController;
 use App\Http\Controllers\Admin\AlmacenController;
 use App\Http\Controllers\Admin\CotizacionController;
+use App\Http\Controllers\Admin\TipoProductosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::post('users/{user}/habilitar', [App\Http\Controllers\Admin\UserController::class, 'habilitar'])->name('users.habilitar');
     Route::resource('tipo-insumos', TiposInsumosController::class)->except(['destroy']);
+    Route::resource('tipo-productos', TipoProductosController::class)->except(['destroy']);
     Route::resource('insumos', InsumoController::class);
     Route::get('insumos/campos-dinamicos', [InsumoController::class, 'camposDinamicosPorTipo'])->name('insumos.campos-dinamicos');
     Route::resource('productos', ProductoController::class)->parameters(['productos' => 'producto']);

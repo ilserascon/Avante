@@ -15,6 +15,17 @@ return new class extends Migration
             $table->id();
             $table->foreignId('cotizacion_id')->constrained('cotizaciones')->onDelete('cascade');
 
+            $table->boolean('lleva_cortina')->default(false);
+            $table->boolean('lleva_tergal')->default(false);
+            $table->boolean('lleva_forro')->default(false);
+
+            $table->decimal('total_lienzos', 10, 2)->nullable();
+            $table->decimal('total_m2_forro', 10, 2)->nullable();
+            $table->decimal('total_m2_tela', 10, 2)->nullable();
+            $table->decimal('total_m2_tergal', 10, 2)->nullable();
+
+            $table->decimal('costo_cortina', 10, 2)->nullable();
+            
             $table->foreignId('tela_id')->nullable()->constrained('insumo');
             $table->string('ancho_tela')->nullable();
             $table->string('ancho')->nullable();

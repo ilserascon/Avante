@@ -19,7 +19,6 @@ return new class extends Migration {
         DB::table('roles')->insert([
             ['nombre' => 'Administrador', 'created_at' => now(), 'updated_at' => now()],
             ['nombre' => 'Cotizador',     'created_at' => now(), 'updated_at' => now()],
-            ['nombre' => 'Almacén',       'created_at' => now(), 'updated_at' => now()],
         ]);
 
         // Agregar campo role_id a la tabla users
@@ -34,7 +33,7 @@ return new class extends Migration {
         // Crear usuario admin
         DB::table('users')->insert([
             'name' => 'admin',
-            'email' => 'admin@einsoft.com',
+            'email' => 'admin@avante.com',
             'password' => bcrypt('admin'),
             'role_id' => $adminRoleId,
             'created_at' => now(),

@@ -7,25 +7,35 @@ use Illuminate\Http\Request;
 use App\Models\Producto;
 use App\Models\Insumo;
 use App\Models\ProductoInsumo;
+use App\Models\TipoProducto;
 use Illuminate\Support\Facades\DB;
 
 class ProductoController extends Controller
 {
     public function index(Request $request)
     {
+        $this->ensureTipoProductoCatalogExists();
+
         $query = Producto::query();
 
         if ($request->filled('nombre')) {
             $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
         }
 
-        $productos = $query->paginate(10);
+        if ($request->filled('id_tipo_producto')) {
+            $query->where('id_tipo_producto', $request->id_tipo_producto);
+        }
 
-        return view('admin.productos.index', compact('productos'));
+        $productos = $query->with('tipoProducto')->paginate(10);
+        $tiposProducto = TipoProducto::orderBy('nombre')->get();
+
+        return view('admin.productos.index', compact('productos', 'tiposProducto'));
     }
 
     public function create()
     {
+        $this->ensureTipoProductoCatalogExists();
+
         $insumos = DB::table('insumo')
             ->leftJoin('proveedores', 'proveedores.id', '=', 'insumo.id_proveedor')
             ->select(
@@ -34,7 +44,9 @@ class ProductoController extends Controller
             )
             ->get();
 
-        return view('admin.productos.create', compact('insumos'));
+        $tiposProducto = TipoProducto::orderBy('nombre')->get();
+
+        return view('admin.productos.create', compact('insumos', 'tiposProducto'));
     }
 
     public function store(Request $request)
@@ -42,7 +54,9 @@ class ProductoController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'insumos' => 'required|array',
+            'precio' => 'nullable|numeric|min:0',
+            'id_tipo_producto' => 'nullable|exists:tipo_producto,id',
+            'insumos' => 'nullable|array',
             'insumos.*.id' => 'required|exists:insumo,id',
             'insumos.*.cantidad' => 'required|numeric|min:0',
         ]);
@@ -50,14 +64,18 @@ class ProductoController extends Controller
         $producto = Producto::create([
             'nombre' => $validated['nombre'],
             'descripcion' => $validated['descripcion'] ?? null,
+            'precio' => $validated['precio'] ?? null,
+            'id_tipo_producto' => $validated['id_tipo_producto'] ?? null,
         ]);
 
-        foreach ($validated['insumos'] as $insumo) {
-            ProductoInsumo::create([
-                'id_producto' => $producto->id,
-                'id_insumo' => $insumo['id'],
-                'cantidad' => $insumo['cantidad'],
-            ]);
+        if (!empty($validated['insumos']) && ($validated['id_tipo_producto'] == 1 || strtolower(optional(TipoProducto::find($validated['id_tipo_producto']))->nombre ?? '') === 'cortinero')) {
+            foreach ($validated['insumos'] as $insumo) {
+                ProductoInsumo::create([
+                    'id_producto' => $producto->id,
+                    'id_insumo' => $insumo['id'],
+                    'cantidad' => $insumo['cantidad'],
+                ]);
+            }
         }
 
         return redirect()->route('admin.productos.index')->with('success', 'Producto creado correctamente.');
@@ -65,6 +83,8 @@ class ProductoController extends Controller
 
     public function edit($id)
     {
+        $this->ensureTipoProductoCatalogExists();
+
         $producto = Producto::with('insumos.proveedor')->findOrFail($id);
 
         $insumos = DB::table('insumo')
@@ -75,7 +95,9 @@ class ProductoController extends Controller
             )
             ->get();
 
-        return view('admin.productos.edit', compact('producto', 'insumos'));
+        $tiposProducto = TipoProducto::orderBy('nombre')->get();
+
+        return view('admin.productos.edit', compact('producto', 'insumos', 'tiposProducto'));
     }
 
     public function update(Request $request, Producto $producto)
@@ -83,17 +105,29 @@ class ProductoController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
+            'precio' => 'nullable|numeric|min:0',
+            'id_tipo_producto' => 'nullable|exists:tipo_producto,id',
             'insumos' => 'sometimes|array',
             'insumos.*.id' => 'required|exists:insumo,id',
             'insumos.*.cantidad' => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request, $producto) {
-            $producto->update($request->only('nombre', 'descripcion'));
+            $producto->update($request->only('nombre', 'descripcion', 'precio', 'id_tipo_producto'));
             $this->syncInsumos($producto, $request->input('insumos', []));
         });
 
         return redirect()->route('admin.productos.index')->with('success', 'Producto actualizado correctamente.');
+    }
+
+    private function ensureTipoProductoCatalogExists(): void
+    {
+        if (TipoProducto::count() === 0) {
+            TipoProducto::create([
+                'nombre' => 'cortinero',
+                'descripcion' => 'Tipo de producto para cortineros',
+            ]);
+        }
     }
 
     private function syncInsumos(Producto $producto, $insumos)
