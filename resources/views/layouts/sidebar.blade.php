@@ -43,7 +43,29 @@
                         </a>
                     </li>
 
+                    <li class="menu-header">Cotización</li>
+
+                    <li class="{{ request()->is('admin/cotizaciones') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.cotizaciones.index') }}">
+                            <i class="fas fa-list"></i>
+                            <span>Cotizaciones</span>
+                        </a>
+                    </li>
+                    <li class="{{ request()->is('admin/cotizaciones/create') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.cotizaciones.create') }}">
+                            <i class="fas fa-calculator"></i>
+                            <span>Crear Cotización</span>
+                        </a>
+                    </li>
+
                     <li class="menu-header">Inventario</li>
+
+                    <li class="{{ request()->is('admin/inventario*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.inventario.index') }}">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Inventario</span>
+                        </a>
+                    </li>
 
                     <li class="{{ request()->is('admin/almacenes*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('admin.almacenes.index') }}">
@@ -121,20 +143,7 @@
 
                     </li>
 
-                    <li class="menu-header">Cotización</li>
-
-                    <li class="{{ request()->is('admin/cotizaciones') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.cotizaciones.index') }}">
-                            <i class="fas fa-list"></i>
-                            <span>Cotizaciones</span>
-                        </a>
-                    </li>
-                    <li class="{{ request()->is('admin/cotizaciones/create') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.cotizaciones.create') }}">
-                            <i class="fas fa-calculator"></i>
-                            <span>Crear Cotización</span>
-                        </a>
-                    </li>
+                    
 
                 {{-- ================= ALMACÉN ================= --}}
                 @elseif(in_array(Auth::user()->role->nombre,['Almacén','Almacen']))
@@ -145,6 +154,13 @@
                         <a class="nav-link" href="{{ route('admin.proveedores.index') }}">
                             <i class="fas fa-truck"></i>
                             <span>Proveedores</span>
+                        </a>
+                    </li>
+
+                    <li class="{{ request()->is('admin/inventario*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.inventario.index') }}">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Inventario</span>
                         </a>
                     </li>
 

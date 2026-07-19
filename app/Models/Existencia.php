@@ -19,4 +19,9 @@ class Existencia extends Model {
     {
         return $this->belongsTo(Insumo::class, 'id_insumo');
     }
+
+    public function almacen()
+    {
+        return $this->belongsTo(Almacen::class, 'id_almacen');
+    }
 }

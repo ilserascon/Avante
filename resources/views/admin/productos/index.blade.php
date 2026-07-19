@@ -3,71 +3,110 @@
 @section('title', 'Productos')
 
 @section('content')
+@include('admin.partials.professional-styles')
+
 <div class="section">
-    <div class="section-header">
-        <h1>Productos</h1>
-        <div class="section-header-button ml-auto">
-            <a href="{{ route('admin.productos.create') }}" class="btn btn-primary">Nuevo Producto</a>
+    <div class="admin-pro">
+        <div class="card hero-card mb-4">
+            <div class="card-body py-3 px-4">
+                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+                    <div>
+                        <h3>Productos</h3>
+                        <p class="hero-subtitle">Gestione el catálogo de productos.</p>
+                    </div>
+                    <div class="hero-actions">
+                        <a href="{{ route('admin.productos.create') }}" class="btn btn-primary px-4">
+                            <i class="fas fa-plus mr-1"></i> Nuevo Producto
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form method="GET" action="{{ route('admin.productos.index') }}" class="mb-4">
+            <div class="card filter-card">
+                <div class="card-body">
+                    <div class="form-row align-items-end">
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <label class="field-label">Nombre</label>
+                            <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="{{ request('nombre') }}">
+                        </div>
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <label class="field-label">Tipo de producto</label>
+                            <select name="id_tipo_producto" class="form-control">
+                                <option value="">Todos los tipos</option>
+                                @foreach ($tiposProducto as $tipo)
+                                    <option value="{{ $tipo->id }}" {{ request('id_tipo_producto') == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex">
+                            <button type="submit" class="btn btn-primary mr-2 flex-grow-1">Buscar</button>
+                            <a href="{{ route('admin.productos.index') }}" class="btn btn-light border flex-grow-1">Limpiar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div class="section-body">
+            @if (session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+
+            <div class="card table-card">
+                <div class="card-body table-responsive">
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Precio</th>
+                                <th class="text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($productos as $producto)
+                                @php
+                                    $esCortinero = $producto->id_tipo_producto == 1 || strtolower($producto->tipoProducto->nombre ?? '') === 'cortinero';
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('admin.productos.edit', $producto->id) }}" class="record-link">
+                                            {{ $producto->nombre }}
+                                        </a>
+                                    </td>
+                                    <td>{{ $producto->tipoProducto->nombre ?? 'Sin tipo' }}</td>
+                                    <td>{{ $producto->descripcion ?: '-' }}</td>
+                                    <td class="money-value">
+                                        {{ $producto->precio !== null ? '$' . number_format((float) $producto->precio, 2) : '-' }}
+                                    </td>
+                                    <td>
+                                        <div class="actions-wrap">
+                                            @if ($esCortinero)
+                                                <a href="{{ route('admin.productos.insumos', $producto->id) }}" class="action-btn btn-info-action" title="Ver insumos">
+                                                    <i class="fas fa-list"></i>
+                                                </a>
+                                            @endif
+                                            <a href="{{ route('admin.productos.edit', $producto->id) }}" class="action-btn btn-edit" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">No se encontraron productos.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+                    {{ $productos->appends(request()->query())->links('pagination::bootstrap-5') }}
+                </div>
+            </div>
         </div>
     </div>
-
-  <div class="section-body">
-    <form method="GET" action="{{ route('admin.productos.index') }}" class="form-inline mb-3">
-      <div class="form-group mr-2">
-        <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="{{ request('nombre') }}">
-      </div>
-      <div class="form-group mr-2">
-        <select name="id_tipo_producto" class="form-control">
-          <option value="">Todos los tipos</option>
-          @foreach ($tiposProducto as $tipo)
-            <option value="{{ $tipo->id }}" {{ request('id_tipo_producto') == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
-          @endforeach
-        </select>
-      </div>
-      <button type="submit" class="btn btn-primary">Buscar</button>
-    </form>
-
-    <div class="card">
-      <div class="card-body table-responsive">
-        <table class="table table-bordered table-hover">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Tipo de Producto</th>
-              <th>Descripción</th>
-              <th>Precio</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach ($productos as $producto)
-              @php
-                $esCortinero = $producto->id_tipo_producto == 1 || strtolower($producto->tipoProducto->nombre ?? '') === 'cortinero';
-              @endphp
-              <tr>
-                <td>{{ $producto->nombre }}</td>
-                <td>{{ $producto->tipoProducto->nombre ?? 'Sin tipo' }}</td>
-                <td>{{ $producto->descripcion }}</td>
-                <td>{{ $producto->precio ?? '-' }}</td>
-                <td>
-                  @if ($esCortinero)
-                    <a href="{{ route('admin.productos.insumos', $producto->id) }}" class="btn btn-info btn-sm">Ver Insumos</a>
-                  @endif
-                  <a href="{{ route('admin.productos.edit', $producto->id) }}" class="btn btn-warning btn-sm">Editar</a>
-                </td>
-              </tr>
-            @endforeach
-
-            @if ($productos->isEmpty())
-              <tr>
-                <td colspan="5" class="text-center">No se encontraron productos.</td>
-              </tr>
-            @endif
-          </tbody>
-        </table>
-        <div class="d-flex justify-content-center mt-3">
-          {{ $productos->appends(request()->query())->links('pagination::bootstrap-4') }}                
-      </div>
-  </div>
 </div>
 @endsection

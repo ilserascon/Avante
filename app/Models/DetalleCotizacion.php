@@ -68,7 +68,14 @@ class DetalleCotizacion extends Model
 
         'costo_total_mano_obra',
 
+        'total_lienzos',
+        'total_m2_tela',
+        'total_m2_tergal',
+        'total_m2_forro',
+        'costo_cortina',
+
         'decorador_porcentaje',
+        'descuento',
 
         'cortinero_id',
         'cortinero_cantidad',
@@ -82,5 +89,30 @@ class DetalleCotizacion extends Model
     public function cotizacion()
     {
         return $this->belongsTo(Cotizacion::class);
+    }
+
+    public function tela()
+    {
+        return $this->belongsTo(Insumo::class, 'tela_id');
+    }
+
+    public function tergal()
+    {
+        return $this->belongsTo(Insumo::class, 'tergal_id');
+    }
+
+    public function forro()
+    {
+        return $this->belongsTo(Insumo::class, 'forro_id');
+    }
+
+    public function cortinero()
+    {
+        return $this->belongsTo(Producto::class, 'cortinero_id');
+    }
+
+    public function cortineroTergal()
+    {
+        return $this->belongsTo(Producto::class, 'cortinero_tergal_id');
     }
 }

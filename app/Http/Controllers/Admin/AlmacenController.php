@@ -15,14 +15,8 @@ class AlmacenController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Almacen::query();
+        $almacenes = Almacen::query()->paginate(10);
 
-        if ($request->has('nombre') && $request->nombre != '') {
-            $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
-        }
-    
-        $almacenes = $query->paginate(10); 
-    
         return view('admin.almacenes.index', compact('almacenes'));
     }
 
@@ -84,18 +78,6 @@ class AlmacenController extends Controller
         if ($request->filled('insumo')) {
             $existenciasQuery->whereHas('insumo', function ($q) use ($request) {
                 $q->where('nombre', 'like', '%' . $request->insumo . '%');
-            });
-        }
-        if ($request->filled('existencia')) {
-            $existenciasQuery->where('cantidad', $request->existencia);
-        }
-        if ($request->filled('nombre')) {
-            $existenciasQuery->where(function ($q) use ($request) {
-                $q->whereHas('producto', function ($q2) use ($request) {
-                    $q2->where('nombre', 'like', '%' . $request->nombre . '%');
-                })->orWhereHas('insumo', function ($q3) use ($request) {
-                    $q3->where('nombre', 'like', '%' . $request->nombre . '%');
-                });
             });
         }
 

@@ -12,6 +12,7 @@ class Cotizacion extends Model
 
     protected $fillable = [
         'cliente_id',
+        'user_id',
         'fecha',
         'area',
         'lleva_cortina',
@@ -35,10 +36,15 @@ class Cotizacion extends Model
         return $this->belongsTo(Cliente::class);
     }
 
+    public function creadoPor()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function insumos()
     {
         return $this->belongsToMany(Insumo::class, 'cotizacion_insumo')
-            ->withPivot('cantidad', 'precio_unitario', 'subtotal')
+            ->withPivot('cantidad', 'precio_unitario', 'descuento', 'subtotal')
             ->withTimestamps();
     }
 
@@ -55,7 +61,20 @@ class Cotizacion extends Model
     public function productos()
     {
         return $this->belongsToMany(Producto::class, 'cotizacion_producto')
-            ->withPivot('cantidad', 'precio_unitario', 'subtotal')
+            ->withPivot('cantidad', 'precio_unitario', 'descuento', 'subtotal')
             ->withTimestamps();
+    }
+
+    public function shareToken(): string
+    {
+        return substr(hash_hmac('sha256', 'cotizacion-pdf:' . $this->id, config('app.key')), 0, 40);
+    }
+
+    public function shareUrl(): string
+    {
+        return route('cotizaciones.compartir', [
+            'cotizacion' => $this->id,
+            'token' => $this->shareToken(),
+        ]);
     }
 }

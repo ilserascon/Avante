@@ -92,6 +92,16 @@
         background: #fee2e2;
     }
 
+    .cotizaciones-page .status-completada {
+        color: #1e40af;
+        background: #dbeafe;
+    }
+
+    .cotizaciones-page .status-cancelada {
+        color: #9a3412;
+        background: #ffedd5;
+    }
+
     .cotizaciones-page .actions-wrap {
         display: flex;
         flex-wrap: wrap;
@@ -147,6 +157,18 @@
         border-color: #fecaca;
     }
 
+    .cotizaciones-page .btn-complete {
+        background: #e0ecff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+
+    .cotizaciones-page .btn-cancel {
+        background: #fff1e6;
+        color: #c2410c;
+        border-color: #fed7aa;
+    }
+
     @media (max-width: 767.98px) {
         .cotizaciones-page .hero-actions {
             margin-top: 0.75rem;
@@ -194,7 +216,7 @@
             <div class="card-body py-3 px-4">
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
                     <div>
-                        <h1>Cotizaciones</h1>
+                        <h3>Cotizaciones</h3>
                     </div>
                     <div class="hero-actions">
                         <a href="{{ route('admin.cotizaciones.create') }}" class="btn btn-primary px-4">
@@ -209,24 +231,36 @@
             <div class="card filter-card">
                 <div class="card-body">
                     <div class="form-row align-items-end">
-                        <div class="col-md-3 mb-2 mb-md-0">
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <label class="small font-weight-bold text-muted mb-1">Folio</label>
+                            <input type="text" name="folio" value="{{ request('folio') }}" class="form-control" placeholder="Ej. 00123">
+                        </div>
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <label class="small font-weight-bold text-muted mb-1">Cliente</label>
+                            <input type="text" name="cliente" value="{{ request('cliente') }}" class="form-control" placeholder="Buscar por nombre">
+                        </div>
+                        <div class="col-md-4 mb-2 mb-md-0">
                             <label class="small font-weight-bold text-muted mb-1">Estatus</label>
                             <select name="estatus" class="form-control">
                                 <option value="">Todos los estatus</option>
                                 <option value="solicitada" {{ request('estatus') == 'solicitada' ? 'selected' : '' }}>Solicitada</option>
                                 <option value="aceptada" {{ request('estatus') == 'aceptada' ? 'selected' : '' }}>Aceptada</option>
+                                <option value="completada" {{ request('estatus') == 'completada' ? 'selected' : '' }}>Completada</option>
+                                <option value="cancelada" {{ request('estatus') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
                                 <option value="rechazada" {{ request('estatus') == 'rechazada' ? 'selected' : '' }}>Rechazada</option>
                             </select>
                         </div>
-                        <div class="col-md-3 mb-2 mb-md-0">
+                    </div>
+                    <div class="form-row align-items-end mt-md-2">
+                        <div class="col-md-4 mb-2 mb-md-0">
                             <label class="small font-weight-bold text-muted mb-1">Fecha Inicio</label>
                             <input type="date" name="fecha_inicio" value="{{ request('fecha_inicio') }}" class="form-control" placeholder="Desde">
                         </div>
-                        <div class="col-md-3 mb-2 mb-md-0">
+                        <div class="col-md-4 mb-2 mb-md-0">
                             <label class="small font-weight-bold text-muted mb-1">Fecha Fin</label>
                             <input type="date" name="fecha_fin" value="{{ request('fecha_fin') }}" class="form-control" placeholder="Hasta">
                         </div>
-                        <div class="col-md-3 d-flex">
+                        <div class="col-md-4 d-flex mb-2 mb-md-0">
                             <button type="submit" class="btn btn-primary mr-2 flex-grow-1">Buscar</button>
                             <a href="{{ route('admin.cotizaciones.index') }}" class="btn btn-light border flex-grow-1">Limpiar</a>
                         </div>
@@ -238,6 +272,12 @@
         <div class="section-body">
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if (session('warning'))
+                <div class="alert alert-warning">{!! session('warning') !!}</div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger">{!! session('error') !!}</div>
             @endif
 
             <div class="card table-card">
@@ -269,18 +309,19 @@
                                     <td>
                                         @php
                                             $estatus = strtolower((string) $cotizacion->estatus);
-                                            $statusClass = in_array($estatus, ['solicitada', 'aceptada', 'rechazada']) ? 'status-' . $estatus : 'status-solicitada';
+                                            $statusClass = in_array($estatus, ['solicitada', 'aceptada', 'rechazada', 'completada', 'cancelada']) ? 'status-' . $estatus : 'status-solicitada';
                                         @endphp
                                         <span class="status-chip {{ $statusClass }}">{{ ucfirst($cotizacion->estatus) }}</span>
                                     </td>
-                                    <td>{{ $cotizacion->creado_por ? $cotizacion->creado_por->nombre : 'N/A' }}</td>
+                                    <td>{{ $cotizacion->creadoPor?->name ?? 'N/A' }}</td>
                                     <td>
                                         <div class="actions-wrap justify-content-end">
-                                        @if($cotizacion->estatus !== 'rechazada')
-
+                                        @if($cotizacion->estatus === 'solicitada')
                                             <a href="{{ route('admin.cotizaciones.edit', $cotizacion->id) }}" class="action-btn btn-edit" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                        @endif
+                                        @if(!in_array($cotizacion->estatus, ['rechazada', 'cancelada']))
                                             <a href="{{ route('admin.cotizaciones.pdf', $cotizacion->id) }}" class="action-btn btn-pdf" title="PDF Cliente" target="_blank">
                                                 <i class="fas fa-file-pdf btn-pdf-cliente"></i>
                                             </a>
@@ -290,18 +331,33 @@
                                                 </a>
                                             @endif
                                             @if($cotizacion->estatus === 'solicitada')
-                                                <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="mb-0 d-inline">
+                                                <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="mb-0 d-inline js-cotizacion-estatus-form">
                                                     @csrf
                                                     <input type="hidden" name="estatus" value="aceptada">
                                                     <button type="submit" class="action-btn btn-accept" title="Aceptar">
                                                         <i class="fas fa-check"></i>
                                                     </button>
                                                 </form>
-                                                <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="mb-0 d-inline">
+                                                <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="mb-0 d-inline js-cotizacion-estatus-form">
                                                     @csrf
                                                     <input type="hidden" name="estatus" value="rechazada">
                                                     <button type="submit" class="action-btn btn-reject" title="Rechazar">
                                                         <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
+                                            @elseif($cotizacion->estatus === 'aceptada')
+                                                <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="mb-0 d-inline js-cotizacion-estatus-form">
+                                                    @csrf
+                                                    <input type="hidden" name="estatus" value="completada">
+                                                    <button type="submit" class="action-btn btn-complete" title="Completar">
+                                                        <i class="fas fa-box-open"></i>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="mb-0 d-inline js-cotizacion-estatus-form">
+                                                    @csrf
+                                                    <input type="hidden" name="estatus" value="cancelada">
+                                                    <button type="submit" class="action-btn btn-cancel" title="Cancelar">
+                                                        <i class="fas fa-ban"></i>
                                                     </button>
                                                 </form>
                                             @endif
@@ -311,7 +367,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No hay cotizaciones registradas.</td>
+                                    <td colspan="7" class="text-center text-muted py-4">No hay cotizaciones registradas.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -323,4 +379,62 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.js-cotizacion-estatus-form').forEach(function (form) {
+        var enviando = false;
+
+        form.addEventListener('submit', function (event) {
+            if (enviando) {
+                return;
+            }
+
+            event.preventDefault();
+
+            var estatus = form.querySelector('[name="estatus"]').value;
+            var esAceptar = estatus === 'aceptada';
+            var esCompletar = estatus === 'completada';
+            var esRechazar = estatus === 'rechazada';
+            var esCancelar = estatus === 'cancelada';
+
+            var textoConfirmacion = '¿Desea actualizar el estatus de esta cotización?';
+            var textoBoton = 'Sí, confirmar';
+            var esPeligroso = false;
+
+            if (esAceptar) {
+                textoConfirmacion = '¿Desea aceptar esta cotización?';
+                textoBoton = 'Sí, aceptar';
+            } else if (esCompletar) {
+                textoConfirmacion = '¿Desea completar esta cotización? Se validará y descontará el inventario.';
+                textoBoton = 'Sí, completar';
+            } else if (esCancelar) {
+                textoConfirmacion = '¿Desea cancelar esta cotización aceptada?';
+                textoBoton = 'Sí, cancelar';
+                esPeligroso = true;
+            } else if (esRechazar) {
+                textoConfirmacion = '¿Desea rechazar esta cotización?';
+                textoBoton = 'Sí, rechazar';
+                esPeligroso = true;
+            }
+
+            swal({
+                title: '¿Está seguro?',
+                text: textoConfirmacion,
+                icon: 'warning',
+                buttons: ['No', textoBoton],
+                dangerMode: esPeligroso,
+            }).then(function (confirmado) {
+                if (confirmado) {
+                    enviando = true;
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
 @endsection

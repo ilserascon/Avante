@@ -4,256 +4,481 @@
     <meta charset="utf-8">
     <title>Cotización #{{ $cotizacion->id }}</title>
     <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 11px; margin: 0; padding: 10px; }
-        table { width: 100%; border-collapse: collapse; margin: 5px 0; }
-        th, td { border: 1px solid #333; padding: 5px; }
-        th { background: #17a2b8; color: white; text-align: center; font-weight: bold; }
-        .header-table td { border: none; padding: 2px 6px; }
-        .header-table { margin-bottom: 10px; }
-        .section-title { margin-top: 15px; margin-bottom: 8px; font-weight: bold; background: #17a2b8; color: white; padding: 5px; }
-        .no-border { border: none !important; }
-        .firma { height: 40px; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 10px;
+            color: rgb(27, 79, 79);
+            margin: 0;
+            padding: 18px 22px;
+            line-height: 1.4;
+        }
+
+        .pdf-header {
+            width: 100%;
+            margin-bottom: 18px;
+            border-bottom: 3px solid rgb(27, 79, 79);
+            padding-bottom: 14px;
+            text-align: center;
+        }
+
+        .doc-title-center {
+            font-size: 22px;
+            font-weight: bold;
+            color: rgb(27, 79, 79);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .doc-number-center {
+            font-size: 13px;
+            color: rgb(43, 68, 62);
+            font-weight: bold;
+        }
+
+        .info-box {
+            width: 100%;
+            margin-bottom: 16px;
+            background: #f8fbff;
+        }
+
+        .info-box td {
+            padding: 8px 12px;
+            border: 1px solid #e8eef8;
+            vertical-align: top;
+        }
+
+        .info-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgb(103, 109, 107);
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .info-value {
+            color: #26344d;
+        }
+
+        .section-title {
+            background: rgb(27, 79, 79);
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 7px 12px;
+            margin: 14px 0 0 0;
+        }
+
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+        }
+
+        .detail-table thead th {
+            background: #eef4ff;
+            color: rgb(27, 79, 79);
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 8px 6px;
+            border: 1px solid #c5d4e8;
+            text-align: center;
+        }
+
+        .detail-table tbody td {
+            padding: 7px 6px;
+            border: 1px solid #dde6f0;
+            font-size: 9.5px;
+            vertical-align: middle;
+        }
+
+        .detail-table tbody tr:nth-child(even) {
+            background: #fafcff;
+        }
+
+        .detail-table tfoot td {
+            padding: 7px 8px;
+            border: 1px solid #c5d4e8;
+            font-size: 10px;
+        }
+
         .text-right { text-align: right; }
         .text-center { text-align: center; }
-        .empresa-info { text-align: center; font-size: 10px; margin-bottom: 10px; }
-        .empresa-nombre { font-size: 16px; font-weight: bold; }
-        .empresa-redes { font-size: 9px; margin-top: 3px; }
-        .logo-area { width: 25%; text-align: center; vertical-align: top; }
-        .info-area { width: 75%; }
-        .header-info { border: none; }
+        .text-bold { font-weight: bold; }
+
+        .total-row {
+            background: #eef4ff;
+            font-weight: bold;
+            color: rgb(27, 79, 79);
+        }
+
+        .grand-total-row {
+            background: rgb(27, 79, 79);
+            color: #fff;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .grand-total-row td {
+            border-color: rgb(27, 79, 79) !important;
+            color: #fff !important;
+        }
+
+        .note-box {
+            margin-top: 10px;
+            padding: 8px 10px;
+            background: #fff9e6;
+            border-left: 3px solid #f0b429;
+            font-size: 8.5px;
+            font-style: italic;
+            color: #7a6220;
+        }
+
+        .terms-box {
+            padding: 10px 12px;
+            border: 1px solid #dde6f0;
+            background: #fafcff;
+            font-size: 9px;
+        }
+
+        .terms-list {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .terms-list li {
+            margin-bottom: 4px;
+        }
+
+        .receipt-box {
+            width: 100%;
+            border: 1px solid #dde6f0;
+            background: #fafcff;
+            margin-top: 0;
+        }
+
+        .receipt-grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .receipt-grid td {
+            padding: 10px 12px;
+            border: 1px solid #e8eef8;
+            vertical-align: top;
+        }
+
+        .receipt-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: rgb(103, 109, 107);
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .receipt-field {
+            min-height: 16px;
+            border-bottom: 1px solid rgb(27, 79, 79);
+            padding: 4px 2px 6px 2px;
+            font-size: 10px;
+            color: #26344d;
+        }
+
+        .receipt-field-empty {
+            min-height: 16px;
+            border-bottom: 1px solid rgb(27, 79, 79);
+        }
+
+        .receipt-field-money {
+            min-height: 28px;
+            border-bottom: 1px solid rgb(27, 79, 79);
+            padding: 4px 2px 6px 2px;
+            font-size: 10px;
+            color: #26344d;
+            font-weight: 600;
+        }
+
+        .receipt-options {
+            font-size: 9.5px;
+            color: #26344d;
+            padding-top: 4px;
+        }
+
+        .receipt-checkbox {
+            display: inline-block;
+            width: 11px;
+            height: 11px;
+            border: 1px solid rgb(27, 79, 79);
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .footer-note {
+            margin-top: 14px;
+            font-size: 9px;
+            color: #5a6b7d;
+            text-align: center;
+            border-top: 1px solid #dde6f0;
+            padding-top: 10px;
+        }
     </style>
 </head>
 <body>
-    <table class="header-table">
+@php
+    $fmtMoney = function ($value) {
+        return '$' . number_format((float) ($value ?? 0), 2);
+    };
+
+    $calcularCostoCortinaDetalle = function ($detalle) {
+        $costo = (float) ($detalle->costo_cortina ?? 0);
+        if ($costo > 0) {
+            return $costo;
+        }
+
+        $materiales =
+            ((float) ($detalle->cortinero_cantidad ?? 0) * (float) ($detalle->cortinero_precio ?? 0)) +
+            ((float) ($detalle->cortinero_tergal_cantidad ?? 0) * (float) ($detalle->cortinero_tergal_precio ?? 0));
+
+        return (float) ($detalle->costo_total_tela_tergal_forro ?? 0) +
+            (float) ($detalle->costo_total_mano_obra ?? 0) +
+            $materiales;
+    };
+
+    $lineas = [];
+
+    foreach ($detalles as $detalle) {
+        $costoCortina = $calcularCostoCortinaDetalle($detalle);
+        $decoradorPct = (float) ($detalle->decorador_porcentaje ?? 15);
+        $precioBruto = $costoCortina * (1 + $decoradorPct / 100);
+        $descuentoPct = (float) ($detalle->descuento ?? $cotizacion->descuento ?? 0);
+        $descuentoLinea = $descuentoPct > 0 ? $precioBruto * ($descuentoPct / 100) : 0;
+        $precioNeto = $precioBruto - $descuentoLinea;
+
+        $nombresTelas = [];
+        if ($detalle->lleva_cortina) {
+            $nombresTelas[] = $detalle->tela?->nombre ?? $detalle->descripcion_tela;
+        }
+        if ($detalle->lleva_tergal) {
+            $nombresTelas[] = $detalle->tergal?->nombre ?? $detalle->descripcion_tergal;
+        }
+        if ($detalle->lleva_forro) {
+            $nombresTelas[] = $detalle->forro?->nombre ?? $detalle->descripcion_forro;
+        }
+
+        $lineas[] = [
+            'descripcion' => $detalle->descripcion ?: 'Cortina / Tergal / Forro',
+            'cantidad' => 1,
+            'area' => $detalle->area ?? '',
+            'tipo' => implode(' / ', array_filter($nombresTelas)) ?: '-',
+            'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
+            'precio' => $precioNeto,
+        ];
+    }
+
+    foreach ($cotizacion->insumos as $insumo) {
+        $cantidad = (float) ($insumo->pivot->cantidad ?? 0);
+        $precioUnit = (float) ($insumo->pivot->precio_unitario ?? 0);
+        $descuentoPct = (float) ($insumo->pivot->descuento ?? 0);
+        $bruto = $cantidad * $precioUnit;
+        $subtotal = (float) ($insumo->pivot->subtotal ?? $bruto);
+
+        $lineas[] = [
+            'descripcion' => $insumo->nombre,
+            'cantidad' => $cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1,
+            'area' => '',
+            'tipo' => $insumo->tipoInsumo?->nombre ?? 'Insumo',
+            'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
+            'precio' => $subtotal,
+        ];
+    }
+
+    foreach ($cotizacion->productos as $producto) {
+        $cantidad = (float) ($producto->pivot->cantidad ?? 0);
+        $precioUnit = (float) ($producto->pivot->precio_unitario ?? 0);
+        $descuentoPct = (float) ($producto->pivot->descuento ?? 0);
+        $bruto = $cantidad * $precioUnit;
+        $subtotal = (float) ($producto->pivot->subtotal ?? $bruto);
+
+        $lineas[] = [
+            'descripcion' => $producto->nombre,
+            'cantidad' => $cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1,
+            'area' => '',
+            'tipo' => $producto->tipoProducto?->nombre ?? 'Producto',
+            'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
+            'precio' => $subtotal,
+        ];
+    }
+
+    $subtotalNeto = collect($lineas)->sum(fn ($linea) => (float) ($linea['precio'] ?? 0));
+    $ivaMonto = $cotizacion->aplicar_iva ? $subtotalNeto * 0.16 : 0;
+    $precioDecorador = $subtotalNeto + $ivaMonto;
+@endphp
+
+    <div class="pdf-header">
+        <div class="doc-title-center">Cotización</div>
+        <div class="doc-number-center">No. {{ str_pad($cotizacion->id, 5, '0', STR_PAD_LEFT) }}</div>
+    </div>
+
+    <table class="info-box">
         <tr>
-            <td style="width: 30%; border:none; vertical-align: top;">
-                <img src="{{ public_path('stisla/assets/img/Logo.jpg') }}" alt="logo" style="width: 180px;">
+            <td style="width: 50%;">
+                <div class="info-label">Cliente</div>
+                <div class="info-value">{{ $cotizacion->cliente?->nombre ?? '-' }}</div>
             </td>
-            <td style="width: 70%; border:none; vertical-align: top; padding-left: 10px;">
-                <div class="empresa-info" style="text-align: left; margin-bottom: 0;">
-                    <div class="empresa-nombre" style="font-size: 14px;">AVANTE DECORACIONES</div>
-                    <div style="font-size: 10px;">BULEVAR MORELOS 471, SABINOS RESIDENCIAL</div>
-                    <div style="font-size: 10px;">HERMOSILLO, SONORA CP 83148</div>
-                    <div style="font-size: 10px; margin-top: 2px;">TELÉFONO | CELULAR</div>
-                    <div class="empresa-redes" style="font-size: 10px; margin-top: 3px;">FACEBOOK: Avante Decoraciones | INSTAGRAM: @avantedecoraciones</div>
-                </div>
+            <td style="width: 25%;">
+                <div class="info-label">Fecha</div>
+                <div class="info-value">{{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}</div>
+            </td>
+            <td style="width: 25%;">
+                <div class="info-label">Creado por</div>
+                <div class="info-value">{{ $cotizacion->creadoPor?->name ?? 'Usuario no registrado' }}</div>
             </td>
         </tr>
         <tr>
-            <td style="width: 50%; border-bottom: 1px solid #ccc;">
-                <strong>COTIZACIÓN Nº:</strong> {{ str_pad($cotizacion->id, 4, '0', STR_PAD_LEFT) }}
+            <td>
+                <div class="info-label">Dirección</div>
+                <div class="info-value">{{ $cotizacion->cliente?->direccion ?? '-' }}</div>
             </td>
-            <td style="width: 50%; border-bottom: 1px solid #ccc;">
-                <strong>FECHA:</strong> {{ $cotizacion->fecha ? \Carbon\Carbon::parse($cotizacion->fecha)->format('d/m/Y') : '-' }}
+            <td>
+                <div class="info-label">Teléfono</div>
+                <div class="info-value">{{ $cotizacion->cliente?->telefono ?? '-' }}</div>
             </td>
-        </tr>
-        <tr>
-            <td colspan="2" style="border-bottom: 1px solid #ccc;">
-                <strong>ASESOR DE VENTA:</strong> IRACEMA SANCHEZ
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2" style="border-bottom: 1px solid #ccc;">
-                <strong>CLIENTE:</strong> {{ $cotizacion->cliente->nombre ?? '-' }}
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2" style="border-bottom: 1px solid #ccc;">
-                <strong>DIRECCIÓN:</strong> {{ $cotizacion->cliente->direccion ?? '-' }}
-            </td>
-        </tr>
-        <tr>
-            <td style="border-bottom: 1px solid #ccc;">
-                <strong>CELULAR:</strong> {{ $cotizacion->cliente->celular ?? '-' }}
-            </td>
-            <td style="border-bottom: 1px solid #ccc;">
-                <strong>TELÉFONO:</strong> {{ $cotizacion->cliente->telefono ?? '-' }}
+            <td>
+                <div class="info-label">Correo</div>
+                <div class="info-value">{{ $cotizacion->cliente?->email ?? '-' }}</div>
             </td>
         </tr>
     </table>
 
-
-    <div class="section-title">DETALLE DE COTIZACIÓN</div>
-    <table>
+    <div class="section-title">Detalle de la cotización</div>
+    <table class="detail-table">
         <thead>
             <tr>
-                <th style="width: 5%;">U</th>
-                <th style="width: 20%;">DESCRIPCIÓN</th>
-                <th style="width: 10%;">CANTIDAD</th>
-                <th style="width: 15%;">ÁREA</th>
-                <th style="width: 25%;">TELAS</th>
-                <th style="width: 15%;">TIPO DE CORTINA</th>
-                <th style="width: 10%;">PRECIO</th>
+                <th style="width: 5%;">#</th>
+                <th style="width: 24%;">Descripción</th>
+                <th style="width: 7%;">Cant.</th>
+                <th style="width: 12%;">Área</th>
+                <th style="width: 24%;">Tipo</th>
+                <th style="width: 8%;">Desc.</th>
+                <th style="width: 20%;">Precio</th>
             </tr>
         </thead>
         <tbody>
-            @php
-                $rowNum = 1;
-                $subtotal = 0;
-                $detalles = [];
-                $idsExcluidos = [];
-                $decoradorPorcentaje = 0;
-                $costoTotalInsumos = 0;
-
-                if($cotizacion->detalleCotizacion) {
-                    $detalleC = $cotizacion->detalleCotizacion;
-                    $decoradorPorcentaje = $detalleC->decorador_porcentaje ?? 0;
-                    $decoradorFactor = 1 + ($decoradorPorcentaje / 100);
-
-                    $insumoTela = $detalleC->tela_id ? \App\Models\Insumo::find($detalleC->tela_id) : null;
-                    $insumoTergal = $detalleC->tergal_id ? \App\Models\Insumo::find($detalleC->tergal_id) : null;
-                    $insumoForro = $detalleC->forro_id ? \App\Models\Insumo::find($detalleC->forro_id) : null;
-
-                    $idsExcluidos = array_filter([$detalleC->tela_id, $detalleC->tergal_id, $detalleC->forro_id]);
-
-                    if($detalleC->total_tela_final && $detalleC->total_tela_final > 0) {
-                        $baseTela = ($detalleC->total_tela_final ?? 0) + ($detalleC->total_mano_obra_1 ?? 0) + (($detalleC->cortinero_cantidad ?? 0) * ($detalleC->cortinero_precio ?? 0)) + ($detalleC->total_final_forro ?? 0);
-                        $precioTela = $baseTela * $decoradorFactor;
-                        $descripcionCortina = 'CORTINA' . (($detalleC->total_final_forro ?? 0) > 0 ? ' CON FORRO' : '');
-                        $detalles[] = [
-                            'descripcion' => $descripcionCortina,
-                            'cantidad' => 1,
-                            'area' => $cotizacion->area ?? '',
-                            'tela' => $insumoTela?->nombre ?? $detalleC->descripcion_tela ?? '',
-                            'tipo_cortina' => $detalleC->tipo_cortina ?? '',
-                            'precio' => $precioTela
-                        ];
-                    }
-                    if($detalleC->total_tergal_final && $detalleC->total_tergal_final > 0) {
-                        $baseTergal = ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_mano_obra_2 ?? 0) + (($detalleC->cortinero_tergal_cantidad ?? 0) * ($detalleC->cortinero_tergal_precio ?? 0));
-                        $precioTergal = $baseTergal * $decoradorFactor;
-                        $detalles[] = [
-                            'descripcion' => 'TERGAL',
-                            'cantidad' => 1,
-                            'area' => '',
-                            'tela' => $insumoTergal?->nombre ?? $detalleC->descripcion_tergal ?? '',
-                            'tipo_cortina' => '',
-                            'precio' => $precioTergal
-                        ];
-                    }
-                }
-
-                foreach($cotizacion->insumos as $insumoRel) {
-                    if(in_array($insumoRel->id, $idsExcluidos)) {
-                        continue;
-                    }
-
-                    $cantidad = $insumoRel->pivot->cantidad ?: 1;
-                    $precioUnitario = $insumoRel->pivot->precio_unitario ?? 0;
-                    $baseInsumo = ($precioUnitario * $cantidad);
-                    $detallePrecio = $baseInsumo * ($decoradorPorcentaje ? (1 + ($decoradorPorcentaje / 100)) : 1);
-                    $costoTotalInsumos += $baseInsumo;
-
-                    $detalles[] = [
-                        'descripcion' => $insumoRel->nombre,
-                        'cantidad' => $cantidad,
-                        'area' => '',
-                        'tela' => $insumoRel->tipoInsumo?->nombre ?? '',
-                        'tipo_cortina' => '',
-                        'precio' => $detallePrecio
-                    ];
-                }
-            @endphp
-
-            @foreach($detalles as $detalle)
-                @php
-                    $subtotal += $detalle['precio'] ?? 0;
-                @endphp
+            @forelse($lineas as $index => $linea)
                 <tr>
-                    <td class="text-center">{{ $rowNum }}</td>
-                    <td>{{ strtoupper($detalle['descripcion']) }}</td>
-                    <td class="text-center">{{ $detalle['cantidad'] }}</td>
-                    <td class="text-center">{{ strtoupper($detalle['area']) }}</td>
-                    <td>{{ strtoupper($detalle['tela']) }}</td>
-                    <td>{{ strtoupper($detalle['tipo_cortina']) }}</td>
-                    <td class="text-right">${{ number_format($detalle['precio'] ?? 0, 2) }}</td>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>{{ $linea['descripcion'] }}</td>
+                    <td class="text-center">{{ $linea['cantidad'] }}</td>
+                    <td class="text-center">{{ $linea['area'] ?: '-' }}</td>
+                    <td>{{ $linea['tipo'] }}</td>
+                    <td class="text-center">{{ $linea['descuento'] ?? '-' }}</td>
+                    <td class="text-right text-bold">{{ $fmtMoney($linea['precio']) }}</td>
                 </tr>
-                @php $rowNum++; @endphp
-            @endforeach
-
-            @if(count($detalles) < 5)
-                @for($i = count($detalles); $i < 5; $i++)
-                    <tr>
-                        <td class="text-center">{{ $rowNum }}</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td class="text-right"></td>
-                    </tr>
-                    @php $rowNum++; @endphp
-                @endfor
-            @endif
+            @empty
+                <tr>
+                    <td colspan="7" class="text-center" style="padding: 16px; color: #6b7b95;">
+                        Sin conceptos registrados en esta cotización.
+                    </td>
+                </tr>
+            @endforelse
         </tbody>
         <tfoot>
-            @php
-                $totalCalculated = 0;
-                if($cotizacion->detalleCotizacion) {
-                    $detalleC = $cotizacion->detalleCotizacion;
-                    $decoradorPorcentaje = $detalleC->decorador_porcentaje ?? 0;
-                    $decoradorFactor = 1 + ($decoradorPorcentaje / 100);
-                    $baseTela = ($detalleC->total_tela_final ?? 0) + ($detalleC->total_mano_obra_1 ?? 0) + (($detalleC->cortinero_cantidad ?? 0) + ($detalleC->cortinero_precio ?? 0));
-                    $baseTergal = ($detalleC->total_tergal_final ?? 0) + ($detalleC->total_mano_obra_2 ?? 0) + (($detalleC->cortinero_tergal_cantidad ?? 0) + ($detalleC->cortinero_tergal_precio ?? 0));
-                    $baseForro = $detalleC->total_final_forro ?? 0;
-                    $costoTotalMateriales = $costoTotalInsumos;
-                    $costoCortina = $baseTela + $baseTergal + $baseForro + $costoTotalMateriales;
-                    $totalCalculated = $costoCortina * $decoradorFactor;
-                }
-            @endphp
-            <tr>
-                <td colspan="6" class="text-right"><strong>SUBTOTAL</strong></td>
-                <td class="text-right">${{ number_format($subtotal, 2) }}</td>
+            <tr class="total-row">
+                <td colspan="6" class="text-right">Subtotal</td>
+                <td class="text-right">{{ $fmtMoney($subtotalNeto) }}</td>
             </tr>
-            <tr>
-                <td colspan="6" class="text-right"><strong>PRECIO DECORADOR</strong></td>
-                <td class="text-right">${{ number_format($cotizacion->costo_decorador ?? $totalCalculated, 2) }}</td>
+            @if($cotizacion->aplicar_iva)
+                <tr class="total-row">
+                    <td colspan="6" class="text-right">IVA (16%)</td>
+                    <td class="text-right">{{ $fmtMoney($ivaMonto) }}</td>
+                </tr>
+            @endif
+            <tr class="grand-total-row">
+                <td colspan="6" class="text-right">PRECIO DECORADOR</td>
+                <td class="text-right">{{ $fmtMoney($precioDecorador) }}</td>
             </tr>
         </tfoot>
     </table>
 
-    <div class="section-title">TÉRMINOS Y CONDICIONES</div>
-    <ol style="margin-bottom: 10px;">
-        <li>Se requiere el % de anticipo y el resto al instalar.</li>
-        <li>Instalación incluida en nuestros trabajos.</li>
-        <li>Tiempo de entrega es de ___ días hábiles posteriores al anticipo.</li>
-        <li>En compras diferidas a meses sin intereses se realiza en una sola exhibición.</li>
-        <li>Si por algún motivo la instalación es aplazada por motivos ajenos a nosotros, el cliente deberá liquidar el resto de la cotización.</li>
-    </ol>
+    <div class="note-box">
+        * Cotización sujeta a cambios en las medidas enviadas. Vigencia sujeta a disponibilidad de materiales.
+    </div>
 
-    <div class="section-title">RECIBO DE ANTICIPO</div>
-    <table>
-        <tr>
-            <td class="no-border"><strong>RECIBÍ LA CANTIDAD DE $</strong></td>
-            <td class="no-border" style="border-bottom: 1px solid #ccc; min-width: 80px;">{{ $cotizacion->anticipo ?? '' }}</td>
-            <td class="no-border"><strong>POR CONCEPTO DE</strong></td>
-            <td class="no-border">[ ] ANTICIPO [ ] PAGO TOTAL</td>
-        </tr>
-        <tr>
-            <td class="no-border"><strong>RESTANDO LA CANTIDAD DE $</strong></td>
-            <td class="no-border" style="border-bottom: 1px solid #ccc;">{{ $cotizacion->restante ?? '' }}</td>
-            <td class="no-border"><strong>FIRMA</strong></td>
-            <td class="no-border firma"></td>
-        </tr>
-        <tr>
-            <td class="no-border"><strong>NOMBRE DEL CLIENTE</strong></td>
-            <td class="no-border" style="border-bottom: 1px solid #ccc;">{{ $cotizacion->cliente ? $cotizacion->cliente->nombre : '' }}</td>
-            <td class="no-border"><strong>FIRMA DEL CLIENTE</strong></td>
-            <td class="no-border firma"></td>
-        </tr>
-    </table>
+    <div class="section-title">Términos y condiciones</div>
+    <div class="terms-box">
+        <ol class="terms-list">
+            <li>Se requiere el % de anticipo y el resto al instalar.</li>
+            <li>Instalación incluida en nuestros trabajos.</li>
+            <li>Tiempo de entrega es de ___ días hábiles posteriores al anticipo.</li>
+            <li>En compras diferidas a meses sin intereses se realiza en una sola exhibición.</li>
+            <li>Si por algún motivo la instalación es aplazada por motivos ajenos a nosotros, el cliente deberá liquidar el resto de la cotización.</li>
+        </ol>
+    </div>
 
-    <p style="margin-top: 10px; font-size: 11px;">
-        Si usted tiene alguna duda sobre esta cotización, por favor, póngase en contacto con nosotros.
-    </p>
+    <div class="section-title">Recibo</div>
+    <div class="receipt-box">
+        <table class="receipt-grid">
+            <tr>
+                <td style="width: 35%;">
+                    <div class="receipt-label">Recibí la cantidad de</div>
+                    <div class="receipt-field receipt-field-money">
+                        @if($cotizacion->anticipo)
+                            {{ $fmtMoney($cotizacion->anticipo) }}
+                        @else
+                            &nbsp;
+                        @endif
+                    </div>
+                </td>
+                <td style="width: 35%;">
+                    <div class="receipt-label">Restando la cantidad de</div>
+                    <div class="receipt-field receipt-field-money">
+                        @if($cotizacion->restante)
+                            {{ $fmtMoney($cotizacion->restante) }}
+                        @else
+                            &nbsp;
+                        @endif
+                    </div>
+                </td>
+                <td style="width: 30%;">
+                    <div class="receipt-label">Por concepto de</div>
+                    <div class="receipt-options">
+                        <span class="receipt-checkbox"></span> Anticipo &nbsp;&nbsp;
+                        <span class="receipt-checkbox"></span> Total
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="receipt-label">Nombre del cliente</div>
+                    <div class="receipt-field">{{ $cotizacion->cliente?->nombre ?? '' }}</div>
+                </td>
+                <td>
+                    <div class="receipt-label">Firma del asesor</div>
+                    <div class="receipt-field-empty">&nbsp;</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="receipt-label">Firma del cliente</div>
+                    <div class="receipt-field-empty">&nbsp;</div>
+                </td>
+                <td>
+                    <div class="receipt-label">Fecha de recepción</div>
+                    <div class="receipt-field-empty">&nbsp;</div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
-    @php
-        // Insumos fijos por nombre
-        $insumosFijos = ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'];
-        // Buscar el cortinero dinámico (tipo 6) si existe
-        $cortineroDinamico = $cotizacion->insumos->first(function($insumo) {
-            return $insumo->id_tipo_insumo == 6;
-        });
-    @endphp
+    <div class="footer-note">
+        Si usted tiene alguna duda sobre esta cotización, por favor póngase en contacto con nosotros.
+    </div>
 </body>
 </html>

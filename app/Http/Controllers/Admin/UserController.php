@@ -15,7 +15,15 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::query();
+        $query = User::with('role');
+
+        if ($request->filled('nombre')) {
+            $query->where('name', 'LIKE', '%' . $request->nombre . '%');
+        }
+
+        if ($request->filled('role_id')) {
+            $query->where('role_id', $request->role_id);
+        }
 
         $estado = $request->get('estado', 'habilitado');
         if ($estado === 'habilitado') {
@@ -24,8 +32,10 @@ class UserController extends Controller
             $query->where('borrado', 1);
         }
 
-        $users = $query->get();
-        return view('admin.users.index', compact('users', 'estado'));
+        $users = $query->orderBy('name')->get();
+        $roles = Role::orderBy('nombre')->get();
+
+        return view('admin.users.index', compact('users', 'estado', 'roles'));
     }
 
     /**

@@ -3,157 +3,220 @@
 @section('title', 'Insumos')
 
 @section('content')
+@include('admin.partials.professional-styles')
 
 <div class="section">
-    <div class="section-header">
-        <h1>Insumos</h1>
-        <div class="section-header-button ml-auto">
-            <a href="{{ route('admin.insumos.create') }}" class="btn btn-primary">Nuevo Insumo</a>
-            <button class="btn btn-success ml-2" data-toggle="modal" data-target="#importModal">
-                Importar Insumos
-            </button>
+    <div class="admin-pro">
+        <div class="card hero-card mb-4">
+            <div class="card-body py-3 px-4">
+                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+                    <div>
+                        <h3>Insumos</h3>
+                        <p class="hero-subtitle">Gestione el catálogo de insumos por tipo.</p>
+                    </div>
+                    <div class="hero-actions d-flex flex-wrap gap-2">
+                        <a href="{{ route('admin.insumos.create') }}" class="btn btn-primary px-4">
+                            <i class="fas fa-plus mr-1"></i> Nuevo Insumo
+                        </a>&nbsp;
+                        <button class="btn btn-success px-4" data-toggle="modal" data-target="#importModal">
+                            <i class="fas fa-file-import mr-1"></i> Importar
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <div class="section-body">
-        @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
 
         <form method="GET" action="{{ route('admin.insumos.index') }}" class="mb-4">
-            <div class="form-row">
-                <div class="col">
-                    <input type="text" name="nombre" value="{{ request('nombre') }}" class="form-control" placeholder="Buscar por nombre">
-                </div>
-                <div class="col">
-                    <select name="tipo_insumo" class="form-control">
-                        <option value="">Seleccionar Tipo de Insumo</option>
-                        @foreach($tipos as $tipo)
-                            <option value="{{ $tipo->id }}" {{ request('tipo_insumo') == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col">
-                    <select name="estado" class="form-control">
-                        <option value="habilitado" {{ $estado == 'habilitado' ? 'selected' : '' }}>Habilitados</option>
-                        <option value="inhabilitado" {{ $estado == 'inhabilitado' ? 'selected' : '' }}>Inhabilitados</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <button type="submit" class="btn btn-primary">Buscar</button>
-                    <a href="{{ route('admin.insumos.index') }}" class="btn btn-secondary">Limpiar</a>
+            <div class="card filter-card">
+                <div class="card-body">
+                    <div class="form-row align-items-end">
+                        <div class="col-md-3 mb-2 mb-md-0">
+                            <label class="field-label">Nombre</label>
+                            <input type="text" name="nombre" value="{{ request('nombre') }}" class="form-control" placeholder="Buscar por nombre">
+                        </div>
+                        <div class="col-md-3 mb-2 mb-md-0">
+                            <label class="field-label">Tipo de insumo</label>
+                            <select name="tipo_insumo" class="form-control">
+                                <option value="">Todos los tipos</option>
+                                @foreach($tipos as $tipo)
+                                    <option value="{{ $tipo->id }}" {{ request('tipo_insumo') == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2 mb-md-0">
+                            <label class="field-label">Estado</label>
+                            <select name="estado" class="form-control">
+                                <option value="habilitado" {{ $estado == 'habilitado' ? 'selected' : '' }}>Habilitados</option>
+                                <option value="inhabilitado" {{ $estado == 'inhabilitado' ? 'selected' : '' }}>Inhabilitados</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex">
+                            <button type="submit" class="btn btn-primary mr-2 flex-grow-1">Buscar</button>
+                            <a href="{{ route('admin.insumos.index') }}" class="btn btn-light border flex-grow-1">Limpiar</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
 
-        <div class="card">
-            <div class="card-header">
-                <h4>Lista de Insumos</h4>
-            </div>
-            <div class="card-body table-responsive">
-
-            @if(!$tipoSeleccionado)
-                <div class="text-center p-4">
-                    <h5>Seleccione un tipo de insumo para ver sus campos.</h5>
-                </div>
-            @elseif($insumos->isEmpty())
-                <div class="text-center p-4">
-                    <h5>No hay insumos registrados para este tipo.</h5>
-                </div>
-            @else
-                <table class="table table-striped table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Proveedor</th>
-                            <th>Costo</th>
-                            <th>Precio Público</th>
-                            <th>Utilidad</th>
-                            @foreach($camposDinamicos as $campo => $valor)
-                                <th>{{ $valor }}</th>
-                            @endforeach
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($insumos as $insumo)
-                            <tr>
-                                <td>{{ $insumo->nombre }}</td>
-                                <td>{{ $insumo->proveedor->nombre ?? 'N/A' }}</td>
-                                <td>{{ $insumo->costo }}</td>
-                                <td>{{ $insumo->precio_publico }}</td>
-                                <td>{{ $insumo->utilidad }}</td>
-                                @foreach($camposDinamicos as $campo => $valor)
-                                <td>{{ $insumo->$campo }}</td>
-                                @endforeach
-                                <td>
-                                    @if($insumo->borrado == 0)
-                                    <a href="{{ route('admin.insumos.edit', $insumo->id) }}" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('admin.insumos.destroy', $insumo->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-danger btn-sm" onclick="return confirm('¿Inhabilitar insumo?')">
-                                            <i class="fas fa-ban"></i>
-                                        </button>
-                                    </form>
-                                @else
-                                    <form action="{{ route('admin.insumos.habilitar', $insumo->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button class="btn btn-success btn-sm" onclick="return confirm('¿Habilitar insumo?')">
-                                            <i class="fas fa-check"></i>
-                                        </button>
-                                    </form>
-                                @endif
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                <div class="d-flex justify-content-center mt-3">
-                    {{ $insumos->appends(request()->query())->links('pagination::bootstrap-4') }}
-                </div>
+        <div class="section-body">
+            @if (session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
             @endif
 
+            <div class="card table-card">
+                <div class="card-body table-responsive">
+                    @if(!$tipoSeleccionado)
+                        <div class="empty-state">
+                            <i class="fas fa-filter fa-2x d-block"></i>
+                            <h5 class="mb-1">Seleccione un tipo de insumo</h5>
+                            <p class="mb-0 small">Use el filtro de arriba para ver los campos correspondientes.</p>
+                        </div>
+                    @elseif($insumos->isEmpty())
+                        <div class="empty-state">
+                            <i class="fas fa-box-open fa-2x d-block"></i>
+                            <h5 class="mb-1">No hay insumos registrados</h5>
+                            <p class="mb-0 small">No se encontraron insumos para este tipo con los filtros aplicados.</p>
+                        </div>
+                    @else
+                        <table class="table table-borderless">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Proveedor</th>
+                                    <th>Costo</th>
+                                    <th>Precio Público</th>
+                                    <th>Utilidad</th>
+                                    @foreach($camposDinamicos as $campo => $valor)
+                                        <th>{{ $valor }}</th>
+                                    @endforeach
+                                    <th>Estado</th>
+                                    <th class="text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($insumos as $insumo)
+                                    <tr>
+                                        <td>
+                                            <a href="{{ route('admin.insumos.edit', $insumo->id) }}" class="record-link">
+                                                {{ $insumo->nombre }}
+                                            </a>
+                                        </td>
+                                        <td>{{ $insumo->proveedor->nombre ?? 'N/A' }}</td>
+                                        <td class="money-value">${{ number_format((float) $insumo->costo, 2) }}</td>
+                                        <td class="money-value">${{ number_format((float) $insumo->precio_publico, 2) }}</td>
+                                        <td>{{ number_format((float) $insumo->utilidad, 2) }}</td>
+                                        @foreach($camposDinamicos as $campo => $valor)
+                                            <td>{{ $insumo->$campo ?: '-' }}</td>
+                                        @endforeach
+                                        <td>
+                                            @if($insumo->borrado == 0)
+                                                <span class="status-chip status-active">Activo</span>
+                                            @else
+                                                <span class="status-chip status-inactive">Inactivo</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="actions-wrap">
+                                                @if($insumo->borrado == 0)
+                                                    <a href="{{ route('admin.insumos.edit', $insumo->id) }}" class="action-btn btn-edit" title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <form action="{{ route('admin.insumos.destroy', $insumo->id) }}" method="POST" class="mb-0 d-inline js-insumo-estado-form" data-accion="inhabilitar">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="action-btn btn-delete" title="Inhabilitar">
+                                                            <i class="fas fa-ban"></i>
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <form action="{{ route('admin.insumos.habilitar', $insumo->id) }}" method="POST" class="mb-0 d-inline js-insumo-estado-form" data-accion="habilitar">
+                                                        @csrf
+                                                        <button type="submit" class="action-btn btn-enable" title="Habilitar">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+
+                        {{ $insumos->appends(request()->query())->links('pagination::bootstrap-5') }}
+                    @endif
+                </div>
             </div>
         </div>
     </div>
 </div>
-    <!-- Modal de Importación -->
-    <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <form action="{{ route('admin.insumos.import') }}" method="POST" enctype="multipart/form-data" class="modal-content">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title" id="importModalLabel">Importar Insumos desde Excel</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
 
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="tipoInsumo">Tipo de Insumo</label>
-                        <select name="id_tipo_insumo" class="form-control" required>
-                            @foreach($tipos as $tipo)
-                                <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="archivo">Archivo Excel</label>
-                        <input type="file" name="archivo" class="form-control-file" required accept=".xlsx,.xls,.csv">
-                    </div>
+<div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form action="{{ route('admin.insumos.import') }}" method="POST" enctype="multipart/form-data" class="modal-content">
+            @csrf
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Importar Insumos desde Excel</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="field-label">Tipo de Insumo</label>
+                    <select name="id_tipo_insumo" class="form-control" required>
+                        @foreach($tipos as $tipo)
+                            <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
+                        @endforeach
+                    </select>
                 </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Importar</button>
+                <div class="form-group mb-0">
+                    <label class="field-label">Archivo Excel</label>
+                    <input type="file" name="archivo" class="form-control-file" required accept=".xlsx,.xls,.csv">
                 </div>
-            </form>
-        </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border" data-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Importar</button>
+            </div>
+        </form>
     </div>
+</div>
+@endsection
 
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.js-insumo-estado-form').forEach(function (form) {
+        var enviando = false;
+
+        form.addEventListener('submit', function (event) {
+            if (enviando) {
+                return;
+            }
+
+            event.preventDefault();
+
+            var esInhabilitar = form.getAttribute('data-accion') === 'inhabilitar';
+
+            swal({
+                title: '¿Está seguro?',
+                text: esInhabilitar
+                    ? '¿Desea inhabilitar este insumo?'
+                    : '¿Desea habilitar este insumo?',
+                icon: 'warning',
+                buttons: ['Cancelar', esInhabilitar ? 'Sí, inhabilitar' : 'Sí, habilitar'],
+                dangerMode: esInhabilitar,
+            }).then(function (confirmado) {
+                if (confirmado) {
+                    enviando = true;
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
 @endsection

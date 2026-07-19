@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\InsumoController;
 use App\Http\Controllers\Admin\ClienteController;
 use App\Http\Controllers\Admin\ProductoController;
 use App\Http\Controllers\Admin\AlmacenController;
+use App\Http\Controllers\Admin\InventarioController;
 use App\Http\Controllers\Admin\CotizacionController;
 use App\Http\Controllers\Admin\TipoProductosController;
 
@@ -21,6 +22,9 @@ Route::get('/', function () {
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::get('cotizaciones/{cotizacion}/compartir/{token}', [CotizacionController::class, 'compartirPdf'])
+    ->name('cotizaciones.compartir');
 
 Auth::routes();
 
@@ -50,6 +54,7 @@ Route::middleware(['auth', 'role:Administrador,Almacén,Almacen'])->prefix('admi
     Route::post('proveedores/{proveedor}/habilitar', [App\Http\Controllers\Admin\ProveedorController::class, 'habilitar'])->name('proveedores.habilitar');
     Route::resource('almacenes', AlmacenController::class)->parameters(['almacenes' => 'almacen']);
     Route::get('/almacenes/{id}/existencia', [AlmacenController::class, 'showExistencia'])->name('almacenes.existencia');
+    Route::get('inventario', [InventarioController::class, 'index'])->name('inventario.index');
     Route::resource('entradas', App\Http\Controllers\Admin\EntradaController::class);
 });
 

@@ -179,7 +179,7 @@
 
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card dashboard-card">
-                    <a href="{{ route('admin.almacenes.index') }}">
+                    <a href="{{ route('admin.inventario.index') }}">
                         <div class="card-body text-center">
 
                             <div class="dashboard-icon bg-almacen">
@@ -189,7 +189,7 @@
                             <h5 class="mt-3">Inventario</h5>
 
                             <small class="text-muted">
-                                Almacenes e inventario
+                                Inventario de productos e insumos
                             </small>
 
                         </div>
@@ -200,82 +200,6 @@
 
         </div>
 
-        <div class="row mt-3">
-
-            <div class="col-lg-8">
-
-                <div class="card">
-
-                    <div class="card-header">
-                        <h4>Últimas Cotizaciones</h4>
-                    </div>
-
-                    <div class="card-body">
-
-                        <table class="table table-striped">
-
-                            <thead>
-
-                                <tr>
-                                    <th>Folio</th>
-                                    <th>Cliente</th>
-                                    <th>Fecha</th>
-                                    <th>Estado</th>
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                <tr>
-                                    <td colspan="4" class="text-center text-muted">
-                                        Aún no hay información.
-                                    </td>
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-4">
-
-                <div class="card stat-card mb-3">
-                    <div class="card-body text-center">
-                        <h3>0</h3>
-                        <small>Clientes</small>
-                    </div>
-                </div>
-
-                <div class="card stat-card mb-3">
-                    <div class="card-body text-center">
-                        <h3>0</h3>
-                        <small>Productos</small>
-                    </div>
-                </div>
-
-                <div class="card stat-card mb-3">
-                    <div class="card-body text-center">
-                        <h3>0</h3>
-                        <small>Insumos</small>
-                    </div>
-                </div>
-
-                <div class="card stat-card">
-                    <div class="card-body text-center">
-                        <h3>0</h3>
-                        <small>Cotizaciones</small>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
 
     </div>
 
