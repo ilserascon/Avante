@@ -4,7 +4,8 @@
 
 @section('content')
 @php
-    $esAdmin = auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador';
+    $verDetalleTelaManoObra = auth()->user()?->veDetalleTelaManoObra() ?? false;
+    $veUtilidad = auth()->user()?->veUtilidadCotizacion() ?? false;
 
     $fmtMoney = function ($value) {
         return '$' . number_format((float) ($value ?? 0), 2);
@@ -290,7 +291,7 @@
                     <a href="{{ route('admin.cotizaciones.index') }}" class="btn btn-light border">
                         <i class="fas fa-arrow-left mr-1"></i> Volver
                     </a>&nbsp;
-                    @if($cotizacion->estatus === 'solicitada')
+                    @if(auth()->user()->puedeEditarCotizacion() && $cotizacion->estatus === 'solicitada')
                         <a href="{{ route('admin.cotizaciones.edit', $cotizacion->id) }}" class="btn btn-warning text-white">
                             <i class="fas fa-edit mr-1"></i> Editar
                         </a>&nbsp;
@@ -299,7 +300,7 @@
                         <a href="{{ route('admin.cotizaciones.pdf', $cotizacion->id) }}" class="btn btn-danger" target="_blank">
                             <i class="fas fa-file-pdf mr-1"></i> PDF Cliente
                         </a>&nbsp;
-                        @if($esAdmin)
+                        @if(auth()->user()->puedeVerPdfDecorador())
                             <a href="{{ route('admin.cotizaciones.pdf-decorador', $cotizacion->id) }}" class="btn btn-primary" target="_blank">
                                 <i class="fas fa-file-pdf mr-1"></i> PDF Decorador
                             </a>
@@ -490,6 +491,7 @@
                     </div>
                 @endif
 
+                @if($verDetalleTelaManoObra)
                 <div class="row">
                     <div class="col-lg-6 mb-3">
                         <h6 class="font-weight-bold mb-2">Totales Tela, Tergal y Forro</h6>
@@ -565,6 +567,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <div class="row">
                     <div class="col-lg-6 mb-3">
@@ -626,7 +629,7 @@
                                         <th>Costo cortina</th>
                                         <td class="money">{{ $fmtMoney($costoCortinaDetalle) }}</td>
                                     </tr>
-                                    @if($esAdmin)
+                                    @if($veUtilidad)
                                         <tr>
                                             <th>Utilidad (15%)</th>
                                             <td>{{ $fmtMoney($utilidadDetalle) }}</td>

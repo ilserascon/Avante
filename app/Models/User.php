@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;{}
+use Laravel\Sanctum\HasApiTokens;
 use App\Models\Role;
 
 class User extends Authenticatable
@@ -49,5 +49,55 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function getRoleNombre(): ?string
+    {
+        return $this->role?->nombre;
+    }
+
+    public function esAdministrador(): bool
+    {
+        return $this->getRoleNombre() === 'Administrador';
+    }
+
+    public function esCotizador(): bool
+    {
+        return $this->getRoleNombre() === 'Cotizador';
+    }
+
+    public function puedeEditarCotizacion(): bool
+    {
+        return $this->esAdministrador() || $this->esCotizador();
+    }
+
+    public function puedeGestionarEstatusCotizacion(): bool
+    {
+        return $this->esAdministrador();
+    }
+
+    public function veUtilidadCotizacion(): bool
+    {
+        return $this->esAdministrador();
+    }
+
+    public function veTotalesCotizacion(): bool
+    {
+        return $this->esAdministrador() || $this->esCotizador();
+    }
+
+    public function veDetalleTelaManoObra(): bool
+    {
+        return $this->esAdministrador();
+    }
+
+    public function veCostosCotizacion(): bool
+    {
+        return $this->esAdministrador();
+    }
+
+    public function puedeVerPdfDecorador(): bool
+    {
+        return $this->esAdministrador() || $this->esCotizador();
     }
 }

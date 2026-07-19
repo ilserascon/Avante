@@ -76,7 +76,8 @@
     <div class="section-body">
 
         <div class="row">
-            
+
+            @if(auth()->user()->puedeEditarCotizacion())
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card dashboard-card">
                     <a href="{{ route('admin.cotizaciones.create') }}">
@@ -96,6 +97,7 @@
                     </a>
                 </div>
             </div>
+            @endif
         
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card dashboard-card">
@@ -177,6 +179,7 @@
                 </div>
             </div>
 
+            @if(!auth()->user()->esCotizador())
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card dashboard-card">
                     <a href="{{ route('admin.inventario.index') }}">
@@ -196,6 +199,7 @@
                     </a>
                 </div>
             </div>
+            @endif
 
 
         </div>

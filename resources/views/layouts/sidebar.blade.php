@@ -181,6 +181,30 @@
                 {{-- ================= COTIZADOR ================= --}}
                 @elseif(Auth::user()->role->nombre === 'Cotizador')
 
+                <li class="menu-header">Administración</li>
+
+                <li class="{{ request()->is('admin/clientes*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.clientes.index') }}">
+                            <i class="fas fa-user-friends"></i>
+                            <span>Clientes</span>
+                        </a>
+                    </li>
+
+                <li class="menu-header">Cotización</li>
+                    <li class="{{ request()->is('admin/cotizaciones') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.cotizaciones.index') }}">
+                            <i class="fas fa-list"></i>
+                            <span>Cotizaciones</span>
+                        </a>
+                    </li>
+
+                    <li class="{{ request()->is('admin/cotizaciones/create') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.cotizaciones.create') }}">
+                            <i class="fas fa-calculator"></i>
+                            <span>Crear Cotización</span>
+                        </a>
+                    </li>
+
                     <li class="menu-header">Catálogos</li>
 
                     <li class="nav-item dropdown {{
@@ -229,26 +253,6 @@
 
                     </li>
 
-                    <li class="{{ request()->is('admin/clientes*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.clientes.index') }}">
-                            <i class="fas fa-user-friends"></i>
-                            <span>Clientes</span>
-                        </a>
-                    </li>
-
-                    <li class="{{ request()->is('admin/cotizaciones') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.cotizaciones.index') }}">
-                            <i class="fas fa-list"></i>
-                            <span>Cotizaciones</span>
-                        </a>
-                    </li>
-
-                    <li class="{{ request()->is('admin/cotizaciones/create') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('admin.cotizaciones.create') }}">
-                            <i class="fas fa-calculator"></i>
-                            <span>Crear Cotización</span>
-                        </a>
-                    </li>
 
                 @endif
 

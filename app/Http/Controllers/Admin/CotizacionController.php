@@ -19,6 +19,27 @@ use RuntimeException;
 
 class CotizacionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $user = auth()->user();
+            if (!$user || !$user->puedeEditarCotizacion()) {
+                abort(403, 'No tienes permiso para crear o editar cotizaciones.');
+            }
+
+            return $next($request);
+        })->only(['create', 'store', 'edit', 'update']);
+
+        $this->middleware(function ($request, $next) {
+            $user = auth()->user();
+            if (!$user || !$user->puedeGestionarEstatusCotizacion()) {
+                abort(403, 'No tienes permiso para cambiar el estatus de cotizaciones.');
+            }
+
+            return $next($request);
+        })->only(['cambiarEstatus']);
+    }
+
     public function index(Request $request)
     {
         $query = Cotizacion::query()->with(['cliente', 'creadoPor']);
@@ -532,26 +553,6 @@ class CotizacionController extends Controller
                 ->withErrors(['detalles' => 'Debe agregar al menos un concepto (Cortina, Tergal o Forro) o registrar insumos/productos.']);
         }
 
-        $estatusAnterior = $cotizacion->estatus;
-        $estatusNuevo = $request->input('estatus', 'solicitada');
-
-        if ($estatusNuevo === 'completada' && $estatusAnterior !== 'aceptada' && $estatusAnterior !== 'completada') {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Solo se puede completar una cotización que esté aceptada.');
-        }
-
-        if ($estatusNuevo === 'cancelada' && $estatusAnterior !== 'aceptada') {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Solo se puede cancelar una cotización que esté aceptada.');
-        }
-
-        $inventarioService = app(CotizacionInventarioService::class);
-        $advertenciaFaltantes = null;
-
         try {
             DB::transaction(function () use (
                 $cotizacion,
@@ -561,11 +562,7 @@ class CotizacionController extends Controller
                 $request,
                 $detallesParaGuardar,
                 $insumosGlobales,
-                $productosGlobales,
-                $estatusAnterior,
-                $estatusNuevo,
-                $inventarioService,
-                &$advertenciaFaltantes
+                $productosGlobales
             ) {
         $cotizacion->cliente_id = $validated['cliente_id'];
         $cotizacion->fecha = $validated['fecha'];
@@ -580,7 +577,6 @@ class CotizacionController extends Controller
         ));
         $setCotizacionColumn('aplicar_iva', $request->has('aplicar_iva'));
         $setCotizacionColumn('descuento', $request->input('descuento', 0));
-        $setCotizacionColumn('estatus', $estatusNuevo);
         $cotizacion->save();
 
         $cotizacion->detallesCotizacion()->delete();
@@ -709,22 +705,6 @@ class CotizacionController extends Controller
 
         $cotizacion->insumos()->sync($todosLosInsumos);
         $cotizacion->productos()->sync($todosLosProductos);
-
-                $cotizacion->refresh();
-
-                if ($estatusNuevo === 'completada' && $estatusAnterior !== 'completada') {
-                    $errorInventario = $inventarioService->procesarCompletado($cotizacion);
-                    if ($errorInventario !== null) {
-                        throw new RuntimeException($errorInventario);
-                    }
-                }
-
-                if ($estatusNuevo === 'aceptada' && $estatusAnterior !== 'aceptada') {
-                    $faltantes = $inventarioService->listarFaltantes($cotizacion);
-                    if (!empty($faltantes)) {
-                        $advertenciaFaltantes = $inventarioService->mensajeAceptadaConFaltantes($faltantes);
-                    }
-                }
             });
         } catch (RuntimeException $e) {
             return redirect()
@@ -733,17 +713,9 @@ class CotizacionController extends Controller
                 ->with('error', $e->getMessage());
         }
 
-        $redirect = redirect()
+        return redirect()
             ->route('admin.cotizaciones.index')
-            ->with('success', $estatusNuevo === 'completada' && $estatusAnterior !== 'completada'
-                ? 'Cotización completada e inventario descontado correctamente.'
-                : 'Cotización actualizada exitosamente.');
-
-        if ($advertenciaFaltantes !== null) {
-            $redirect->with('warning', $advertenciaFaltantes);
-        }
-
-        return $redirect;
+            ->with('success', 'Cotización actualizada exitosamente.');
     }
 
     private function detalleTieneContenido(array $detalleBloque): bool

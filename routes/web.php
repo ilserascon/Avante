@@ -39,13 +39,11 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::resource('productos', ProductoController::class)->parameters(['productos' => 'producto']);
     Route::get('productos/{id}/insumos', [ProductoController::class, 'verInsumos'])->name('productos.insumos');
     Route::resource('clientes', ClienteController::class);
-    Route::resource('cotizaciones', App\Http\Controllers\Admin\CotizacionController::class)
+    Route::resource('cotizaciones', CotizacionController::class)
         ->parameters(['cotizaciones' => 'cotizacion']);
     Route::post('cotizaciones/{cotizacion}/cambiar-estatus', [CotizacionController::class, 'cambiarEstatus'])->name('cotizaciones.cambiar-estatus');
     Route::get('cotizaciones/{cotizacion}/pdf', [CotizacionController::class, 'generarPdf'])->name('cotizaciones.pdf');
     Route::get('cotizaciones/{cotizacion}/pdfdecorador', [CotizacionController::class, 'pdfDecorador'])->name('cotizaciones.pdf-decorador');
-
-
 });
 
 // Rutas para Administrador y Almacén

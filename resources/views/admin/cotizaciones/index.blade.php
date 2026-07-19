@@ -219,9 +219,11 @@
                         <h3>Cotizaciones</h3>
                     </div>
                     <div class="hero-actions">
-                        <a href="{{ route('admin.cotizaciones.create') }}" class="btn btn-primary px-4">
-                            <i class="fas fa-plus mr-1"></i> Nueva Cotización
-                        </a>
+                        @if(auth()->user()->puedeEditarCotizacion())
+                            <a href="{{ route('admin.cotizaciones.create') }}" class="btn btn-primary px-4">
+                                <i class="fas fa-plus mr-1"></i> Nueva Cotización
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -316,7 +318,7 @@
                                     <td>{{ $cotizacion->creadoPor?->name ?? 'N/A' }}</td>
                                     <td>
                                         <div class="actions-wrap justify-content-end">
-                                        @if($cotizacion->estatus === 'solicitada')
+                                        @if(auth()->user()->puedeEditarCotizacion() && $cotizacion->estatus === 'solicitada')
                                             <a href="{{ route('admin.cotizaciones.edit', $cotizacion->id) }}" class="action-btn btn-edit" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
@@ -325,11 +327,12 @@
                                             <a href="{{ route('admin.cotizaciones.pdf', $cotizacion->id) }}" class="action-btn btn-pdf" title="PDF Cliente" target="_blank">
                                                 <i class="fas fa-file-pdf btn-pdf-cliente"></i>
                                             </a>
-                                            @if(auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador')
+                                            @if(auth()->user()->puedeVerPdfDecorador())
                                                 <a href="{{ route('admin.cotizaciones.pdf-decorador', $cotizacion->id) }}" class="action-btn btn-pdf" title="PDF Decorador" target="_blank">
                                                     <i class="fas fa-file-pdf btn-pdf-decorador"></i>
                                                 </a>
                                             @endif
+                                            @if(auth()->user()->puedeGestionarEstatusCotizacion())
                                             @if($cotizacion->estatus === 'solicitada')
                                                 <form action="{{ route('admin.cotizaciones.cambiar-estatus', $cotizacion->id) }}" method="POST" class="mb-0 d-inline js-cotizacion-estatus-form">
                                                     @csrf
@@ -360,6 +363,7 @@
                                                         <i class="fas fa-ban"></i>
                                                     </button>
                                                 </form>
+                                            @endif
                                             @endif
                                         @endif
                                         </div>

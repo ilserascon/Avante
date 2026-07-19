@@ -518,10 +518,11 @@
             </div>
 
             <!-- Totales -->
+            @php $veUtilidad = auth()->user()?->veUtilidadCotizacion() ?? false; @endphp
             <div class="card mt-4 border-0 shadow-sm d-none" id="tabla-totales">
                 <div class="card-header bg-light border-bottom-0 py-3">
                     <h4 class="mb-1">Totales</h4>
-                    <div class="text-muted small">Resultado economico final con utilidad, decorador, descuento e IVA.</div>
+                    <div class="text-muted small">Resultado economico final con decorador, descuento e IVA.</div>
                 </div>
                 <div class="card-body pt-2">
                     <div class="row">
@@ -567,41 +568,36 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    @php
-                                        $esAdmin = auth()->user() && auth()->user()->role && auth()->user()->role->nombre === 'Administrador';
-                                    @endphp
-                                    @if($esAdmin)
-                                        <tr>
-                                            <td><strong>Utilidad</strong></td>
-                                            <td>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">$</span>
-                                                    <input type="number" class="form-control" id="utilidad" name="totales[utilidad]" value="{{ old('totales.utilidad', $cotizacion->utilidad ?? '') }}" readonly>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Costo Decorador</strong></td>
-                                            <td>
-                                                <div class="input-group">
-                                                    <input type="number"
-                                                        id="decorador_porcentaje"
-                                                        name="totales[decorador_porcentaje]"
-                                                        class="form-control text-end"
-                                                        value="{{ old('totales.decorador_porcentaje', $detalleCotizacion->decorador_porcentaje ?? 15) }}"
-                                                        min="0" max="100" step="0.01"
-                                                        style="max-width: 100px;">
-                                                    <span class="input-group-text">%</span>
-                                                    <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
-                                                    <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" value="{{ old('totales.costo_decorador', $cotizacion->costo_decorador ?? '') }}" readonly>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                    @if($veUtilidad)
+                                    <tr>
+                                        <td><strong>Utilidad</strong></td>
+                                        <td>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="utilidad" name="totales[utilidad]" value="{{ old('totales.utilidad', $cotizacion->utilidad ?? '') }}" readonly>
+                                            </div>
+                                        </td>
+                                    </tr>
                                     @else
-                                        {{-- Campos ocultos para cotizador --}}
                                         <input type="hidden" id="utilidad" name="totales[utilidad]" value="{{ old('totales.utilidad', $cotizacion->utilidad ?? '') }}">
-                                        <input type="hidden" id="costo_decorador" name="totales[costo_decorador]" value="{{ old('totales.costo_decorador', $cotizacion->costo_decorador ?? '') }}">
                                     @endif
+                                    <tr>
+                                        <td><strong>Costo Decorador</strong></td>
+                                        <td>
+                                            <div class="input-group">
+                                                <input type="number"
+                                                    id="decorador_porcentaje"
+                                                    name="totales[decorador_porcentaje]"
+                                                    class="form-control text-end"
+                                                    value="{{ old('totales.decorador_porcentaje', $detalleCotizacion->decorador_porcentaje ?? 15) }}"
+                                                    min="0" max="100" step="0.01"
+                                                    style="max-width: 100px;">
+                                                <span class="input-group-text">%</span>
+                                                <span class="input-group-text" style="margin-left: 0.5rem;">$</span>
+                                                <input type="number" class="form-control" id="costo_decorador" name="totales[costo_decorador]" value="{{ old('totales.costo_decorador', $cotizacion->costo_decorador ?? '') }}" readonly>
+                                            </div>
+                                        </td>
+                                    </tr>
                                     <tr>
                                         <td><strong>Precio Público</strong></td>
                                         <td>
@@ -697,6 +693,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js"></script>
 <script>
+    const verDetalleTelaManoObra = @json(auth()->user()->esAdministrador());
+    const veUtilidadCotizacion = @json(auth()->user()->veUtilidadCotizacion());
+
     document.addEventListener('DOMContentLoaded', function() {
         const tabsNav = document.getElementById('cotizacion-tabs');
         const tabsContent = document.getElementById('cotizacion-tabs-content');
@@ -1078,7 +1077,33 @@
             return `<option value="">Seleccione un cortinero</option>${opciones}`;
         }
 
-        function construirTarjetasDetalle(index) {
+        function construirSeccionTelaManoObra(index) {
+            const camposOcultos = `
+                <div class="d-none">
+                    <input type="number" name="detalles[${index}][total_tela]" step="0.01">
+                    <input type="number" name="detalles[${index}][precio_m2_tela]" step="0.01" value="100.00">
+                    <input type="number" name="detalles[${index}][total_tela_final]" step="0.01" readonly>
+                    <input type="number" name="detalles[${index}][total_tergal]" step="0.01">
+                    <input type="number" name="detalles[${index}][precio_m2_tergal]" step="0.01" value="70.00">
+                    <input type="number" name="detalles[${index}][total_tergal_final]" step="0.01" readonly>
+                    <input type="number" name="detalles[${index}][total_forro]" step="0.01">
+                    <input type="number" name="detalles[${index}][precio_m2_forro]" step="0.01" value="35.00">
+                    <input type="number" name="detalles[${index}][total_final_forro]" step="0.01" readonly>
+                    <input type="number" name="detalles[${index}][costo_total_tela_tergal_forro]" step="0.01" readonly>
+                    <input type="number" name="detalles[${index}][m2_1]" step="0.01" readonly>
+                    <input type="number" name="detalles[${index}][costo_mano_obra_1]" step="0.01" value="${manoObraBase.cortina}">
+                    <input type="number" name="detalles[${index}][total_mano_obra_1]" step="0.01" readonly>
+                    <input type="number" name="detalles[${index}][m2_2]" step="0.01" readonly>
+                    <input type="number" name="detalles[${index}][costo_mano_obra_2]" step="0.01" value="${manoObraBase.tergal}">
+                    <input type="number" name="detalles[${index}][total_mano_obra_2]" step="0.01" readonly>
+                    <input type="number" name="detalles[${index}][costo_total_mano_obra]" step="0.01" readonly>
+                </div>
+            `;
+
+            if (!verDetalleTelaManoObra) {
+                return camposOcultos;
+            }
+
             return `
                 <div class="card mt-4 border-0 shadow-sm">
                     <div class="card-header bg-light border-bottom-0 py-3">
@@ -1110,7 +1135,6 @@
                                         <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][total_tergal_final]" class="form-control" step="0.01" readonly></div></td>
                                     </tr>
                                     <tr>
-
                                         <td>Forro</td>
                                         <td><input type="number" name="detalles[${index}][total_forro]" class="form-control" step="0.01"></td>
                                         <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][precio_m2_forro]" class="form-control" step="0.01" value="35.00"></div></td>
@@ -1157,6 +1181,52 @@
                         </div>
                     </div>
                 </div>
+            `;
+        }
+
+        function construirSeccionTotalesDetalle(index) {
+            const filaUtilidad = veUtilidadCotizacion
+                ? `<tr><td><strong>Utilidad</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-utilidad" step="0.01" readonly></div></td></tr>`
+                : `<input type="hidden" class="detalle-utilidad">`;
+
+            return `
+                <div class="card mt-4 border-0 shadow-sm">
+                    <div class="card-header bg-light border-bottom-0 py-3">
+                        <h4 class="mb-1">Totales</h4>
+                        <div class="text-muted small">Resultado economico de esta pestana.</div>
+                    </div>
+                    <div class="card-body pt-2">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-bordered mb-0 align-middle">
+                                    <tbody>
+                                        <tr><td><strong>Total No. Lienzos</strong></td><td><input type="number" class="form-control detalle-total-lienzos" step="0.01" readonly></td></tr>
+                                        <tr><td><strong>Total m² Forro</strong></td><td><input type="number" class="form-control detalle-total-m2-forro" step="0.01" readonly></td></tr>
+                                        <tr><td><strong>Total m² Tela</strong></td><td><input type="number" class="form-control detalle-total-m2-tela" step="0.01" readonly></td></tr>
+                                        <tr><td><strong>Total m² Tergal</strong></td><td><input type="number" class="form-control detalle-total-m2-tergal" step="0.01" readonly></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-bordered mb-0 align-middle">
+                                    <tbody>
+                                        <tr><td><strong>Costo Cortina</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-costo-cortina" step="0.01" readonly></div></td></tr>
+                                        ${filaUtilidad}
+                                        <tr><td><strong>Costo Decorador</strong></td><td><div class="input-group"><input type="number" name="detalles[${index}][decorador_porcentaje]" class="form-control text-end detalle-decorador-porcentaje" value="15" min="0" max="100" step="0.01" style="max-width: 100px;"><span class="input-group-text">%</span><span class="input-group-text" style="margin-left: 0.5rem;">$</span><input type="number" class="form-control detalle-costo-decorador" step="0.01" readonly></div></td></tr>
+                                        <tr><td><strong>Precio Publico</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-precio-publico" step="0.01" readonly></div></td></tr>
+                                        <tr><td></td><td><div class="row justify-content-end"><div class="col-md-12"><label class="form-label mb-0">Descuento (%)</label><input type="number" name="detalles[${index}][descuento]" class="form-control detalle-descuento" min="0" max="100" step="0.01" value="0"></div></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function construirTarjetasDetalle(index) {
+            return `
+                ${construirSeccionTelaManoObra(index)}
 
                 <div class="card mt-4 border-0 shadow-sm">
                     <div class="card-header bg-light border-bottom-0 py-3">
@@ -1212,37 +1282,7 @@
                     </div>
                 </div>
 
-                <div class="card mt-4 border-0 shadow-sm">
-                    <div class="card-header bg-light border-bottom-0 py-3">
-                        <h4 class="mb-1">Totales</h4>
-                        <div class="text-muted small">Resultado economico de esta pestana.</div>
-                    </div>
-                    <div class="card-body pt-2">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <table class="table table-bordered mb-0 align-middle">
-                                    <tbody>
-                                        <tr><td><strong>Total No. Lienzos</strong></td><td><input type="number" class="form-control detalle-total-lienzos" step="0.01" readonly></td></tr>
-                                        <tr><td><strong>Total m² Forro</strong></td><td><input type="number" class="form-control detalle-total-m2-forro" step="0.01" readonly></td></tr>
-                                        <tr><td><strong>Total m² Tela</strong></td><td><input type="number" class="form-control detalle-total-m2-tela" step="0.01" readonly></td></tr>
-                                        <tr><td><strong>Total m² Tergal</strong></td><td><input type="number" class="form-control detalle-total-m2-tergal" step="0.01" readonly></td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="col-md-6">
-                                <table class="table table-bordered mb-0 align-middle">
-                                    <tbody>
-                                        <tr><td><strong>Costo Cortina</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-costo-cortina" step="0.01" readonly></div></td></tr>
-                                        <tr><td><strong>Utilidad</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-utilidad" step="0.01" readonly></div></td></tr>
-                                        <tr><td><strong>Costo Decorador</strong></td><td><div class="input-group"><input type="number" name="detalles[${index}][decorador_porcentaje]" class="form-control text-end detalle-decorador-porcentaje" value="15" min="0" max="100" step="0.01" style="max-width: 100px;"><span class="input-group-text">%</span><span class="input-group-text" style="margin-left: 0.5rem;">$</span><input type="number" class="form-control detalle-costo-decorador" step="0.01" readonly></div></td></tr>
-                                        <tr><td><strong>Precio Publico</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-precio-publico" step="0.01" readonly></div></td></tr>
-                                        <tr><td></td><td><div class="row justify-content-end"><div class="col-md-12"><label class="form-label mb-0">Descuento (%)</label><input type="number" name="detalles[${index}][descuento]" class="form-control detalle-descuento" min="0" max="100" step="0.01" value="0"></div></div></td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                ${construirSeccionTotalesDetalle(index)}
             `;
         }
 
@@ -3279,7 +3319,18 @@
 
         function mostrarOcultarTablas() {
             const haySeleccion = !!(cortina?.checked || tergal?.checked || forro?.checked);
-            tablas.forEach(tabla => tabla && tabla.classList.toggle('d-none', !haySeleccion));
+            tablas.forEach(tabla => {
+                if (!tabla) {
+                    return;
+                }
+
+                if (!verDetalleTelaManoObra && (tabla.id === 'tabla-totales-tela-tergal' || tabla.id === 'tabla-mano-obra')) {
+                    tabla.classList.add('d-none');
+                    return;
+                }
+
+                tabla.classList.toggle('d-none', !haySeleccion);
+            });
         }
 
         if (cortina) cortina.addEventListener('change', mostrarOcultarTablas);
