@@ -4,6 +4,7 @@
 
 @section('content')
 @include('admin.partials.professional-styles')
+@php $veCostos = auth()->user()?->vePreciosInternosCatalogo() ?? false; @endphp
 
 <div class="section">
     <div class="admin-pro">
@@ -44,21 +45,7 @@
                     </div>
                     <div class="card-body">
                         <div class="form-row">
-                            <div class="form-group col-md-4">
-                                <label for="nombre" class="field-label">Nombre</label>
-                                <input type="text" name="nombre" id="nombre" value="{{ old('nombre', $insumo->nombre) }}" class="form-control" required>
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="id_proveedor" class="field-label">Proveedor</label>
-                                <select name="id_proveedor" id="id_proveedor" class="form-control">
-                                    @foreach($proveedores as $proveedor)
-                                        <option value="{{ $proveedor->id }}" {{ (int) old('id_proveedor', $insumo->id_proveedor) === (int) $proveedor->id ? 'selected' : '' }}>
-                                            {{ $proveedor->nombre }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-3">
                                 <label for="id_tipo_insumo" class="field-label">Tipo de Insumo</label>
                                 <select name="id_tipo_insumo" id="id_tipo_insumo" class="form-control" required>
                                     <option value="">Seleccione un tipo</option>
@@ -71,6 +58,31 @@
                                     @endforeach
                                 </select>
                             </div>
+                            <div class="form-group col-md-3">
+                                <label for="clave" class="field-label">Clave</label>
+                                <input type="text" name="clave" id="clave" value="{{ old('clave', \App\Models\Insumo::normalizarCampoMostrar($insumo->clave)) }}" class="form-control">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="nombre" class="field-label">Nombre</label>
+                                <input type="text" name="nombre" id="nombre" value="{{ old('nombre', \App\Models\Insumo::normalizarCampoMostrar($insumo->nombre)) }}" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="color" class="field-label">Color</label>
+                                <input type="text" name="color" id="color" value="{{ old('color', \App\Models\Insumo::normalizarCampoMostrar($insumo->color)) }}" class="form-control">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="id_proveedor" class="field-label">Proveedor</label>
+                                <select name="id_proveedor" id="id_proveedor" class="form-control">
+                                    @foreach($proveedores as $proveedor)
+                                        <option value="{{ $proveedor->id }}" {{ (int) old('id_proveedor', $insumo->id_proveedor) === (int) $proveedor->id ? 'selected' : '' }}>
+                                            {{ $proveedor->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -81,18 +93,22 @@
                     </div>
                     <div class="card-body">
                         <div class="form-row">
+                            @if($veCostos)
                             <div class="form-group col-md-4">
                                 <label for="costo" class="field-label">Costo</label>
                                 <input type="number" name="costo" id="costo" value="{{ old('costo', $insumo->costo) }}" class="form-control" step="0.01" required>
                             </div>
-                            <div class="form-group col-md-4">
+                            @endif
+                            <div class="form-group col-md-{{ $veCostos ? '4' : '12' }}">
                                 <label for="precio_publico" class="field-label">Precio Público</label>
                                 <input type="number" name="precio_publico" id="precio_publico" value="{{ old('precio_publico', $insumo->precio_publico) }}" class="form-control" step="0.01" required>
                             </div>
+                            @if($veCostos)
                             <div class="form-group col-md-4">
                                 <label for="utilidad" class="field-label">Utilidad</label>
                                 <input type="number" name="utilidad" id="utilidad" value="{{ old('utilidad', $insumo->utilidad) }}" class="form-control" step="0.01" required>
                             </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -126,17 +142,26 @@
     const camposCard = document.getElementById('campos-dinamicos-card');
     const valoresOld = @json(old());
     const valoresActuales = {
-        @if($insumo->campos_extra)
-            @foreach($insumo->campos_extra as $key => $value)
-                '{{ $key }}': @json($value),
-            @endforeach
-        @endif
-        @for($i = 1; $i <= 20; $i++)
-            @if(isset($insumo->{'campo' . $i}) && $insumo->{'campo' . $i} !== null)
-                'campo{{ $i }}': @json($insumo->{'campo' . $i}),
+        @for($i = 1; $i <= 15; $i++)
+            @php $campoValor = \App\Models\Insumo::normalizarCampoMostrar($insumo->{'campo' . $i} ?? null); @endphp
+            @if($campoValor !== '')
+                'campo{{ $i }}': @json($campoValor),
             @endif
         @endfor
     };
+
+    function normalizarValor(valor) {
+        if (valor === null || valor === undefined) {
+            return '';
+        }
+
+        const texto = String(valor).trim();
+        if (texto === '' || texto.toLowerCase() === 'null') {
+            return '';
+        }
+
+        return texto;
+    }
 
     function actualizarCampos() {
         camposDiv.innerHTML = '';
@@ -155,10 +180,10 @@
             for (let key in campos) {
                 let valor = '';
 
-                if (valoresOld && typeof valoresOld[key] !== 'undefined' && valoresOld[key] !== null && valoresOld[key] !== '') {
-                    valor = valoresOld[key];
-                } else if (typeof valoresActuales[key] !== 'undefined' && valoresActuales[key] !== null && valoresActuales[key] !== '') {
-                    valor = valoresActuales[key];
+                if (valoresOld && typeof valoresOld[key] !== 'undefined') {
+                    valor = normalizarValor(valoresOld[key]);
+                } else if (typeof valoresActuales[key] !== 'undefined') {
+                    valor = normalizarValor(valoresActuales[key]);
                 }
 
                 fields.push(

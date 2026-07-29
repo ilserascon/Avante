@@ -52,6 +52,8 @@ class InsumosImport implements OnEachRow, WithHeadingRow
 
         $data = [
             'nombre'         => $row['nombre'],
+            'clave'          => $row['clave'] ?? null,
+            'color'          => $row['color'] ?? null,
             'id_tipo_insumo' => $this->tipoInsumoId,
             'id_proveedor'   => $proveedor->id,
             'costo'          => $row['costo'] ?? null,

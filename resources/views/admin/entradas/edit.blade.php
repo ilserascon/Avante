@@ -92,6 +92,10 @@
         color: #b45309;
     }
 
+    .entrada-form .item-row .select2-container {
+        width: 100% !important;
+    }
+
     @media (max-width: 767.98px) {
         .entrada-form .hero-actions {
             margin-top: 0.75rem;
@@ -200,7 +204,7 @@
                                         </div>
                                         <div class="col-md-5 mb-2 mb-md-0">
                                             <label class="field-label">Artículo</label>
-                                            <select name="items[{{ $i }}][id]" class="form-control id-select">
+                                            <select name="items[{{ $i }}][id]" class="form-control id-select select2">
                                                 @if($esProducto)
                                                     @foreach($productos as $producto)
                                                         <option value="{{ $producto->id }}" data-tipo="producto" {{ (int) $detalle->id_producto === (int) $producto->id ? 'selected' : '' }}>
@@ -256,7 +260,8 @@
             </div>
             <div class="col-md-5 mb-2 mb-md-0">
                 <label class="field-label">Artículo</label>
-                <select class="form-control id-select">
+                <select class="form-control id-select select2">
+                    <option value="">Buscar artículo...</option>
                     @foreach($productos as $producto)
                         <option value="{{ $producto->id }}" data-tipo="producto">{{ $producto->nombre }}</option>
                     @endforeach
@@ -276,6 +281,51 @@
     let productos = @json($productos);
     let insumos = @json($insumos);
 
+    const select2EntradaOptions = {
+        width: '100%',
+        allowClear: true,
+        language: {
+            noResults: function () { return 'Sin resultados'; },
+            searching: function () { return 'Buscando...'; }
+        }
+    };
+
+    function initEntradaSelect(selectEl) {
+        const $select = $(selectEl);
+        if (!$select.length) {
+            return;
+        }
+        if ($select.hasClass('select2-hidden-accessible')) {
+            $select.select2('destroy');
+        }
+        $select.select2(select2EntradaOptions);
+    }
+
+    function destroyEntradaSelect(selectEl) {
+        const $select = $(selectEl);
+        if ($select.length && $select.hasClass('select2-hidden-accessible')) {
+            $select.select2('destroy');
+        }
+    }
+
+    function fillArticuloOptions(idSelect, tipo, selectedId) {
+        let options = '<option value="">Buscar artículo...</option>';
+
+        if (tipo === 'producto') {
+            productos.forEach(function (p) {
+                const selected = selectedId && Number(selectedId) === Number(p.id) ? ' selected' : '';
+                options += `<option value="${p.id}" data-tipo="producto"${selected}>${p.nombre}</option>`;
+            });
+        } else {
+            insumos.forEach(function (i) {
+                const selected = selectedId && Number(selectedId) === Number(i.id) ? ' selected' : '';
+                options += `<option value="${i.id}" data-tipo="insumo"${selected}>${i.nombre_completo}</option>`;
+            });
+        }
+
+        idSelect.innerHTML = options;
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         let itemsContainer = document.getElementById('items-container');
         let btnAddDetalle = document.getElementById('btn-add-detalle');
@@ -289,9 +339,15 @@
             badge.classList.toggle('type-insumo', tipo === 'insumo');
         }
 
+        itemsContainer.querySelectorAll('.id-select').forEach(function (select) {
+            initEntradaSelect(select);
+        });
+
         itemsContainer.addEventListener('click', function (e) {
             if (e.target.closest('.btn-remove-detalle')) {
-                e.target.closest('.detalle-row').remove();
+                const row = e.target.closest('.detalle-row');
+                destroyEntradaSelect(row.querySelector('.id-select'));
+                row.remove();
             }
         });
 
@@ -306,6 +362,7 @@
             row.querySelector('.cantidad-input').setAttribute('name', `items[${index}][cantidad]`);
 
             itemsContainer.appendChild(row);
+            initEntradaSelect(row.querySelector('.id-select'));
         });
 
         itemsContainer.addEventListener('change', function (e) {
@@ -313,19 +370,10 @@
                 let tipo = e.target.value;
                 let row = e.target.closest('.detalle-row');
                 let idSelect = row.querySelector('.id-select');
-                let options = '';
 
-                if (tipo === 'producto') {
-                    productos.forEach(function (p) {
-                        options += `<option value="${p.id}" data-tipo="producto">${p.nombre}</option>`;
-                    });
-                } else {
-                    insumos.forEach(function (i) {
-                        options += `<option value="${i.id}" data-tipo="insumo">${i.nombre_completo}</option>`;
-                    });
-                }
-
-                idSelect.innerHTML = options;
+                destroyEntradaSelect(idSelect);
+                fillArticuloOptions(idSelect, tipo, null);
+                initEntradaSelect(idSelect);
                 updateBadge(row, tipo);
             }
         });

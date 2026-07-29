@@ -88,6 +88,10 @@
         border-radius: 12px;
     }
 
+    .entrada-form .item-row .select2-container {
+        width: 100% !important;
+    }
+
     @media (max-width: 767.98px) {
         .entrada-form .hero-actions {
             margin-top: 0.75rem;
@@ -198,6 +202,33 @@ let index = 0;
 const itemsContainer = document.getElementById('items-container');
 const emptyItemsMsg = document.getElementById('empty-items-msg');
 
+const select2EntradaOptions = {
+    width: '100%',
+    allowClear: true,
+    language: {
+        noResults: function () { return 'Sin resultados'; },
+        searching: function () { return 'Buscando...'; }
+    }
+};
+
+function initEntradaSelect(selectEl) {
+    const $select = $(selectEl);
+    if (!$select.length) {
+        return;
+    }
+    if ($select.hasClass('select2-hidden-accessible')) {
+        $select.select2('destroy');
+    }
+    $select.select2(select2EntradaOptions);
+}
+
+function destroyEntradaSelect(selectEl) {
+    const $select = $(selectEl);
+    if ($select.length && $select.hasClass('select2-hidden-accessible')) {
+        $select.select2('destroy');
+    }
+}
+
 function toggleEmptyMessage() {
     const hasItems = itemsContainer.querySelectorAll('.item-row').length > 0;
     if (emptyItemsMsg) {
@@ -226,7 +257,7 @@ function buildItemRow(type) {
             <div class="form-row align-items-end">
                 <div class="col-md-8 mb-2 mb-md-0">
                     <label class="field-label">${badgeLabel}</label>
-                    <select name="${selectName}" class="form-control" required>
+                    <select name="${selectName}" class="form-control select2 item-articulo-select" required>
                         <option value="">${placeholder}</option>
                         ${options}
                     </select>
@@ -241,12 +272,16 @@ function buildItemRow(type) {
 
 document.getElementById('add-product').onclick = function () {
     itemsContainer.insertAdjacentHTML('beforeend', buildItemRow('product'));
+    const row = itemsContainer.lastElementChild;
+    initEntradaSelect(row.querySelector('.item-articulo-select'));
     index++;
     toggleEmptyMessage();
 };
 
 document.getElementById('add-insumo').onclick = function () {
     itemsContainer.insertAdjacentHTML('beforeend', buildItemRow('insumo'));
+    const row = itemsContainer.lastElementChild;
+    initEntradaSelect(row.querySelector('.item-articulo-select'));
     index++;
     toggleEmptyMessage();
 };
@@ -254,7 +289,9 @@ document.getElementById('add-insumo').onclick = function () {
 itemsContainer.addEventListener('click', function (e) {
     const btn = e.target.closest('.btn-remove-item');
     if (btn) {
-        btn.closest('.item-row').remove();
+        const row = btn.closest('.item-row');
+        destroyEntradaSelect(row.querySelector('.item-articulo-select'));
+        row.remove();
         toggleEmptyMessage();
     }
 });

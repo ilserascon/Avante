@@ -13,6 +13,8 @@ class Insumo extends Model
 
     protected $fillable = [
         'nombre',
+        'clave',
+        'color',
         'id_tipo_insumo',
         'id_proveedor',
         'costo',
@@ -66,14 +68,63 @@ class Insumo extends Model
             ->withTimestamps();
     }
 
+    public static function normalizarCampoMostrar($valor): string
+    {
+        if ($valor === null) {
+            return '';
+        }
+
+        $texto = trim((string) $valor);
+        if ($texto === '' || strcasecmp($texto, 'null') === 0) {
+            return '';
+        }
+
+        return $texto;
+    }
+
+    public function campo1Mostrar(): string
+    {
+        return self::normalizarCampoMostrar($this->campo1);
+    }
+
+    public function campo2Mostrar(): string
+    {
+        return self::normalizarCampoMostrar($this->campo2);
+    }
+
+    /** Etiqueta para selects de tela, tergal y forro en cotizaciones. */
+    public function etiquetaMaterialTextil(): string
+    {
+        $partes = array_filter([
+            self::normalizarCampoMostrar($this->clave),
+            self::normalizarCampoMostrar($this->nombre),
+            self::normalizarCampoMostrar($this->color),
+            $this->campo1Mostrar(),
+        ]);
+
+        return implode(' - ', $partes);
+    }
+
+    /** Etiqueta clave - nombre para selects generales de insumos. */
+    public function etiquetaClaveNombre(): string
+    {
+        $partes = array_filter([
+            self::normalizarCampoMostrar($this->clave),
+            self::normalizarCampoMostrar($this->nombre),
+        ]);
+
+        return implode(' - ', $partes);
+    }
+
     public function getNombreCompletoAttribute()
     {
         $proveedor = $this->proveedor ? $this->proveedor->nombre : '';
+
         return trim(implode(' | ', array_filter([
-            $this->nombre,
-            $this->campo1,
-            $this->campo2,
-            $proveedor
+            self::normalizarCampoMostrar($this->nombre),
+            $this->campo1Mostrar(),
+            $this->campo2Mostrar(),
+            self::normalizarCampoMostrar($proveedor),
         ])));
     }
 }

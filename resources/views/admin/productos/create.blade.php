@@ -4,6 +4,7 @@
 
 @section('content')
 @include('admin.partials.professional-styles')
+@php $veCostos = auth()->user()?->vePreciosInternosCatalogo() ?? false; @endphp
 
 <div class="section">
     <div class="admin-pro">
@@ -43,19 +44,26 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="id_tipo_producto" class="field-label">Tipo de Producto</label>
                                     <select name="id_tipo_producto" id="id_tipo_producto" class="form-control @error('id_tipo_producto') is-invalid @enderror">
                                         <option value="">Seleccione un tipo</option>
                                         @foreach ($tiposProducto as $tipo)
-                                            <option value="{{ $tipo->id }}" {{ old('id_tipo_producto') == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
+                                            <option value="{{ $tipo->id }}" data-campos='@json($tipo->campos_data)' {{ old('id_tipo_producto') == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
                                         @endforeach
                                     </select>
                                     @error('id_tipo_producto') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
-                            <div class="col-md-8">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="clave" class="field-label">Clave</label>
+                                    <input name="clave" id="clave" class="form-control @error('clave') is-invalid @enderror" value="{{ old('clave') }}">
+                                    @error('clave') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="nombre" class="field-label">Nombre</label>
                                     <input name="nombre" id="nombre" class="form-control @error('nombre') is-invalid @enderror" value="{{ old('nombre') }}" required>
@@ -64,21 +72,49 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-4">
+                            @if($veCostos)
+                            <div class="col-md-3">
                                 <div class="form-group mb-md-0">
                                     <label for="precio" class="field-label">Precio</label>
                                     <input type="number" name="precio" id="precio" class="form-control @error('precio') is-invalid @enderror" min="0" step="0.01" value="{{ old('precio') }}">
                                     @error('precio') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
-                            <div class="col-md-8">
-                                <div class="form-group mb-0">
+                            @endif
+                            <div class="col-md-3">
+                                <div class="form-group mb-md-0">
+                                    <label for="precio_publico" class="field-label">Precio público</label>
+                                    <input type="number" name="precio_publico" id="precio_publico" class="form-control @error('precio_publico') is-invalid @enderror" min="0" step="0.01" value="{{ old('precio_publico') }}">
+                                    @error('precio_publico') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="color" class="field-label">Color</label>
+                                    <input name="color" id="color" class="form-control @error('color') is-invalid @enderror" value="{{ old('color') }}">
+                                    @error('color') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
                                     <label for="descripcion" class="field-label">Descripción</label>
                                     <textarea name="descripcion" id="descripcion" class="form-control @error('descripcion') is-invalid @enderror" rows="2">{{ old('descripcion') }}</textarea>
                                     @error('descripcion') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="card form-card" id="campos-dinamicos-card" style="display:none;">
+                    <div class="card-header">
+                        <h5>Campos adicionales</h5>&nbsp;&nbsp;
+                        <div class="text-muted">Campos definidos por el tipo de producto seleccionado.</div>
+                    </div>
+                    <div class="card-body">
+                        <div id="campos-dinamicos"></div>
                     </div>
                 </div>
 
@@ -126,7 +162,7 @@
     const insumosOptions = `
         <option value="">Seleccione un insumo</option>
         @foreach ($insumos as $insumo)
-            <option value="{{ $insumo->id }}">{{ $insumo->nombre_completo }}</option>
+            <option value="{{ $insumo->id }}">{{ $insumo->etiqueta }}</option>
         @endforeach
     `;
 
@@ -159,6 +195,44 @@
 
     tipoProductoSelect.addEventListener('change', toggleInsumosSection);
     toggleInsumosSection();
+
+    function actualizarCamposDinamicos() {
+        const camposDiv = document.getElementById('campos-dinamicos');
+        const camposCard = document.getElementById('campos-dinamicos-card');
+        camposDiv.innerHTML = '';
+
+        const selectedOption = tipoProductoSelect.options[tipoProductoSelect.selectedIndex];
+        let campos = {};
+
+        try {
+            campos = JSON.parse(selectedOption.getAttribute('data-campos') || '{}');
+        } catch (e) {}
+
+        if (Object.keys(campos).length > 0) {
+            camposCard.style.display = 'block';
+            let fields = [];
+            let count = 0;
+
+            for (let key in campos) {
+                fields.push(
+                    `<div class="form-group col-md-4">
+                        <label class="field-label">${campos[key]}</label>
+                        <input type="text" name="${key}" class="form-control">
+                    </div>`
+                );
+                count++;
+                if (count % 3 === 0 || count === Object.keys(campos).length) {
+                    camposDiv.innerHTML += `<div class="form-row">${fields.join('')}</div>`;
+                    fields = [];
+                }
+            }
+        } else {
+            camposCard.style.display = 'none';
+        }
+    }
+
+    tipoProductoSelect.addEventListener('change', actualizarCamposDinamicos);
+    actualizarCamposDinamicos();
 
     document.getElementById('add-insumo').addEventListener('click', function () {
         const insumoIndex = insumosContainer.querySelectorAll('.item-row').length;

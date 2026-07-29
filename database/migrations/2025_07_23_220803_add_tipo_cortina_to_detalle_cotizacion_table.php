@@ -18,8 +18,10 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::table('detalle_cotizacion', function ($table) {
-            $table->dropColumn('tipo_cortina');
-        });
+        if (Schema::hasColumn('detalle_cotizacion', 'tipo_cortina')) {
+            Schema::table('detalle_cotizacion', function ($table) {
+                $table->dropColumn('tipo_cortina');
+            });
+        }
     }
 };

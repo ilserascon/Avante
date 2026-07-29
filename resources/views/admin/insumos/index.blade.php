@@ -4,6 +4,7 @@
 
 @section('content')
 @include('admin.partials.professional-styles')
+@php $veCostos = auth()->user()?->vePreciosInternosCatalogo() ?? false; @endphp
 
 <div class="section">
     <div class="admin-pro">
@@ -31,8 +32,8 @@
                 <div class="card-body">
                     <div class="form-row align-items-end">
                         <div class="col-md-3 mb-2 mb-md-0">
-                            <label class="field-label">Nombre</label>
-                            <input type="text" name="nombre" value="{{ request('nombre') }}" class="form-control" placeholder="Buscar por nombre">
+                            <label class="field-label">Nombre o clave</label>
+                            <input type="text" name="nombre" value="{{ request('nombre') }}" class="form-control" placeholder="Buscar por nombre o clave">
                         </div>
                         <div class="col-md-3 mb-2 mb-md-0">
                             <label class="field-label">Tipo de insumo</label>
@@ -82,14 +83,17 @@
                         <table class="table table-borderless">
                             <thead>
                                 <tr>
+                                    <th>Clave</th>
                                     <th>Nombre</th>
+                                    <th>Color</th>
                                     <th>Proveedor</th>
+                                    @if($veCostos)
                                     <th>Costo</th>
+                                    @endif
                                     <th>Precio Público</th>
+                                    @if($veCostos)
                                     <th>Utilidad</th>
-                                    @foreach($camposDinamicos as $campo => $valor)
-                                        <th>{{ $valor }}</th>
-                                    @endforeach
+                                    @endif
                                     <th>Estado</th>
                                     <th class="text-right">Acciones</th>
                                 </tr>
@@ -98,17 +102,24 @@
                                 @foreach ($insumos as $insumo)
                                     <tr>
                                         <td>
-                                            <a href="{{ route('admin.insumos.edit', $insumo->id) }}" class="record-link">
+                                            <a href="{{ route('admin.insumos.show', $insumo->id) }}" class="record-link">
+                                                {{ $insumo->clave ?: '-' }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a href="{{ route('admin.insumos.show', $insumo->id) }}" class="record-link">
                                                 {{ $insumo->nombre }}
                                             </a>
                                         </td>
+                                        <td>{{ $insumo->color ?: '-' }}</td>
                                         <td>{{ $insumo->proveedor->nombre ?? 'N/A' }}</td>
+                                        @if($veCostos)
                                         <td class="money-value">${{ number_format((float) $insumo->costo, 2) }}</td>
+                                        @endif
                                         <td class="money-value">${{ number_format((float) $insumo->precio_publico, 2) }}</td>
+                                        @if($veCostos)
                                         <td>{{ number_format((float) $insumo->utilidad, 2) }}</td>
-                                        @foreach($camposDinamicos as $campo => $valor)
-                                            <td>{{ $insumo->$campo ?: '-' }}</td>
-                                        @endforeach
+                                        @endif
                                         <td>
                                             @if($insumo->borrado == 0)
                                                 <span class="status-chip status-active">Activo</span>
@@ -166,7 +177,7 @@
                 <div class="form-group">
                     <label class="field-label">Tipo de Insumo</label>
                     <select name="id_tipo_insumo" class="form-control" required>
-                        @foreach($tipos as $tipo)
+                        @foreach($tiposImportacion as $tipo)
                             <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
                         @endforeach
                     </select>

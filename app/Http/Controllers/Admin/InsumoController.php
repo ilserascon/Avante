@@ -14,13 +14,18 @@ class InsumoController extends Controller
 {
     public function index(Request $request)
     {
-        $tipos = TipoInsumo::all();
+        $tipos = TipoInsumo::orderBy('nombre')->get();
+        $tiposImportacion = TipoInsumo::exceptManoDeObra()->orderBy('nombre')->get();
         $tipoSeleccionado = $request->get('tipo_insumo');
 
         $query = Insumo::with(['tipoInsumo', 'proveedor']);
 
         if ($request->has('nombre') && $request->nombre != '') {
-            $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
+            $termino = $request->nombre;
+            $query->where(function ($q) use ($termino) {
+                $q->where('nombre', 'LIKE', '%' . $termino . '%')
+                    ->orWhere('clave', 'LIKE', '%' . $termino . '%');
+            });
         }
 
         $camposDinamicos = [];
@@ -48,13 +53,13 @@ class InsumoController extends Controller
 
         $insumos = $query->paginate(10)->appends($request->query());
 
-        return view('admin.insumos.index', compact('insumos', 'tipos', 'tipoSeleccionado', 'camposDinamicos', 'estado'));
+        return view('admin.insumos.index', compact('insumos', 'tipos', 'tiposImportacion', 'tipoSeleccionado', 'camposDinamicos', 'estado'));
     }
 
     public function create()
     {
         $proveedores = Proveedor::all();
-        $tiposInsumo = TipoInsumo::all()->map(function ($tipo) {
+        $tiposInsumo = TipoInsumo::exceptManoDeObra()->orderBy('nombre')->get()->map(function ($tipo) {
             $campos = [];
             for ($i = 1; $i <= 15; $i++) {
                 $campo = 'campo' . $i;
@@ -71,13 +76,15 @@ class InsumoController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
+        $veCostos = auth()->user()?->vePreciosInternosCatalogo() ?? false;
+
+        $rules = [
             'nombre' => 'required|string|max:255',
+            'clave' => 'nullable|string|max:255',
+            'color' => 'nullable|string|max:255',
             'id_proveedor' => 'required|exists:proveedores,id',
             'id_tipo_insumo' => 'required|exists:tipo_insumo,id',
-            'costo' => 'required|numeric',
             'precio_publico' => 'required|numeric',
-            'utilidad' => 'required|numeric',
             'campo1' => 'nullable|string',
             'campo2' => 'nullable|string',
             'campo3' => 'nullable|string',
@@ -93,7 +100,14 @@ class InsumoController extends Controller
             'campo13' => 'nullable|string',
             'campo14' => 'nullable|string',
             'campo15' => 'nullable|string',
-        ], [
+        ];
+
+        if ($veCostos) {
+            $rules['costo'] = 'required|numeric';
+            $rules['utilidad'] = 'required|numeric';
+        }
+
+        $validatedData = $request->validate($rules, [
             'nombre.required' => 'El campo nombre es obligatorio.',
             'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
             'id_proveedor.required' => 'El campo proveedor es obligatorio.',
@@ -110,11 +124,13 @@ class InsumoController extends Controller
 
         $insumo = new Insumo();
         $insumo->nombre = $request->nombre;
+        $insumo->clave = $request->clave;
+        $insumo->color = $request->color;
         $insumo->id_proveedor = $request->id_proveedor;
         $insumo->id_tipo_insumo = $request->id_tipo_insumo;
-        $insumo->costo = $request->costo;
+        $insumo->costo = $veCostos ? $request->costo : null;
         $insumo->precio_publico = $request->precio_publico;
-        $insumo->utilidad = $request->utilidad;
+        $insumo->utilidad = $veCostos ? $request->utilidad : null;
 
         for ($i = 1; $i <= 15; $i++) {
             $campo = 'campo' . $i;
@@ -127,11 +143,27 @@ class InsumoController extends Controller
         return redirect()->route('admin.insumos.index')->with('success', 'Insumo creado exitosamente');
     }
 
+    public function show($id)
+    {
+        $insumo = Insumo::with(['tipoInsumo', 'proveedor'])->findOrFail($id);
+        $camposDinamicos = [];
+
+        if ($insumo->tipoInsumo) {
+            foreach ($insumo->tipoInsumo->getAttributes() as $campo => $valor) {
+                if (str_starts_with($campo, 'campo') && !empty($valor)) {
+                    $camposDinamicos[$campo] = $valor;
+                }
+            }
+        }
+
+        return view('admin.insumos.show', compact('insumo', 'camposDinamicos'));
+    }
+
     public function edit($id)
     {
         $insumo = Insumo::findOrFail($id);
         $proveedores = Proveedor::all();
-        $tiposInsumo = TipoInsumo::all()->map(function ($tipo) {
+        $tiposInsumo = TipoInsumo::exceptManoDeObra()->orderBy('nombre')->get()->map(function ($tipo) {
             $campos = [];
             for ($i = 1; $i <= 15; $i++) {
                 $campo = 'campo' . $i;
@@ -148,8 +180,12 @@ class InsumoController extends Controller
 
     public function update(Request $request, Insumo $insumo)
     {
+        $veCostos = auth()->user()?->vePreciosInternosCatalogo() ?? false;
+
         $validated = $request->validate([
             'nombre'           => 'required|string|max:255',
+            'clave'            => 'nullable|string|max:255',
+            'color'            => 'nullable|string|max:255',
             'id_tipo_insumo'   => 'required|exists:tipo_insumo,id',
             'id_proveedor'     => 'required|exists:proveedores,id',
             'costo'            => 'nullable|numeric',
@@ -181,6 +217,10 @@ class InsumoController extends Controller
             'precio_publico.numeric' => 'El campo precio público debe ser numérico.',
             'utilidad.numeric' => 'El campo utilidad debe ser numérico.',
         ]);
+
+        if (!$veCostos) {
+            unset($validated['costo'], $validated['utilidad']);
+        }
 
         $insumo->update($validated);
 

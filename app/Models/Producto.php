@@ -10,8 +10,21 @@ class Producto extends Model
 
     protected $fillable = [
         'nombre',
+        'clave',
+        'color',
         'descripcion',
+        'campo1',
+        'campo2',
+        'campo3',
+        'campo4',
+        'campo5',
+        'campo6',
+        'campo7',
+        'campo8',
+        'campo9',
+        'campo10',
         'precio',
+        'precio_publico',
         'id_tipo_producto',
     ];
 
@@ -39,6 +52,18 @@ class Producto extends Model
     {
         return $this->belongsTo(TipoProducto::class, 'id_tipo_producto');
     }
+
+    /** Etiqueta clave - nombre para selects generales de productos. */
+    public function etiquetaClaveNombre(): string
+    {
+        $partes = array_filter([
+            Insumo::normalizarCampoMostrar($this->clave),
+            Insumo::normalizarCampoMostrar($this->nombre),
+        ]);
+
+        return implode(' - ', $partes);
+    }
+
     private function syncInsumos(Producto $producto, $insumos)
     {
         $datosParaSync = [];

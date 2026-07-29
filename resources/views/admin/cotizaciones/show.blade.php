@@ -6,6 +6,7 @@
 @php
     $verDetalleTelaManoObra = auth()->user()?->veDetalleTelaManoObra() ?? false;
     $veUtilidad = auth()->user()?->veUtilidadCotizacion() ?? false;
+    $veCostos = auth()->user()?->veCostosCotizacion() ?? false;
 
     $fmtMoney = function ($value) {
         return '$' . number_format((float) ($value ?? 0), 2);
@@ -336,9 +337,17 @@
 
     @forelse($detalles as $index => $detalle)
         @php
+            $materialesVariosSubtotal = collect($detalle->materiales_varios ?? [])->sum(
+                fn ($fila) => (float) ($fila['subtotal'] ?? 0)
+            );
             $materialesDetalle =
                 ((float) ($detalle->cortinero_cantidad ?? 0) * (float) ($detalle->cortinero_precio ?? 0)) +
-                ((float) ($detalle->cortinero_tergal_cantidad ?? 0) * (float) ($detalle->cortinero_tergal_precio ?? 0));
+                ((float) ($detalle->cortinero_tergal_cantidad ?? 0) * (float) ($detalle->cortinero_tergal_precio ?? 0)) +
+                $materialesVariosSubtotal;
+            $insumosMaterialesNombres = \App\Models\Insumo::whereIn(
+                'id',
+                collect($detalle->materiales_varios ?? [])->pluck('insumo_id')->filter()->unique()
+            )->pluck('nombre', 'id');
 
             $totalLienzosDetalle = $detalle->total_lienzos;
             if ($totalLienzosDetalle === null || $totalLienzosDetalle === '') {
@@ -578,27 +587,49 @@
                                     <tr>
                                         <th>Material</th>
                                         <th>Cantidad</th>
+                                        @if($veCostos)
                                         <th>Precio unitario</th>
                                         <th class="text-right">Subtotal</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @if((float) ($detalle->cortinero_cantidad ?? 0) > 0 || $detalle->cortinero_id)
                                     <tr>
                                         <td>{{ $detalle->cortinero?->nombre ?? 'Cortinero cortina' }}</td>
                                         <td>{{ $fmtNum($detalle->cortinero_cantidad) }}</td>
+                                        @if($veCostos)
                                         <td>{{ $fmtMoney($detalle->cortinero_precio) }}</td>
                                         <td class="text-right">{{ $fmtMoney(((float) ($detalle->cortinero_cantidad ?? 0)) * ((float) ($detalle->cortinero_precio ?? 0))) }}</td>
+                                        @endif
                                     </tr>
+                                    @endif
+                                    @if((float) ($detalle->cortinero_tergal_cantidad ?? 0) > 0 || $detalle->cortinero_tergal_id)
                                     <tr>
                                         <td>{{ $detalle->cortineroTergal?->nombre ?? 'Cortinero tergal' }}</td>
                                         <td>{{ $fmtNum($detalle->cortinero_tergal_cantidad) }}</td>
+                                        @if($veCostos)
                                         <td>{{ $fmtMoney($detalle->cortinero_tergal_precio) }}</td>
                                         <td class="text-right">{{ $fmtMoney(((float) ($detalle->cortinero_tergal_cantidad ?? 0)) * ((float) ($detalle->cortinero_tergal_precio ?? 0))) }}</td>
+                                        @endif
                                     </tr>
+                                    @endif
+                                    @foreach($detalle->materiales_varios ?? [] as $filaMaterial)
+                                    <tr>
+                                        <td>{{ $insumosMaterialesNombres[$filaMaterial['insumo_id'] ?? 0] ?? 'Insumo' }}</td>
+                                        <td>{{ $fmtNum($filaMaterial['cantidad'] ?? 0) }}</td>
+                                        @if($veCostos)
+                                        <td>{{ $fmtMoney($filaMaterial['precio_unitario'] ?? 0) }}</td>
+                                        <td class="text-right">{{ $fmtMoney($filaMaterial['subtotal'] ?? 0) }}</td>
+                                        @endif
+                                    </tr>
+                                    @endforeach
+                                    @if($veCostos)
                                     <tr class="table-light">
                                         <td colspan="3" class="text-right font-weight-bold">Costo total materiales</td>
                                         <td class="text-right font-weight-bold">{{ $fmtMoney($materialesDetalle) }}</td>
                                     </tr>
+                                    @endif
                                 </tbody>
                             </table>
                         </div>
@@ -625,20 +656,24 @@
                                         <th>Total m² forro</th>
                                         <td>{{ $fmtNum($totalM2ForroDetalle) }}</td>
                                     </tr>
+                                    @if($veCostos)
                                     <tr>
                                         <th>Costo cortina</th>
                                         <td class="money">{{ $fmtMoney($costoCortinaDetalle) }}</td>
                                     </tr>
+                                    @endif
                                     @if($veUtilidad)
                                         <tr>
                                             <th>Utilidad (15%)</th>
                                             <td>{{ $fmtMoney($utilidadDetalle) }}</td>
                                         </tr>
                                     @endif
+                                    @if($veCostos)
                                     <tr>
                                         <th>Costo decorador ({{ $fmtNum($decoradorPct, 2) }}%)</th>
                                         <td>{{ $fmtMoney($costoDecoradorDetalle) }}</td>
                                     </tr>
+                                    @endif
                                     <tr>
                                         <th>Descuento</th>
                                         <td>{{ $fmtNum($descuentoDetalle, 2) }}%</td>
@@ -768,10 +803,12 @@
                             <span>Total productos</span>
                             <strong>{{ $fmtMoney($totalProductos) }}</strong>
                         </div>
+                        @if($veCostos)
                         <div class="summary-line">
                             <span>Costo decorador</span>
                             <strong>{{ $fmtMoney($costoDecoradorGlobal ?? $costoCortinaGlobal) }}</strong>
                         </div>
+                        @endif
                     </div>
                 </div>
                 <div class="col-md-5 mt-4 mt-md-0">

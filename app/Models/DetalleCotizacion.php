@@ -84,6 +84,12 @@ class DetalleCotizacion extends Model
         'cortinero_tergal_cantidad',
         'cortinero_tergal_precio',
 
+        'materiales_varios',
+
+    ];
+
+    protected $casts = [
+        'materiales_varios' => 'array',
     ];
 
     public function cotizacion()

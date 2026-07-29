@@ -84,21 +84,6 @@ return new class extends Migration
             ]
         );
 
-        DB::table('tipo_insumo')->updateOrInsert(
-            ['nombre' => 'Cortinero'],
-            [
-                'campo1' => 'Modelo',
-                'campo2' => 'Medida Minima (Mts)',
-                'campo3' => 'Medida Maxima (Mts)',
-                'campo4' => '1 Jalon (Izquierda o Derecha)',
-                'campo5' => '2 Jalones (Centro o Lateral)',
-                'campo6' => 'Con Control',
-                'campo7' => 'Sin Control',
-                'campo8' => 'Riplefold',
-                'campo9' => 'Tradicional',
-                'created_at' => now(),
-            ]
-        );
 
         DB::table('tipo_insumo')->updateOrInsert(
             ['nombre' => 'Baston'],

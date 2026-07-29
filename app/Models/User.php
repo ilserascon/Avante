@@ -96,6 +96,12 @@ class User extends Authenticatable
         return $this->esAdministrador();
     }
 
+    /** Costo/utilidad en insumos y precio interno en productos. */
+    public function vePreciosInternosCatalogo(): bool
+    {
+        return $this->veCostosCotizacion();
+    }
+
     public function puedeVerPdfDecorador(): bool
     {
         return $this->esAdministrador() || $this->esCotizador();

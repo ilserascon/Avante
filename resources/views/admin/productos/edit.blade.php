@@ -4,8 +4,8 @@
 
 @section('content')
 @include('admin.partials.professional-styles')
-
 @php
+    $veCostos = auth()->user()?->vePreciosInternosCatalogo() ?? false;
     $esCortinero = $producto->id_tipo_producto == 1 || strtolower($producto->tipoProducto->nombre ?? '') === 'cortinero';
 @endphp
 
@@ -18,11 +18,6 @@
                         <h4>Editar - {{ $producto->nombre }}</h4>
                     </div>
                     <div class="hero-actions d-flex flex-wrap gap-2">
-                        @if ($esCortinero)
-                            <a href="{{ route('admin.productos.insumos', $producto->id) }}" class="btn btn-light border px-4">
-                                <i class="fas fa-list mr-1"></i> Ver insumos
-                            </a> &nbsp;
-                        @endif
                         <a href="{{ route('admin.productos.index') }}" class="btn btn-light border px-4">
                             <i class="fas fa-arrow-left mr-1"></i> Volver
                         </a>
@@ -52,13 +47,15 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="id_tipo_producto" class="field-label">Tipo de Producto</label>
                                     <select id="id_tipo_producto" name="id_tipo_producto" class="form-control @error('id_tipo_producto') is-invalid @enderror">
                                         <option value="">Seleccione un tipo</option>
                                         @foreach ($tiposProducto as $tipo)
-                                            <option value="{{ $tipo->id }}" {{ old('id_tipo_producto', $producto->id_tipo_producto) == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
+                                            <option value="{{ $tipo->id }}"
+                                                data-campos='@json($tipo->campos_data)'
+                                                {{ old('id_tipo_producto', $producto->id_tipo_producto) == $tipo->id ? 'selected' : '' }}>{{ $tipo->nombre }}</option>
                                         @endforeach
                                     </select>
                                     @error('id_tipo_producto')
@@ -66,7 +63,17 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-md-8">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="clave" class="field-label">Clave</label>
+                                    <input type="text" id="clave" name="clave" class="form-control @error('clave') is-invalid @enderror"
+                                           value="{{ old('clave', $producto->clave) }}">
+                                    @error('clave')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="nombre" class="field-label">Nombre</label>
                                     <input type="text" id="nombre" name="nombre" class="form-control @error('nombre') is-invalid @enderror"
@@ -78,7 +85,8 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-4">
+                            @if($veCostos)
+                            <div class="col-md-3">
                                 <div class="form-group mb-md-0">
                                     <label for="precio" class="field-label">Precio</label>
                                     <input type="number" id="precio" name="precio" class="form-control @error('precio') is-invalid @enderror" min="0" step="0.01"
@@ -88,7 +96,27 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-md-8">
+                            @endif
+                            <div class="col-md-3">
+                                <div class="form-group mb-md-0">
+                                    <label for="precio_publico" class="field-label">Precio público</label>
+                                    <input type="number" id="precio_publico" name="precio_publico" class="form-control @error('precio_publico') is-invalid @enderror" min="0" step="0.01"
+                                           value="{{ old('precio_publico', $producto->precio_publico) }}">
+                                    @error('precio_publico')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="color" class="field-label">Color</label>
+                                    <input name="color" id="color" class="form-control @error('color') is-invalid @enderror" value="{{ old('color', $producto->color) }}">
+                                    @error('color') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+                        </div>  
+                        <div class="row">
+                            <div class="col-md-12">
                                 <div class="form-group mb-0">
                                     <label for="descripcion" class="field-label">Descripción</label>
                                     <textarea id="descripcion" name="descripcion" class="form-control @error('descripcion') is-invalid @enderror" rows="2">{{ old('descripcion', $producto->descripcion) }}</textarea>
@@ -98,6 +126,16 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="card form-card" id="campos-dinamicos-card">
+                    <div class="card-header">
+                        <h5>Campos adicionales</h5>&nbsp;&nbsp;
+                        <div class="text-muted">Campos definidos por el tipo de producto seleccionado.</div>
+                    </div>
+                    <div class="card-body">
+                        <div id="campos-dinamicos"></div>
                     </div>
                 </div>
 
@@ -132,7 +170,7 @@
                                                         <option value="">Seleccione un insumo</option>
                                                         @foreach ($insumos as $opcion)
                                                             <option value="{{ $opcion->id }}" {{ $insumo->id == $opcion->id ? 'selected' : '' }}>
-                                                                {{ $opcion->nombre_completo }}
+                                                                {{ $opcion->etiqueta }}
                                                             </option>
                                                         @endforeach
                                                     </select>
@@ -175,9 +213,68 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    const tipoProductoSelect = document.getElementById('id_tipo_producto');
+    const camposDiv = document.getElementById('campos-dinamicos');
+    const camposCard = document.getElementById('campos-dinamicos-card');
+    const valoresOld = @json(old());
+    const valoresActuales = {
+        @for($i = 1; $i <= 10; $i++)
+            @if(isset($producto->{'campo' . $i}) && $producto->{'campo' . $i} !== null)
+                'campo{{ $i }}': @json($producto->{'campo' . $i}),
+            @endif
+        @endfor
+    };
+
+    function actualizarCamposDinamicos() {
+        camposDiv.innerHTML = '';
+        const selectedOption = tipoProductoSelect.options[tipoProductoSelect.selectedIndex];
+        let campos = {};
+
+        try {
+            campos = JSON.parse(selectedOption.getAttribute('data-campos') || '{}');
+        } catch (e) {}
+
+        if (Object.keys(campos).length > 0) {
+            camposCard.style.display = 'block';
+            let fields = [];
+            let count = 0;
+
+            for (let key in campos) {
+                let valor = '';
+
+                if (valoresOld && typeof valoresOld[key] !== 'undefined' && valoresOld[key] !== null && valoresOld[key] !== '') {
+                    valor = valoresOld[key];
+                } else if (typeof valoresActuales[key] !== 'undefined' && valoresActuales[key] !== null && valoresActuales[key] !== '') {
+                    valor = valoresActuales[key];
+                }
+
+                fields.push(
+                    `<div class="form-group col-md-4">
+                        <label for="${key}" class="field-label">${campos[key]}</label>
+                        <input type="text" name="${key}" id="${key}" class="form-control" value="${String(valor).replace(/"/g, '&quot;')}">
+                    </div>`
+                );
+
+                count++;
+                if (count % 3 === 0 || count === Object.keys(campos).length) {
+                    camposDiv.innerHTML += `<div class="form-row">${fields.join('')}</div>`;
+                    fields = [];
+                }
+            }
+        } else {
+            camposCard.style.display = 'none';
+        }
+    }
+
+    if (tipoProductoSelect) {
+        tipoProductoSelect.addEventListener('change', actualizarCamposDinamicos);
+        actualizarCamposDinamicos();
+    }
+</script>
+<script>
     const insumoOptions = `
         @foreach($insumos as $insumo)
-            <option value="{{ $insumo->id }}">{{ $insumo->nombre_completo }}</option>
+            <option value="{{ $insumo->id }}">{{ $insumo->etiqueta }}</option>
         @endforeach
     `;
 </script>

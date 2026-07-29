@@ -4,6 +4,7 @@
 
 @section('content')
 @include('admin.partials.professional-styles')
+@php $veCostos = auth()->user()?->vePreciosInternosCatalogo() ?? false; @endphp
 
 <div class="section">
     <div class="admin-pro">
@@ -30,6 +31,10 @@
             <div class="card-body">
                 <div class="meta-grid">
                     <div class="meta-item">
+                        <div class="label">Clave</div>
+                        <div class="value">{{ $producto->clave ?: '-' }}</div>
+                    </div>
+                    <div class="meta-item">
                         <div class="label">Producto</div>
                         <div class="value">{{ $producto->nombre }}</div>
                     </div>
@@ -41,10 +46,18 @@
                         <div class="label">Total insumos</div>
                         <div class="value">{{ $producto->insumos->count() }}</div>
                     </div>
+                    @if($veCostos)
                     <div class="meta-item">
                         <div class="label">Precio</div>
                         <div class="value money-value">
                             {{ $producto->precio !== null ? '$' . number_format((float) $producto->precio, 2) : '-' }}
+                        </div>
+                    </div>
+                    @endif
+                    <div class="meta-item">
+                        <div class="label">Precio público</div>
+                        <div class="value money-value">
+                            {{ $producto->precio_publico !== null ? '$' . number_format((float) $producto->precio_publico, 2) : '-' }}
                         </div>
                     </div>
                 </div>

@@ -40,7 +40,6 @@
                 <div class="card form-card">
                     <div class="card-header">
                         <h5>Información del proveedor</h5>
-                        <div class="text-muted">Datos fiscales y de contacto.</div>
                     </div>
                     <div class="card-body">
                         <div class="form-group">
@@ -78,7 +77,7 @@
                 <div class="actions-bar d-flex flex-wrap gap-2">
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="fas fa-save mr-1"></i> Guardar Proveedor
-                    </button>
+                    </button>&nbsp;&nbsp;
                     <a href="{{ route('admin.proveedores.index') }}" class="btn btn-light border px-4">Cancelar</a>
                 </div>
             </form>

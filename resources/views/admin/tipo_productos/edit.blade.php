@@ -61,6 +61,23 @@
                     </div>
                 </div>
 
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h5>Campos personalizados</h5>&nbsp;&nbsp;
+                        <div class="text-muted">Etiquetas para los campos adicionales que tendrán los productos de este tipo.</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            @for($i = 1; $i <= 10; $i++)
+                                <div class="form-group col-md-4">
+                                    <label for="campo{{ $i }}" class="field-label">Campo {{ $i }}</label>
+                                    <input type="text" id="campo{{ $i }}" name="campo{{ $i }}" class="form-control" value="{{ old('campo'.$i, $tipoProducto->{'campo'.$i}) }}">
+                                </div>
+                            @endfor
+                        </div>
+                    </div>
+                </div>
+
                 <div class="actions-bar d-flex flex-wrap gap-2">
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="fas fa-save mr-1"></i> Actualizar

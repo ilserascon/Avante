@@ -156,6 +156,14 @@ class CotizacionInventarioService
             if ($detalle->cortinero_tergal_id && (float) $detalle->cortinero_tergal_cantidad > 0) {
                 $this->acumularCantidad($cortineros, (int) $detalle->cortinero_tergal_id, (float) $detalle->cortinero_tergal_cantidad);
             }
+
+            foreach ($detalle->materiales_varios ?? [] as $filaMaterial) {
+                $insumoId = (int) ($filaMaterial['insumo_id'] ?? 0);
+                $cantidad = (float) ($filaMaterial['cantidad'] ?? 0);
+                if ($insumoId > 0 && $cantidad > 0) {
+                    $this->acumularCantidad($insumos, $insumoId, $cantidad);
+                }
+            }
         }
 
         return [

@@ -12,6 +12,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        DB::table('cotizaciones')
+            ->where('estatus', 'cancelada')
+            ->update(['estatus' => 'rechazada']);
+
         DB::statement("ALTER TABLE cotizaciones MODIFY estatus ENUM('solicitada', 'aceptada', 'rechazada', 'completada') NOT NULL DEFAULT 'solicitada'");
     }
 };

@@ -4,6 +4,7 @@
 
 @section('content')
 @include('admin.partials.professional-styles')
+@php $veCostos = auth()->user()?->vePreciosInternosCatalogo() ?? false; @endphp
 
 <div class="section">
     <div class="admin-pro">
@@ -28,8 +29,8 @@
                 <div class="card-body">
                     <div class="form-row align-items-end">
                         <div class="col-md-4 mb-2 mb-md-0">
-                            <label class="field-label">Nombre</label>
-                            <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="{{ request('nombre') }}">
+                            <label class="field-label">Nombre o clave</label>
+                            <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre o clave" value="{{ request('nombre') }}">
                         </div>
                         <div class="col-md-4 mb-2 mb-md-0">
                             <label class="field-label">Tipo de producto</label>
@@ -59,36 +60,54 @@
                     <table class="table table-borderless">
                         <thead>
                             <tr>
+                                <th>Clave</th>
                                 <th>Nombre</th>
+                                <th>Color</th>
                                 <th>Tipo</th>
-                                <th>Descripción</th>
+                                @if($veCostos)
                                 <th>Precio</th>
+                                @endif
+                                <th>Precio público</th>
+                                @foreach($camposDinamicos as $campo => $etiqueta)
+                                    <th>{{ $etiqueta }}</th>
+                                @endforeach
                                 <th class="text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $columnasTabla = 6 + ($veCostos ? 1 : 0) + count($camposDinamicos) + 1;
+                            @endphp
                             @forelse ($productos as $producto)
                                 @php
                                     $esCortinero = $producto->id_tipo_producto == 1 || strtolower($producto->tipoProducto->nombre ?? '') === 'cortinero';
                                 @endphp
                                 <tr>
                                     <td>
-                                        <a href="{{ route('admin.productos.edit', $producto->id) }}" class="record-link">
+                                        <a href="{{ route('admin.productos.show', $producto->id) }}" class="record-link">
+                                            {{ $producto->clave ?: '-' }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('admin.productos.show', $producto->id) }}" class="record-link">
                                             {{ $producto->nombre }}
                                         </a>
                                     </td>
+                                    <td>{{ $producto->color ?: '-' }}</td>
                                     <td>{{ $producto->tipoProducto->nombre ?? 'Sin tipo' }}</td>
-                                    <td>{{ $producto->descripcion ?: '-' }}</td>
+                                    @if($veCostos)
                                     <td class="money-value">
                                         {{ $producto->precio !== null ? '$' . number_format((float) $producto->precio, 2) : '-' }}
                                     </td>
+                                    @endif
+                                    <td class="money-value">
+                                        {{ $producto->precio_publico !== null ? '$' . number_format((float) $producto->precio_publico, 2) : '-' }}
+                                    </td>
+                                    @foreach($camposDinamicos as $campo => $etiqueta)
+                                        <td>{{ $producto->$campo ?: '-' }}</td>
+                                    @endforeach
                                     <td>
                                         <div class="actions-wrap">
-                                            @if ($esCortinero)
-                                                <a href="{{ route('admin.productos.insumos', $producto->id) }}" class="action-btn btn-info-action" title="Ver insumos">
-                                                    <i class="fas fa-list"></i>
-                                                </a>
-                                            @endif
                                             <a href="{{ route('admin.productos.edit', $producto->id) }}" class="action-btn btn-edit" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
@@ -97,7 +116,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">No se encontraron productos.</td>
+                                    <td colspan="{{ $columnasTabla }}" class="text-center text-muted py-4">No se encontraron productos.</td>
                                 </tr>
                             @endforelse
                         </tbody>

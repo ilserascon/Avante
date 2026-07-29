@@ -8,7 +8,7 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 10px;
-            color: rgb(27, 79, 79);
+            color: #1a8683;
             margin: 0;
             padding: 18px 22px;
             line-height: 1.4;
@@ -17,7 +17,7 @@
         .pdf-header {
             width: 100%;
             margin-bottom: 18px;
-            border-bottom: 3px solid rgb(27, 79, 79);
+            border-bottom: 3px solid #1a8683;
             padding-bottom: 14px;
             text-align: center;
         }
@@ -25,7 +25,7 @@
         .doc-title-center {
             font-size: 22px;
             font-weight: bold;
-            color: rgb(27, 79, 79);
+            color: #1a8683;
             letter-spacing: 1px;
             text-transform: uppercase;
             margin-bottom: 4px;
@@ -33,19 +33,19 @@
 
         .doc-number-center {
             font-size: 13px;
-            color: rgb(43, 68, 62);
+            color: #145f5d;
             font-weight: bold;
         }
 
         .info-box {
             width: 100%;
             margin-bottom: 16px;
-            background: #f8fbff;
+            background: #f5faf9;
         }
 
         .info-box td {
             padding: 8px 12px;
-            border: 1px solid #e8eef8;
+            border: 1px solid #dcefed;
             vertical-align: top;
         }
 
@@ -53,7 +53,7 @@
             font-size: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: rgb(103, 109, 107);
+            color: #5a8a88;
             font-weight: bold;
             margin-bottom: 3px;
         }
@@ -63,7 +63,7 @@
         }
 
         .section-title {
-            background: rgb(27, 79, 79);
+            background: #1a8683;
             color: #fff;
             font-size: 11px;
             font-weight: bold;
@@ -80,14 +80,14 @@
         }
 
         .detail-table thead th {
-            background: #eef4ff;
-            color: rgb(27, 79, 79);
+            background: #e8f5f4;
+            color: #1a8683;
             font-size: 9px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.3px;
             padding: 8px 6px;
-            border: 1px solid #c5d4e8;
+            border: 1px solid #b8ddd9;
             text-align: center;
         }
 
@@ -99,12 +99,12 @@
         }
 
         .detail-table tbody tr:nth-child(even) {
-            background: #fafcff;
+            background: #f7fcfb;
         }
 
         .detail-table tfoot td {
             padding: 7px 8px;
-            border: 1px solid #c5d4e8;
+            border: 1px solid #b8ddd9;
             font-size: 10px;
         }
 
@@ -113,20 +113,20 @@
         .text-bold { font-weight: bold; }
 
         .total-row {
-            background: #eef4ff;
+            background: #e8f5f4;
             font-weight: bold;
-            color: rgb(27, 79, 79);
+            color: #1a8683;
         }
 
         .grand-total-row {
-            background: rgb(27, 79, 79);
+            background: #1a8683;
             color: #fff;
             font-weight: bold;
             font-size: 11px;
         }
 
         .grand-total-row td {
-            border-color: rgb(27, 79, 79) !important;
+            border-color: #1a8683 !important;
             color: #fff !important;
         }
 
@@ -143,7 +143,7 @@
         .terms-box {
             padding: 10px 12px;
             border: 1px solid #dde6f0;
-            background: #fafcff;
+            background: #f7fcfb;
             font-size: 9px;
         }
 
@@ -159,7 +159,7 @@
         .receipt-box {
             width: 100%;
             border: 1px solid #dde6f0;
-            background: #fafcff;
+            background: #f7fcfb;
             margin-top: 0;
         }
 
@@ -170,7 +170,7 @@
 
         .receipt-grid td {
             padding: 10px 12px;
-            border: 1px solid #e8eef8;
+            border: 1px solid #dcefed;
             vertical-align: top;
         }
 
@@ -178,14 +178,14 @@
             font-size: 8px;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            color: rgb(103, 109, 107);
+            color: #5a8a88;
             font-weight: bold;
             margin-bottom: 2px;
         }
 
         .receipt-field {
             min-height: 16px;
-            border-bottom: 1px solid rgb(27, 79, 79);
+            border-bottom: 1px solid #1a8683;
             padding: 4px 2px 6px 2px;
             font-size: 10px;
             color: #26344d;
@@ -193,12 +193,12 @@
 
         .receipt-field-empty {
             min-height: 16px;
-            border-bottom: 1px solid rgb(27, 79, 79);
+            border-bottom: 1px solid #1a8683;
         }
 
         .receipt-field-money {
             min-height: 28px;
-            border-bottom: 1px solid rgb(27, 79, 79);
+            border-bottom: 1px solid #1a8683;
             padding: 4px 2px 6px 2px;
             font-size: 10px;
             color: #26344d;
@@ -215,7 +215,7 @@
             display: inline-block;
             width: 11px;
             height: 11px;
-            border: 1px solid rgb(27, 79, 79);
+            border: 1px solid #1a8683;
             margin-right: 4px;
             vertical-align: middle;
         }
@@ -339,20 +339,6 @@
             <td style="width: 25%;">
                 <div class="info-label">Creado por</div>
                 <div class="info-value">{{ $cotizacion->creadoPor?->name ?? 'Usuario no registrado' }}</div>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <div class="info-label">Dirección</div>
-                <div class="info-value">{{ $cotizacion->cliente?->direccion ?? '-' }}</div>
-            </td>
-            <td>
-                <div class="info-label">Teléfono</div>
-                <div class="info-value">{{ $cotizacion->cliente?->telefono ?? '-' }}</div>
-            </td>
-            <td>
-                <div class="info-label">Correo</div>
-                <div class="info-value">{{ $cotizacion->cliente?->email ?? '-' }}</div>
             </td>
         </tr>
     </table>

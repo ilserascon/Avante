@@ -108,6 +108,22 @@
     .insumos-table .select2-container {
         width: 100% !important;
     }
+
+    .select2-container--open {
+        z-index: 9999;
+    }
+
+    .select2-dropdown {
+        z-index: 9999;
+    }
+
+    .select2-container .select2-selection--single {
+        min-height: 38px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 36px;
+    }
 </style>
 <div class="section">
     <div class="section-header bg-white border rounded shadow-sm px-4 py-3 d-block">
@@ -117,7 +133,7 @@
             </div>
             <div class="mt-3 mt-lg-0">
                 <button type="button" class="btn btn-success px-4" id="agregar-cotizacion-btn">
-                    <i class="fas fa-plus mr-1"></i> Agregar cotización
+                    <i class="fas fa-plus mr-1"></i> Agregar Cortina/Tergal
                 </button>
             </div>
         </div>
@@ -356,6 +372,7 @@
             </div>
 
             <!-- Tabla Materiales Varios -->
+            @php $vePreciosMaterialesVarios = auth()->user()?->veCostosCotizacion() ?? false; @endphp
             <div class="card mt-4 d-none border-0 shadow-sm" id="tabla-materiales-varios">
                 <div class="card-header bg-light border-bottom-0 py-3">
                     <h4 class="mb-1">Materiales Varios</h4>
@@ -369,8 +386,8 @@
                                     <th style="min-width: 180px;">Materiales Varios</th>
                                     <th style="min-width: 72px;" class="text-center">Insumos</th>
                                     <th style="min-width: 120px;">Cantidad</th>
-                                    <th style="min-width: 150px;">Precio Unitario</th>
-                                    <th style="min-width: 150px;">Subtotal</th>
+                                    <th style="min-width: 150px;" @class(['' => $vePreciosMaterialesVarios, 'd-none' => !$vePreciosMaterialesVarios])>Precio Unitario</th>
+                                    <th style="min-width: 150px;" @class(['' => $vePreciosMaterialesVarios, 'd-none' => !$vePreciosMaterialesVarios])>Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody id="materiales-tbody">
@@ -381,7 +398,7 @@
                                         <select name="detalle[cortinero_id]" id="cortinero_id" class="form-select select2 w-100">
                                             <option value="">Seleccione tipo de cortinero</option>
                                             @foreach($cortineros as $cortinero)
-                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico }}">
+                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico ?? $cortinero->precio }}">
                                                 {{ $cortinero->nombre }}
                                             </option>
                                             @endforeach
@@ -395,13 +412,13 @@
                                     <td>
                                         <input type="number" name="detalle[cortinero_cantidad]" step="0.01" id="cortinero_cantidad" class="form-control" oninput="calcularSubtotalCortinero()" autocomplete="off">
                                     </td>
-                                    <td>
+                                    <td @class(['' => $vePreciosMaterialesVarios, 'd-none' => !$vePreciosMaterialesVarios])>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
                                             <input type="number" id="cortinero_precio" name="detalle[cortinero_precio]" class="form-control" step="0.01" readonly>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td @class(['' => $vePreciosMaterialesVarios, 'd-none' => !$vePreciosMaterialesVarios])>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
                                             <input type="number" id="cortinero_subtotal" class="form-control" readonly step="0.01">
@@ -414,7 +431,7 @@
                                         <select name="detalle[cortinero_tergal_id]" id="cortinero_tergal_id" class="form-select select2 w-100">
                                             <option value="">Seleccione tipo de cortinero</option>
                                             @foreach($cortineros as $cortinero)
-                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico }}">
+                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico ?? $cortinero->precio }}">
                                                 {{ $cortinero->nombre }}
                                             </option>
                                             @endforeach
@@ -428,13 +445,13 @@
                                     <td>
                                         <input type="number" name="detalle[cortinero_tergal_cantidad]" step="0.01" id="cortinero_tergal_cantidad" class="form-control" oninput="calcularSubtotalCortineroTergal()" autocomplete="off">
                                     </td>
-                                    <td>
+                                    <td @class(['' => $vePreciosMaterialesVarios, 'd-none' => !$vePreciosMaterialesVarios])>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
                                             <input type="number" id="cortinero_tergal_precio" name="detalle[cortinero_tergal_precio]" class="form-control" step="0.01" readonly>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td @class(['' => $vePreciosMaterialesVarios, 'd-none' => !$vePreciosMaterialesVarios])>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
                                             <input type="number" id="cortinero_tergal_subtotal" class="form-control" readonly step="0.01">
@@ -444,7 +461,7 @@
                                 <script>
                                     document.addEventListener('DOMContentLoaded', function() {
                                         // Cortinero cortina
-                                        $('#cortinero_id').select2();
+                                        reinicializarSelect2('#cortinero_id');
                                         const cortineroSelect = $('#cortinero_id');
                                         const cortineroPrecio = document.getElementById('cortinero_precio');
                                         const cortineroCantidad = document.getElementById('cortinero_cantidad');
@@ -467,7 +484,7 @@
                                         calcularSubtotalCortinero();
 
                                         // Cortinero tergal
-                                        $('#cortinero_tergal_id').select2();
+                                        reinicializarSelect2('#cortinero_tergal_id');
                                         const cortineroTergalSelect = $('#cortinero_tergal_id');
                                         const cortineroTergalPrecio = document.getElementById('cortinero_tergal_precio');
                                         const cortineroTergalCantidad = document.getElementById('cortinero_tergal_cantidad');
@@ -499,12 +516,12 @@
                             <tfoot>
                                 <tr id="row-boton-otro-insumo">
                                     <td colspan="4" class="text-start">
-                                        <button type="button" class="btn btn-sm btn-primary" onclick="añadirOtroInsumo()">Añadir otro</button>
-                                    </td>
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="añadirOtroInsumo()"><i class="fas fa-plus"></i> Añadir otro</button>
+                                    </td>   
                                 </tr>
                                 <tr>
-                                    <td colspan="3" class="text-end"><strong>Costo Total Materiales:</strong></td>
-                                    <td>
+                                    <td colspan="{{ $vePreciosMaterialesVarios ? 4 : 3 }}" class="text-end"><strong>Costo Total Materiales:</strong></td>
+                                    <td @class(['' => $vePreciosMaterialesVarios, 'd-none' => !$vePreciosMaterialesVarios])>
                                         <div class="input-group">
                                             <span class="input-group-text">$</span>
                                             <input type="number" name="detalle[costo_total_materiales]" id="costo_total_materiales" class="form-control" readonly>
@@ -518,7 +535,10 @@
             </div>
 
             <!-- Totales -->
-            @php $veUtilidad = auth()->user()?->veUtilidadCotizacion() ?? false; @endphp
+            @php
+                $veUtilidad = auth()->user()?->veUtilidadCotizacion() ?? false;
+                $veCostos = auth()->user()?->veCostosCotizacion() ?? false;
+            @endphp
             <div class="card mt-4 border-0 shadow-sm d-none" id="tabla-totales">
                 <div class="card-header bg-light border-bottom-0 py-3">
                     <h4 class="mb-1">Totales</h4>
@@ -559,6 +579,7 @@
                         <div class="col-md-6">
                             <table class="table table-bordered mb-0 align-middle">
                                 <tbody>
+                                    @if($veCostos)
                                     <tr>
                                         <td><strong>Costo Cortina</strong></td>
                                         <td>
@@ -568,6 +589,9 @@
                                             </div>
                                         </td>
                                     </tr>
+                                    @else
+                                        <input type="hidden" id="costo_cortina" name="totales[costo_cortina]" value="{{ old('totales.costo_cortina', $cotizacion->costo_cortina ?? '') }}">
+                                    @endif
                                     @if($veUtilidad)
                                     <tr>
                                         <td><strong>Utilidad</strong></td>
@@ -581,6 +605,7 @@
                                     @else
                                         <input type="hidden" id="utilidad" name="totales[utilidad]" value="{{ old('totales.utilidad', $cotizacion->utilidad ?? '') }}">
                                     @endif
+                                    @if($veCostos)
                                     <tr>
                                         <td><strong>Costo Decorador</strong></td>
                                         <td>
@@ -598,6 +623,10 @@
                                             </div>
                                         </td>
                                     </tr>
+                                    @else
+                                        <input type="hidden" id="decorador_porcentaje" name="totales[decorador_porcentaje]" value="{{ old('totales.decorador_porcentaje', $detalleCotizacion->decorador_porcentaje ?? 15) }}">
+                                        <input type="hidden" id="costo_decorador" name="totales[costo_decorador]" value="{{ old('totales.costo_decorador', $cotizacion->costo_decorador ?? '') }}">
+                                    @endif
                                     <tr>
                                         <td><strong>Precio Público</strong></td>
                                         <td>
@@ -655,8 +684,8 @@
     $precio = 100;
     }
     @endphp
-    <option value="{{ $tela->id }}" data-precio="{{ $precio }}" data-campo2="{{ $tela->campo2 }}">
-        {{ $tela->nombre }} - {{ $tela->campo1 }} - {{ $tela->campo2 }}
+    <option value="{{ $tela->id }}" data-precio="{{ $precio }}" data-campo2="{{ $tela->campo2Mostrar() }}">
+        {{ $tela->etiquetaMaterialTextil() }}
     </option>
     @endforeach
 </select>
@@ -667,10 +696,10 @@
         <option
             value="{{ $tergal->id }}"
             data-precio="{{ is_numeric($tergal->precio_publico) ? $tergal->precio_publico : 0 }}"
-            data-campo1="{{ $tergal->campo1 }}"
-            data-campo2="{{ $tergal->campo2 }}"
+            data-campo1="{{ $tergal->campo1Mostrar() }}"
+            data-campo2="{{ $tergal->campo2Mostrar() }}"
         >
-            {{ $tergal->nombre }} - {{ $tergal->campo1 }} - {{ $tergal->campo2 }}
+            {{ $tergal->etiquetaMaterialTextil() }}
         </option>
     @endforeach
 </select>
@@ -682,9 +711,9 @@
     <option
         value="{{ $forro->id }}"
         data-precio="{{ is_numeric($forro->precio_publico) ? $forro->precio_publico : 0 }}"
-        data-campo1="{{ $forro->campo1 }}"
-        data-campo2="{{ $forro->campo2 }}">
-        {{ $forro->nombre }} - {{ $forro->campo1 }} - {{ $forro->campo2 }}
+        data-campo1="{{ $forro->campo1Mostrar() }}"
+        data-campo2="{{ $forro->campo2Mostrar() }}">
+        {{ $forro->etiquetaMaterialTextil() }}
     </option>
     @endforeach
 </select>
@@ -695,6 +724,56 @@
 <script>
     const verDetalleTelaManoObra = @json(auth()->user()->esAdministrador());
     const veUtilidadCotizacion = @json(auth()->user()->veUtilidadCotizacion());
+    const veCostosCotizacion = @json(auth()->user()->veCostosCotizacion());
+    const vePreciosMaterialesVarios = veCostosCotizacion;
+    const claseOcultarPrecioMateriales = vePreciosMaterialesVarios ? '' : 'd-none';
+
+    function obtenerDropdownParentSelect2() {
+        return $(document.body);
+    }
+
+    function configuracionSelect2(dropdownParentOverride) {
+        return {
+            width: '100%',
+            dropdownParent: dropdownParentOverride ? $(dropdownParentOverride) : obtenerDropdownParentSelect2(),
+            dropdownAutoWidth: false,
+        };
+    }
+
+    function reinicializarSelect2(select, dropdownParentOverride) {
+        const $select = $(select);
+        if (!$select.length) {
+            return;
+        }
+
+        if ($select.hasClass('select2-hidden-accessible')) {
+            $select.select2('destroy');
+        }
+
+        $select.select2(configuracionSelect2(dropdownParentOverride));
+    }
+
+    function inicializarSelect2EnContenedor(contenedor) {
+        $(contenedor).find('select.select2').each(function() {
+            reinicializarSelect2(this);
+        });
+    }
+
+    function inicializarSelect2MaterialesVarios(select, dropdownParent) {
+        reinicializarSelect2(select, dropdownParent || document.body);
+    }
+
+    function cerrarSelect2Abiertos(exceptSelect) {
+        $('select.select2').each(function() {
+            if (exceptSelect && this === exceptSelect) {
+                return;
+            }
+
+            if ($(this).data('select2')) {
+                $(this).select2('close');
+            }
+        });
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
         const tabsNav = document.getElementById('cotizacion-tabs');
@@ -704,11 +783,36 @@
         const tiposInsumoDisponibles = @json($tiposInsumoCotizacion ?? []);
         const tiposProductoDisponibles = @json($tiposProductoCotizacion ?? []);
         const cortinerosTabDisponibles = @json($cortineros ?? []);
+        const insumosMaterialesVarios = @json($insumosMaterialesVarios ?? []);
         const manoObraBase = {
             cortina: {{ $manoObra['Mano de Obra Cortina']->precio_publico ?? 120 }},
             tergal: {{ $manoObra['Mano de Obra Tergal']->precio_publico ?? 100 }}
         };
         let detalleIndex = 0;
+
+        function etiquetaClaveNombre(item) {
+            if (!item) {
+                return '';
+            }
+
+            if (item.etiqueta) {
+                return item.etiqueta;
+            }
+
+            const partes = [];
+            const clave = item.clave != null ? String(item.clave).trim() : '';
+            const nombre = item.nombre != null ? String(item.nombre).trim() : '';
+
+            if (clave && clave.toLowerCase() !== 'null') {
+                partes.push(clave);
+            }
+
+            if (nombre && nombre.toLowerCase() !== 'null') {
+                partes.push(nombre);
+            }
+
+            return partes.join(' - ') || nombre || clave || '';
+        }
 
         function obtenerOpcionesTipoInsumo(selectedId = '') {
             const opciones = tiposInsumoDisponibles.map(tipo => {
@@ -728,7 +832,7 @@
                 .filter(insumo => String(insumo.id_tipo_insumo) === String(tipoId))
                 .map(insumo => {
                     const selected = String(insumo.id) === String(selectedId) ? 'selected' : '';
-                    return `<option value="${insumo.id}" data-precio="${insumo.precio_publico ?? ''}" ${selected}>${insumo.nombre}</option>`;
+                    return `<option value="${insumo.id}" data-precio="${insumo.precio_publico ?? ''}" ${selected}>${etiquetaClaveNombre(insumo)}</option>`;
                 })
                 .join('');
 
@@ -807,7 +911,7 @@
                 .filter(producto => String(producto.id_tipo_producto) === String(tipoId))
                 .map(producto => {
                     const selected = String(producto.id) === String(selectedId) ? 'selected' : '';
-                    return `<option value="${producto.id}" data-precio="${producto.precio ?? ''}" ${selected}>${producto.nombre}</option>`;
+                    return `<option value="${producto.id}" data-precio="${producto.precio_publico ?? producto.precio ?? ''}" ${selected}>${etiquetaClaveNombre(producto)}</option>`;
                 })
                 .join('');
 
@@ -890,29 +994,6 @@
             }
 
             actualizarTotalesConceptos();
-        }
-
-        function inicializarSelect2EnContenedor(contenedor) {
-            $(contenedor).find('select.select2').each(function() {
-                if ($(this).hasClass('select2-hidden-accessible')) {
-                    $(this).select2('destroy');
-                }
-
-                $(this).select2({
-                    width: '100%'
-                });
-            });
-        }
-
-        function reinicializarSelect2(select) {
-            const $select = $(select);
-            if ($select.hasClass('select2-hidden-accessible')) {
-                $select.select2('destroy');
-            }
-
-            $select.select2({
-                width: '100%'
-            });
         }
 
         function actualizarSelectDependiente(select, opcionesHtml) {
@@ -1056,7 +1137,7 @@
         function actualizarPrecioFilaProducto(fila, productoId) {
             const precioInput = fila?.querySelector('.producto-precio');
             const producto = obtenerProductoPorId(productoId);
-            const precio = producto?.precio ?? '';
+            const precio = producto?.precio_publico ?? producto?.precio ?? '';
 
             if (precioInput) {
                 precioInput.value = precio;
@@ -1071,10 +1152,64 @@
         function obtenerOpcionesCortinero(selectedId = '') {
             const opciones = cortinerosTabDisponibles.map(cortinero => {
                 const selected = String(cortinero.id) === String(selectedId) ? 'selected' : '';
-                return `<option value="${cortinero.id}" data-precio="${cortinero.precio_publico ?? ''}" ${selected}>${cortinero.nombre}</option>`;
+                return `<option value="${cortinero.id}" data-precio="${cortinero.precio_publico ?? cortinero.precio ?? ''}" ${selected}>${cortinero.nombre}</option>`;
             }).join('');
 
             return `<option value="">Seleccione un cortinero</option>${opciones}`;
+        }
+
+        function obtenerOpcionesInsumoMaterialesVarios(selectedId = '') {
+            const opciones = insumosMaterialesVarios.map(insumo => {
+                const selected = String(insumo.id) === String(selectedId) ? 'selected' : '';
+                return `<option value="${insumo.id}" data-precio="${insumo.precio_publico ?? ''}" ${selected}>${etiquetaClaveNombre(insumo)}</option>`;
+            }).join('');
+
+            return `<option value="">Seleccione un insumo</option>${opciones}`;
+        }
+
+        function siguienteContadorOtrosDetalle(pane) {
+            const actual = parseInt(pane.dataset.otrosCounter || '0', 10);
+            const next = actual + 1;
+            pane.dataset.otrosCounter = String(next);
+            return next;
+        }
+
+        function htmlFilaOtroInsumoDetalle(index, rowNum, insumoId = '', cantidad = '', precio = '') {
+            return `
+                <tr class="detalle-otro-insumo-row">
+                    <td>
+                        <select name="detalles[${index}][otros${rowNum}_nombre]" class="form-select detalle-otro-insumo-select select2 w-100">
+                            ${obtenerOpcionesInsumoMaterialesVarios(insumoId)}
+                        </select>
+                    </td>
+                    <td class="text-center align-middle">
+                        <button type="button" class="btn btn-sm btn-outline-danger detalle-eliminar-otro-insumo" title="Quitar renglón">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                    <td><input type="number" name="detalles[${index}][otros${rowNum}_cantidad]" class="form-control detalle-otro-insumo-cantidad" step="0.01" min="0" value="${cantidad}"></td>
+                    <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][otros${rowNum}_precio]" class="form-control detalle-otro-insumo-precio" step="0.01" readonly value="${precio}"></div></td>
+                    <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-otro-insumo-subtotal" step="0.01" readonly></div></td>
+                </tr>
+            `;
+        }
+
+        function añadirOtroInsumoDetalle(pane, index) {
+            const tbody = pane.querySelector('.detalle-materiales-tbody');
+            const totalRow = pane.querySelector('.detalle-materiales-total-row');
+            if (!tbody || !totalRow) {
+                return;
+            }
+
+            const rowNum = siguienteContadorOtrosDetalle(pane);
+            const wrapper = document.createElement('tbody');
+            wrapper.innerHTML = htmlFilaOtroInsumoDetalle(index, rowNum);
+            const tr = wrapper.firstElementChild;
+            tbody.insertBefore(tr, totalRow);
+
+            const card = pane.querySelector('.detalle-materiales-varios-card');
+            inicializarSelect2MaterialesVarios(tr.querySelector('.detalle-otro-insumo-select'), card || pane);
+            recalcularPestanaDetalle(index, pane);
         }
 
         function construirSeccionTelaManoObra(index) {
@@ -1189,6 +1324,14 @@
                 ? `<tr><td><strong>Utilidad</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-utilidad" step="0.01" readonly></div></td></tr>`
                 : `<input type="hidden" class="detalle-utilidad">`;
 
+            const filaCostoCortina = veCostosCotizacion
+                ? `<tr><td><strong>Costo Cortina</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-costo-cortina" step="0.01" readonly></div></td></tr>`
+                : `<input type="hidden" class="detalle-costo-cortina">`;
+
+            const filaCostoDecorador = veCostosCotizacion
+                ? `<tr><td><strong>Costo Decorador</strong></td><td><div class="input-group"><input type="number" name="detalles[${index}][decorador_porcentaje]" class="form-control text-end detalle-decorador-porcentaje" value="15" min="0" max="100" step="0.01" style="max-width: 100px;"><span class="input-group-text">%</span><span class="input-group-text" style="margin-left: 0.5rem;">$</span><input type="number" class="form-control detalle-costo-decorador" step="0.01" readonly></div></td></tr>`
+                : `<input type="hidden" name="detalles[${index}][decorador_porcentaje]" class="detalle-decorador-porcentaje" value="15"><input type="hidden" class="detalle-costo-decorador">`;
+
             return `
                 <div class="card mt-4 border-0 shadow-sm">
                     <div class="card-header bg-light border-bottom-0 py-3">
@@ -1210,9 +1353,9 @@
                             <div class="col-md-6">
                                 <table class="table table-bordered mb-0 align-middle">
                                     <tbody>
-                                        <tr><td><strong>Costo Cortina</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-costo-cortina" step="0.01" readonly></div></td></tr>
+                                        ${filaCostoCortina}
                                         ${filaUtilidad}
-                                        <tr><td><strong>Costo Decorador</strong></td><td><div class="input-group"><input type="number" name="detalles[${index}][decorador_porcentaje]" class="form-control text-end detalle-decorador-porcentaje" value="15" min="0" max="100" step="0.01" style="max-width: 100px;"><span class="input-group-text">%</span><span class="input-group-text" style="margin-left: 0.5rem;">$</span><input type="number" class="form-control detalle-costo-decorador" step="0.01" readonly></div></td></tr>
+                                        ${filaCostoDecorador}
                                         <tr><td><strong>Precio Publico</strong></td><td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-precio-publico" step="0.01" readonly></div></td></tr>
                                         <tr><td></td><td><div class="row justify-content-end"><div class="col-md-12"><label class="form-label mb-0">Descuento (%)</label><input type="number" name="detalles[${index}][descuento]" class="form-control detalle-descuento" min="0" max="100" step="0.01" value="0"></div></div></td></tr>
                                     </tbody>
@@ -1228,7 +1371,7 @@
             return `
                 ${construirSeccionTelaManoObra(index)}
 
-                <div class="card mt-4 border-0 shadow-sm">
+                <div class="card mt-4 border-0 shadow-sm detalle-materiales-varios-card">
                     <div class="card-header bg-light border-bottom-0 py-3">
                         <h4 class="mb-1">Materiales Varios</h4>
                         <div class="text-muted small">Cortineros y materiales complementarios vinculados a esta pestana.</div>
@@ -1237,9 +1380,9 @@
                         <div class="table-responsive">
                             <table class="table table-bordered mb-0 align-middle">
                                 <thead class="table-light">
-                                    <tr><th>Material</th><th width="72" class="text-center">Insumos</th><th>Cantidad</th><th>Precio Unitario</th><th>Subtotal</th></tr>
+                                    <tr><th>Material</th><th width="72" class="text-center">Insumos</th><th>Cantidad</th><th class="${claseOcultarPrecioMateriales}">Precio Unitario</th><th class="${claseOcultarPrecioMateriales}">Subtotal</th></tr>
                                 </thead>
-                                <tbody>
+                                <tbody class="detalle-materiales-tbody">
                                     <tr>
                                         <td>
                                             <div class="cotinero-row-label mb-2">Cortinero cortina</div>
@@ -1253,8 +1396,8 @@
                                             </button>
                                         </td>
                                         <td><input type="number" name="detalles[${index}][cortinero_cantidad]" class="form-control detalle-cortinero-cantidad" step="0.01"></td>
-                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][cortinero_precio]" class="form-control detalle-cortinero-precio" step="0.01" readonly></div></td>
-                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-cortinero-subtotal" step="0.01" readonly></div></td>
+                                        <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][cortinero_precio]" class="form-control detalle-cortinero-precio" step="0.01" readonly></div></td>
+                                        <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-cortinero-subtotal" step="0.01" readonly></div></td>
                                     </tr>
                                     <tr>
                                         <td>
@@ -1269,16 +1412,17 @@
                                             </button>
                                         </td>
                                         <td><input type="number" name="detalles[${index}][cortinero_tergal_cantidad]" class="form-control detalle-cortinero-tergal-cantidad" step="0.01"></td>
-                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][cortinero_tergal_precio]" class="form-control detalle-cortinero-tergal-precio" step="0.01" readonly></div></td>
-                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-cortinero-tergal-subtotal" step="0.01" readonly></div></td>
+                                        <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][cortinero_tergal_precio]" class="form-control detalle-cortinero-tergal-precio" step="0.01" readonly></div></td>
+                                        <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-cortinero-tergal-subtotal" step="0.01" readonly></div></td>
                                     </tr>
-                                    <tr>
-                                        <td colspan="4" class="text-end"><strong>Costo Total Materiales:</strong></td>
-                                        <td><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-materiales-total" step="0.01" readonly></div></td>
+                                    <tr class="detalle-materiales-total-row">
+                                        <td colspan="${vePreciosMaterialesVarios ? 4 : 3}" class="text-end"><strong>Costo Total Materiales:</strong></td>
+                                        <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-materiales-total" step="0.01" readonly></div></td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
+                        <button type="button" class="btn btn-sm btn-primary mt-2 detalle-anadir-otro-insumo"><i class="fas fa-plus"></i> Añadir otro insumo</button>
                     </div>
                 </div>
 
@@ -1369,6 +1513,39 @@
             renumerarPestanasDetalle();
         }
 
+        function sincronizarAnchosMaterialDesdeSelect(pane, index, selectEl) {
+            if (!selectEl?.name) {
+                return;
+            }
+
+            const field = (name) => pane.querySelector(`[name="detalles[${index}][${name}]"]`);
+            const limpiarNumero = (valor) => valor.toString().replace(/[^\d.]/g, '');
+
+            if (selectEl.name.endsWith('[tela_id]')) {
+                const campo2 = selectEl.selectedOptions[0]?.dataset?.campo2 || '';
+                const anchoTela = field('ancho_tela');
+                if (campo2 && anchoTela) {
+                    anchoTela.value = limpiarNumero(campo2);
+                }
+            }
+
+            if (selectEl.name.endsWith('[tergal_id]')) {
+                const campo1 = selectEl.selectedOptions[0]?.dataset?.campo1 || '';
+                const anchoTergal = field('ancho_tergal');
+                if (campo1 && anchoTergal) {
+                    anchoTergal.value = limpiarNumero(campo1);
+                }
+            }
+
+            if (selectEl.name.endsWith('[forro_id]')) {
+                const campo1 = selectEl.selectedOptions[0]?.dataset?.campo1 || '';
+                const anchoForro = field('ancho_forro');
+                if (campo1 && anchoForro) {
+                    anchoForro.value = limpiarNumero(campo1);
+                }
+            }
+        }
+
         function recalcularPestanaDetalle(index, pane) {
             const field = (name) => pane.querySelector(`[name="detalles[${index}][${name}]"]`);
             const num = (name) => parseFloat(field(name)?.value) || 0;
@@ -1384,31 +1561,19 @@
             if (telaSelect) {
                 const selected = telaSelect.selectedOptions[0];
                 const precio = parseFloat(selected?.dataset?.precio) || num('precio_m2_tela');
-                const campo2 = selected?.dataset?.campo2 || '';
                 set('precio_m2_tela', precio ? precio.toFixed(2) : '');
-                if (campo2) {
-                    field('ancho_tela').value = campo2.toString().replace(/[^\d.]/g, '');
-                }
             }
 
             if (tergalSelect) {
                 const selected = tergalSelect.selectedOptions[0];
                 const precio = parseFloat(selected?.dataset?.precio) || num('precio_m2_tergal');
-                const campo1 = selected?.dataset?.campo1 || '';
                 set('precio_m2_tergal', precio ? precio.toFixed(2) : '');
-                if (campo1) {
-                    field('ancho_tergal').value = campo1.toString().replace(/[^\d.]/g, '');
-                }
             }
 
             if (forroSelect) {
                 const selected = forroSelect.selectedOptions[0];
                 const precio = parseFloat(selected?.dataset?.precio) || num('precio_m2_forro');
-                const campo1 = selected?.dataset?.campo1 || '';
                 set('precio_m2_forro', precio ? precio.toFixed(2) : '');
-                if (campo1) {
-                    field('ancho_forro').value = campo1.toString().replace(/[^\d.]/g, '');
-                }
             }
 
             if (cortinaChecked) {
@@ -1506,7 +1671,25 @@
             const cortineroTergalSubtotalInput = pane.querySelector('.detalle-cortinero-tergal-subtotal');
             if (cortineroTergalSubtotalInput) cortineroTergalSubtotalInput.value = cortineroTergalSubtotal ? cortineroTergalSubtotal.toFixed(2) : '';
 
-            const materialesTotal = cortineroSubtotal + cortineroTergalSubtotal;
+            let otrosMaterialesTotal = 0;
+            pane.querySelectorAll('.detalle-otro-insumo-row').forEach(row => {
+                const select = row.querySelector('.detalle-otro-insumo-select');
+                const cantInput = row.querySelector('.detalle-otro-insumo-cantidad');
+                const precioInput = row.querySelector('.detalle-otro-insumo-precio');
+                const subtotalInput = row.querySelector('.detalle-otro-insumo-subtotal');
+                const precioVal = parseFloat(select?.selectedOptions[0]?.dataset?.precio) || parseFloat(precioInput?.value) || 0;
+                if (precioInput) {
+                    precioInput.value = precioVal ? precioVal.toFixed(2) : '';
+                }
+                const cant = parseFloat(cantInput?.value) || 0;
+                const sub = cant * precioVal;
+                if (subtotalInput) {
+                    subtotalInput.value = sub ? sub.toFixed(2) : '';
+                }
+                otrosMaterialesTotal += sub;
+            });
+
+            const materialesTotal = cortineroSubtotal + cortineroTergalSubtotal + otrosMaterialesTotal;
             const materialesTotalInput = pane.querySelector('.detalle-materiales-total');
             if (materialesTotalInput) materialesTotalInput.value = materialesTotal ? materialesTotal.toFixed(2) : '';
 
@@ -1572,6 +1755,7 @@
                 }
             });
             $(pane).on('change', 'select.select2', function() {
+                sincronizarAnchosMaterialDesdeSelect(pane, index, this);
                 recalcularPestanaDetalle(index, pane);
             });
             sincronizarAjustesGlobales(pane);
@@ -1587,7 +1771,7 @@
             tabsContent.innerHTML = `
                 <div class="tab-pane fade" id="insumos-global">
                     <div class="d-flex justify-content-end mb-3">
-                        <button type="button" class="btn btn-sm btn-primary add-insumo-row">Agregar Insumo</button>
+                        <button type="button" class="btn btn-sm btn-primary add-insumo-row"><i class="fas fa-plus"></i> Agregar Insumo</button>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-borderless insumos-table mb-0">
@@ -1607,7 +1791,7 @@
 
                 <div class="tab-pane fade" id="productos-global">
                     <div class="d-flex justify-content-end mb-3">
-                        <button type="button" class="btn btn-sm btn-primary add-producto-row">Agregar Producto</button>
+                        <button type="button" class="btn btn-sm btn-primary add-producto-row"><i class="fas fa-plus"></i> Agregar Producto</button>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-borderless productos-table mb-0">
@@ -1698,6 +1882,8 @@
             const pane = document.createElement('div');
             pane.className = `tab-pane fade ${isFirst ? 'show active' : ''}`;
             pane.dataset.detallePane = '1';
+            pane.dataset.detalleIndex = String(index);
+            pane.dataset.otrosCounter = '0';
             pane.id = detalleTabId;
             pane.innerHTML = `
                 <div class="mb-3 border rounded p-3 bg-light">
@@ -1783,7 +1969,7 @@
                                                         $precioTelaDetalle = 100;
                                                     }
                                                 @endphp
-                                                <option value="{{ $tela->id }}" data-precio="{{ $precioTelaDetalle }}" data-campo2="{{ $tela->campo2 }}">{{ $tela->nombre }} - {{ $tela->campo1 }} - {{ $tela->campo2 }}</option>
+                                                <option value="{{ $tela->id }}" data-precio="{{ $precioTelaDetalle }}" data-campo2="{{ $tela->campo2Mostrar() }}">{{ $tela->etiquetaMaterialTextil() }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -1832,7 +2018,7 @@
                                         <select name="detalles[${index}][tergal_id]" class="form-control select2">
                                             <option value="">Seleccione un tergal</option>
                                             @foreach($tergales as $tergal)
-                                                <option value="{{ $tergal->id }}" data-precio="{{ is_numeric($tergal->precio_publico) ? $tergal->precio_publico : 0 }}" data-campo1="{{ $tergal->campo1 }}" data-campo2="{{ $tergal->campo2 }}">{{ $tergal->nombre }} - {{ $tergal->campo1 }} - {{ $tergal->campo2 }}</option>
+                                                <option value="{{ $tergal->id }}" data-precio="{{ is_numeric($tergal->precio_publico) ? $tergal->precio_publico : 0 }}" data-campo1="{{ $tergal->campo1Mostrar() }}" data-campo2="{{ $tergal->campo2Mostrar() }}">{{ $tergal->etiquetaMaterialTextil() }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -1881,7 +2067,7 @@
                                         <select name="detalles[${index}][forro_id]" class="form-control select2">
                                             <option value="">Seleccione un forro</option>
                                             @foreach($forros as $forro)
-                                                <option value="{{ $forro->id }}" data-precio="{{ is_numeric($forro->precio_publico) ? $forro->precio_publico : 0 }}" data-campo1="{{ $forro->campo1 }}" data-campo2="{{ $forro->campo2 }}">{{ $forro->nombre }} - {{ $forro->campo1 }} - {{ $forro->campo2 }}</option>
+                                                <option value="{{ $forro->id }}" data-precio="{{ is_numeric($forro->precio_publico) ? $forro->precio_publico : 0 }}" data-campo1="{{ $forro->campo1Mostrar() }}" data-campo2="{{ $forro->campo2Mostrar() }}">{{ $forro->etiquetaMaterialTextil() }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -1919,7 +2105,7 @@
                     `);
                 }
 
-                [wrapper.querySelector(`select[name="detalles[${index}][tela_id]"]`), wrapper.querySelector(`select[name="detalles[${index}][tergal_id]"]`), wrapper.querySelector(`select[name="detalles[${index}][forro_id]"]`)].filter(Boolean).forEach(select => $(select).select2());
+                [wrapper.querySelector(`select[name="detalles[${index}][tela_id]"]`), wrapper.querySelector(`select[name="detalles[${index}][tergal_id]"]`), wrapper.querySelector(`select[name="detalles[${index}][forro_id]"]`)].filter(Boolean).forEach(select => reinicializarSelect2(select));
 
                 wrapper.querySelectorAll('input, select, textarea').forEach(field => {
                     if (!field.name || !Object.prototype.hasOwnProperty.call(valoresPrevios, field.name)) {
@@ -1971,7 +2157,7 @@
                 <td>
                     <select name="${tipo}[${index}][id]" class="form-control">
                         <option value="">Seleccione un ${tipo === 'insumos' ? 'insumo' : 'producto'}</option>
-                        ${tipo === 'insumos' ? `@foreach($insumos as $insumo)<option value="{{ $insumo->id }}">{{ $insumo->nombre }}</option>@endforeach` : `@foreach($productos as $producto)<option value="{{ $producto->id }}">{{ $producto->nombre }}</option>@endforeach`}
+                        ${tipo === 'insumos' ? `@foreach($insumos as $insumo)<option value="{{ $insumo->id }}">{{ $insumo->etiquetaClaveNombre() }}</option>@endforeach` : `@foreach($productos as $producto)<option value="{{ $producto->id }}">{{ $producto->etiquetaClaveNombre() }}</option>@endforeach`}
                     </select>
                 </td>
                 <td><input type="number" name="${tipo}[${index}][cantidad]" class="form-control" step="0.01"></td>
@@ -2060,6 +2246,31 @@
                 });
                 fila?.remove();
                 actualizarTotalesConceptos();
+            }
+
+            const addOtroInsumoBtn = event.target.closest('.detalle-anadir-otro-insumo');
+            if (addOtroInsumoBtn) {
+                const pane = addOtroInsumoBtn.closest('[data-detalle-pane="1"]');
+                const index = parseInt(pane?.dataset.detalleIndex ?? '0', 10);
+                if (pane) {
+                    añadirOtroInsumoDetalle(pane, index);
+                }
+            }
+
+            const removeOtroInsumoBtn = event.target.closest('.detalle-eliminar-otro-insumo');
+            if (removeOtroInsumoBtn) {
+                const pane = removeOtroInsumoBtn.closest('[data-detalle-pane="1"]');
+                const index = parseInt(pane?.dataset.detalleIndex ?? '0', 10);
+                const fila = removeOtroInsumoBtn.closest('tr');
+                $(fila).find('select.select2').each(function() {
+                    if ($(this).hasClass('select2-hidden-accessible')) {
+                        $(this).select2('destroy');
+                    }
+                });
+                fila?.remove();
+                if (pane) {
+                    recalcularPestanaDetalle(index, pane);
+                }
             }
         });
 
@@ -2235,7 +2446,7 @@
                                                 @foreach($telas as $tela)
                                                     <option value="{{ $tela->id }}"
                                                         {{ old('detalle.tela_id', $detalleCotizacion->tela_id ?? '') == $tela->id ? 'selected' : '' }}>
-                                                        {{ $tela->nombre }} - {{ $tela->campo1 }} - {{ $tela->campo2 }}
+                                                        {{ $tela->etiquetaMaterialTextil() }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -2297,7 +2508,7 @@
                                     $(telaSelect).val(telaSeleccionada);
                                 }
 
-                                $(telaSelect).select2();
+                                reinicializarSelect2(telaSelect);
 
                                 $(telaSelect).on('change', function() {
                                     const selected = $(this).find('option:selected');
@@ -2369,10 +2580,10 @@
                                                 @foreach($tergales as $tergal)
                                                     <option value="{{ $tergal->id }}"
                                                         data-precio="{{ $tergal->precio ?? 0 }}"
-                                                        data-campo1="{{ $tergal->campo1 ?? '' }}"
-                                                        data-campo2="{{ $tergal->campo2 ?? '' }}"
+                                                        data-campo1="{{ $tergal->campo1Mostrar() }}"
+                                                        data-campo2="{{ $tergal->campo2Mostrar() }}"
                                                         {{ old('detalle.tergal_id', $detalleCotizacion->tergal_id ?? '') == $tergal->id ? 'selected' : '' }}>
-                                                        {{ $tergal->nombre }} - {{ $tergal->campo1 ?? '' }} - {{ $tergal->campo2 ?? '' }}
+                                                        {{ $tergal->etiquetaMaterialTextil() }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -2438,7 +2649,7 @@
                                     $(tergalSelect).val(tergalSeleccionado);
                                 }
 
-                                $(tergalSelect).select2();
+                                reinicializarSelect2(tergalSelect);
 
                                 // Calcular lienzos tergal
                                 function calcularTergal() {
@@ -2580,7 +2791,7 @@
                                                 @foreach($forros as $forro)
                                                     <option value="{{ $forro->id }}"
                                                         {{ old('detalle.forro_id', $detalleCotizacion->forro_id ?? '') == $forro->id ? 'selected' : '' }}>
-                                                        {{ $forro->nombre }} - {{ $forro->campo1 ?? '' }} - {{ $forro->campo2 ?? '' }}
+                                                        {{ $forro->etiquetaMaterialTextil() }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -2646,7 +2857,7 @@
                                     $(forroSelect).val(forroSeleccionado);
                                 }
 
-                                $(forroSelect).select2();
+                                reinicializarSelect2(forroSelect);
 
                                 largoForroInput.addEventListener('blur', () => {
                                     let val = parseFloat(largoForroInput.value);
@@ -2821,6 +3032,16 @@
             }
 
             actualizarTotalesConceptos();
+        });
+
+        reinicializarSelect2(document.getElementById('cliente_id'));
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function() {
+            cerrarSelect2Abiertos();
+        });
+
+        $(document).on('select2:open', function(event) {
+            cerrarSelect2Abiertos(event.target);
         });
     });
 
@@ -3046,8 +3267,9 @@
     let contadorOtros = 1;
 
     // Insumos precargados desde el backend
-    const insumosDisponibles = @json($insumos); // Marca error pero funciona igual
+    const insumosDisponibles = @json($insumosMaterialesVarios ?? $insumos);
     const cortinerosDisponibles = @json($cortineros);
+    const vePreciosMaterialesVariosLegacy = @json(auth()->user()->veCostosCotizacion());
 
     // Scripts para calcular el costo total de materiales
     function crearSelectInsumos(nombreInput) {
@@ -3064,7 +3286,7 @@
         insumosDisponibles.forEach(insumo => {
             const option = document.createElement('option');
             option.value = insumo.id;
-            option.textContent = insumo.nombre;
+            option.textContent = etiquetaClaveNombre(insumo);
             option.dataset.precio = insumo.precio_publico;
             select.appendChild(option);
         });
@@ -3077,7 +3299,7 @@
                 const option = document.createElement('option');
                 option.value = 'cortinero_' + cortinero.id;
                 option.textContent = cortinero.nombre;
-                option.dataset.precio = cortinero.precio_publico;
+                option.dataset.precio = cortinero.precio_publico ?? cortinero.precio ?? '';
                 cortineroGroup.appendChild(option);
             });
             select.appendChild(cortineroGroup);
@@ -3122,6 +3344,9 @@
         inputGroupPrecio.appendChild(spanPrecio);
         inputGroupPrecio.appendChild(inputPrecio);
         tdPrecio.appendChild(inputGroupPrecio);
+        if (!vePreciosMaterialesVariosLegacy) {
+            tdPrecio.classList.add('d-none');
+        }
 
         // Celda subtotal
         const tdSubtotal = document.createElement('td');
@@ -3138,6 +3363,9 @@
         inputGroupSubtotal.appendChild(spanSubtotal);
         inputGroupSubtotal.appendChild(inputSubtotal);
         tdSubtotal.appendChild(inputGroupSubtotal);
+        if (!vePreciosMaterialesVariosLegacy) {
+            tdSubtotal.classList.add('d-none');
+        }
 
         // Celda eliminar
         const tdEliminar = document.createElement('td');
@@ -3160,10 +3388,7 @@
         tbody.appendChild(fila);
         contadorOtros++;
 
-        // Inicializar select2 para el nuevo select
-        $(selectInsumo).select2({
-            dropdownParent: $('#tabla-materiales-varios')
-        });
+        reinicializarSelect2(selectInsumo);
 
         // Actualizar el precio al seleccionar un insumo
         $(selectInsumo).on('change', function() {
@@ -3223,7 +3448,10 @@
 
         // Suma todos los costos
         const costoCortina = totalTelaFinal + totalTergalFinal + totalForroFinal + costoManoObra + costoMateriales;
-        document.getElementById('costo_cortina').value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
+        const costoCortinaInput = document.getElementById('costo_cortina');
+        if (costoCortinaInput) {
+            costoCortinaInput.value = costoCortina > 0 ? costoCortina.toFixed(2) : '';
+        }
 
         // Utilidad
         const utilidad = costoCortina * 0.15;

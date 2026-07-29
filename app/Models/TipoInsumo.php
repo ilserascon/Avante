@@ -48,4 +48,11 @@ class TipoInsumo extends Model
 
     const CREATED_AT = 'created_at';
     const UPDATED_AT = null;
+
+    public const NOMBRE_MANO_OBRA = 'Mano de Obra';
+
+    public function scopeExceptManoDeObra($query)
+    {
+        return $query->where('nombre', '!=', self::NOMBRE_MANO_OBRA);
+    }
 }

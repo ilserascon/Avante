@@ -12,7 +12,7 @@
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
                     <div>
                         <h3>Nuevo Tipo de Producto</h3>
-                        <p class="hero-subtitle">Registre una nueva categoría de producto.</p>
+                        <p class="hero-subtitle">Defina el nombre, descripción y hasta 10 campos personalizados.</p>
                     </div>
                     <div class="hero-actions">
                         <a href="{{ route('admin.tipo-productos.index') }}" class="btn btn-light border px-4">
@@ -51,6 +51,23 @@
                             <label for="descripcion" class="field-label">Descripción</label>
                             <textarea name="descripcion" id="descripcion" class="form-control @error('descripcion') is-invalid @enderror" rows="3">{{ old('descripcion') }}</textarea>
                             @error('descripcion') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h5>Campos personalizados</h5>&nbsp;&nbsp;
+                        <div class="text-muted">Etiquetas para los campos adicionales que tendrán los productos de este tipo.</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            @for($i = 1; $i <= 10; $i++)
+                                <div class="form-group col-md-4">
+                                    <label for="campo{{ $i }}" class="field-label">Campo {{ $i }}</label>
+                                    <input type="text" id="campo{{ $i }}" name="campo{{ $i }}" class="form-control" value="{{ old('campo'.$i) }}">
+                                </div>
+                            @endfor
                         </div>
                     </div>
                 </div>

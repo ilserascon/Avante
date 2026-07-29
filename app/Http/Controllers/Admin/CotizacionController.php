@@ -75,8 +75,8 @@ class CotizacionController extends Controller
 
     public function create()
     {
-        $insumos = Insumo::with('tipoInsumo')->whereIn('id_tipo_insumo', [2, 7])->get();
-        $tiposInsumoCotizacion = TipoInsumo::whereIn('id', [2, 7])->orderBy('nombre')->get();
+        $insumos = $this->insumosParaTabCotizacion();
+        $tiposInsumoCotizacion = $this->tiposInsumoParaCotizacion();
 
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
@@ -100,18 +100,16 @@ class CotizacionController extends Controller
 
         $cortineros = Producto::where('id_tipo_producto', 1)
             ->orderBy('nombre')
-            ->get()
-            ->map(function ($producto) {
-                // Keep a precio_publico alias to avoid touching existing view bindings.
-                $producto->precio_publico = $producto->precio;
-                return $producto;
-            });
+            ->get();
         $productos = Producto::with('tipoProducto')->orderBy('nombre')->get();
         $productosDisponibles = $this->mapProductosParaCotizacion();
         $tiposProductoCotizacion = TipoProducto::orderBy('nombre')->get();
 
+        $insumosMaterialesVarios = $this->insumosParaMaterialesVarios();
+
         return view('admin.cotizaciones.create', compact(
             'insumos',
+            'insumosMaterialesVarios',
             'tiposInsumoCotizacion',
             'insumosFijos',
             'manoObra',
@@ -302,7 +300,8 @@ class CotizacionController extends Controller
 
             $materialesDetalle =
                 ((float) ($detalleBloque['cortinero_cantidad'] ?? 0) * (float) ($detalleBloque['cortinero_precio'] ?? 0)) +
-                ((float) ($detalleBloque['cortinero_tergal_cantidad'] ?? 0) * (float) ($detalleBloque['cortinero_tergal_precio'] ?? 0));
+                ((float) ($detalleBloque['cortinero_tergal_cantidad'] ?? 0) * (float) ($detalleBloque['cortinero_tergal_precio'] ?? 0)) +
+                $this->sumarMaterialesOtros($detalleBloque);
 
             $costoCortinaDetalle =
                 (float) ($detalleBloque['costo_total_tela_tergal_forro'] ?? 0) +
@@ -310,6 +309,7 @@ class CotizacionController extends Controller
                 $materialesDetalle;
 
             $dataDetalle['costo_cortina'] = $detalleBloque['costo_cortina'] ?? ($costoCortinaDetalle > 0 ? $costoCortinaDetalle : null);
+            $dataDetalle['materiales_varios'] = $this->materialesVariosDesdeDetalleBloque($detalleBloque);
 
             $cotizacion->detallesCotizacion()->create($dataDetalle);
         }
@@ -390,8 +390,8 @@ class CotizacionController extends Controller
 
         $detalleCotizacion = $cotizacion->detalleCotizacion;
 
-        $insumos = Insumo::with('tipoInsumo')->whereIn('id_tipo_insumo', [2, 7])->get();
-        $tiposInsumoCotizacion = TipoInsumo::whereIn('id', [2, 7])->orderBy('nombre')->get();
+        $insumos = $this->insumosParaTabCotizacion();
+        $tiposInsumoCotizacion = $this->tiposInsumoParaCotizacion();
 
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
@@ -412,11 +412,7 @@ class CotizacionController extends Controller
 
         $cortineros = Producto::where('id_tipo_producto', 1)
             ->orderBy('nombre')
-            ->get()
-            ->map(function ($producto) {
-                $producto->precio_publico = $producto->precio;
-                return $producto;
-            });
+            ->get();
 
         $productos = Producto::with('tipoProducto')->orderBy('nombre')->get();
         $productosDisponibles = $this->mapProductosParaCotizacion();
@@ -474,6 +470,8 @@ class CotizacionController extends Controller
             })
             ->values();
 
+        $insumosMaterialesVarios = $this->insumosParaMaterialesVarios();
+
         return view('admin.cotizaciones.edit', compact(
             'cotizacion',
             'detalleCotizacion',
@@ -481,6 +479,7 @@ class CotizacionController extends Controller
             'insumosExistentes',
             'productosExistentes',
             'insumos',
+            'insumosMaterialesVarios',
             'tiposInsumoCotizacion',
             'insumosFijos',
             'manoObra',
@@ -668,7 +667,8 @@ class CotizacionController extends Controller
 
             $materialesDetalle =
                 ((float) ($detalleBloque['cortinero_cantidad'] ?? 0) * (float) ($detalleBloque['cortinero_precio'] ?? 0)) +
-                ((float) ($detalleBloque['cortinero_tergal_cantidad'] ?? 0) * (float) ($detalleBloque['cortinero_tergal_precio'] ?? 0));
+                ((float) ($detalleBloque['cortinero_tergal_cantidad'] ?? 0) * (float) ($detalleBloque['cortinero_tergal_precio'] ?? 0)) +
+                $this->sumarMaterialesOtros($detalleBloque);
 
             $costoCortinaDetalle =
                 (float) ($detalleBloque['costo_total_tela_tergal_forro'] ?? 0) +
@@ -676,6 +676,7 @@ class CotizacionController extends Controller
                 $materialesDetalle;
 
             $dataDetalle['costo_cortina'] = $detalleBloque['costo_cortina'] ?? ($costoCortinaDetalle > 0 ? $costoCortinaDetalle : null);
+            $dataDetalle['materiales_varios'] = $this->materialesVariosDesdeDetalleBloque($detalleBloque);
 
             $cotizacion->detallesCotizacion()->create($dataDetalle);
         }
@@ -814,7 +815,8 @@ class CotizacionController extends Controller
         foreach ($detallesParaGuardar as $detalleBloque) {
             $materiales =
                 ((float) ($detalleBloque['cortinero_cantidad'] ?? 0) * (float) ($detalleBloque['cortinero_precio'] ?? 0)) +
-                ((float) ($detalleBloque['cortinero_tergal_cantidad'] ?? 0) * (float) ($detalleBloque['cortinero_tergal_precio'] ?? 0));
+                ((float) ($detalleBloque['cortinero_tergal_cantidad'] ?? 0) * (float) ($detalleBloque['cortinero_tergal_precio'] ?? 0)) +
+                $this->sumarMaterialesOtros($detalleBloque);
 
             $costoCortina = (float) ($detalleBloque['costo_cortina'] ?? 0);
             if ($costoCortina <= 0) {
@@ -926,9 +928,10 @@ class CotizacionController extends Controller
             'cortinero_tergal_id' => $detalleData['cortinero_tergal_id'] ?? null,
             'cortinero_tergal_cantidad' => $detalleData['cortinero_tergal_cantidad'] ?? null,
             'cortinero_tergal_precio' => $detalleData['cortinero_tergal_precio'] ?? null,
+            'materiales_varios' => $this->materialesVariosDesdeDetalleBloque($detalleData),
         ];
 
-        $detalleCotizacion = $cotizacion->detallesCotizacion()->create($dataDetalle);
+        $cotizacion->detallesCotizacion()->create($dataDetalle);
 
         $insumosParaSincronizar = [];
         foreach ($detalleData['insumos'] ?? [] as $insumoRow) {
@@ -941,25 +944,6 @@ class CotizacionController extends Controller
                     'precio_unitario' => $precio,
                     'subtotal' => $cantidad * $precio,
                 ];
-            }
-        }
-
-        foreach ($detalleData as $key => $value) {
-            if (preg_match('/^otros(\d+)_nombre$/', $key, $matches)) {
-                $index = $matches[1];
-                $insumoRaw = $value;
-                $insumoId = Str::startsWith($insumoRaw, 'cortinero_')
-                    ? intval(Str::after($insumoRaw, 'cortinero_'))
-                    : intval($insumoRaw);
-                $cantidad = (float) ($detalleData["otros{$index}_cantidad"] ?? 0);
-                $precio = (float) ($detalleData["otros{$index}_precio"] ?? 0);
-                if ($insumoId && $cantidad > 0) {
-                    $insumosParaSincronizar[$insumoId] = [
-                        'cantidad' => ($insumosParaSincronizar[$insumoId]['cantidad'] ?? 0) + $cantidad,
-                        'precio_unitario' => $precio,
-                        'subtotal' => (($insumosParaSincronizar[$insumoId]['subtotal'] ?? 0) + ($cantidad * $precio)),
-                    ];
-                }
             }
         }
 
@@ -1055,6 +1039,107 @@ class CotizacionController extends Controller
             ->with('error', 'No se puede editar una cotización aceptada o completada.');
     }
 
+    private function tiposInsumoParaCotizacion()
+    {
+        return TipoInsumo::orderBy('nombre')->get();
+    }
+
+    private function insumosParaTabCotizacion()
+    {
+        return Insumo::with('tipoInsumo')
+            ->where('borrado', 0)
+            ->orderBy('nombre')
+            ->get();
+    }
+
+    /** @var list<string> */
+    private const TIPOS_INSUMO_EXCLUIDOS_MATERIALES_VARIOS = ['Mano de Obra', 'Telas', 'Tergal', 'Forro'];
+
+    private function insumosParaMaterialesVarios()
+    {
+        $tipoIds = TipoInsumo::whereNotIn('nombre', self::TIPOS_INSUMO_EXCLUIDOS_MATERIALES_VARIOS)->pluck('id');
+
+        return Insumo::whereIn('id_tipo_insumo', $tipoIds)
+            ->where('borrado', 0)
+            ->orderBy('nombre')
+            ->get(['id', 'nombre', 'clave', 'precio_publico', 'id_tipo_insumo'])
+            ->map(function ($insumo) {
+                return [
+                    'id' => $insumo->id,
+                    'nombre' => $insumo->nombre,
+                    'clave' => $insumo->clave,
+                    'etiqueta' => $insumo->etiquetaClaveNombre(),
+                    'precio_publico' => $insumo->precio_publico,
+                    'id_tipo_insumo' => $insumo->id_tipo_insumo,
+                ];
+            })
+            ->values();
+    }
+
+    private function sumarMaterialesOtros(array $detalleBloque): float
+    {
+        $sum = 0.0;
+        foreach ($this->extraerOtrosInsumosDesdeDetalle($detalleBloque) as $fila) {
+            $sum += $fila['cantidad'] * $fila['precio'];
+        }
+
+        return $sum;
+    }
+
+    /**
+     * @return list<array{id: int, cantidad: float, precio: float}>
+     */
+    private function extraerOtrosInsumosDesdeDetalle(array $detalleBloque): array
+    {
+        $filas = [];
+        foreach ($detalleBloque as $key => $value) {
+            if (! preg_match('/^otros(\d+)_nombre$/', (string) $key, $matches)) {
+                continue;
+            }
+            $idx = $matches[1];
+            $insumoRaw = $value;
+            if ($insumoRaw === null || $insumoRaw === '') {
+                continue;
+            }
+            $insumoId = is_string($insumoRaw) && Str::startsWith($insumoRaw, 'cortinero_')
+                ? (int) Str::after($insumoRaw, 'cortinero_')
+                : (int) $insumoRaw;
+            $cantidad = (float) ($detalleBloque["otros{$idx}_cantidad"] ?? 0);
+            $precio = (float) ($detalleBloque["otros{$idx}_precio"] ?? 0);
+            if ($insumoId > 0 && $cantidad > 0 && $precio > 0) {
+                $filas[] = [
+                    'id' => $insumoId,
+                    'cantidad' => $cantidad,
+                    'precio' => $precio,
+                ];
+            }
+        }
+
+        return $filas;
+    }
+
+    /**
+     * @return list<array{insumo_id: int, cantidad: float, precio_unitario: float, subtotal: float}>|null
+     */
+    private function materialesVariosDesdeDetalleBloque(array $detalleBloque): ?array
+    {
+        $filas = $this->extraerOtrosInsumosDesdeDetalle($detalleBloque);
+        if ($filas === []) {
+            return null;
+        }
+
+        return array_values(array_map(function (array $fila) {
+            $subtotal = round($fila['cantidad'] * $fila['precio'], 2);
+
+            return [
+                'insumo_id' => (int) $fila['id'],
+                'cantidad' => (float) $fila['cantidad'],
+                'precio_unitario' => (float) $fila['precio'],
+                'subtotal' => $subtotal,
+            ];
+        }, $filas));
+    }
+
     private function mensajeExitoEstatus(string $estatus): string
     {
         return match ($estatus) {
@@ -1147,14 +1232,17 @@ class CotizacionController extends Controller
                 return [
                     'id' => $producto->id,
                     'nombre' => $producto->nombre,
+                    'clave' => $producto->clave,
+                    'etiqueta' => $producto->etiquetaClaveNombre(),
                     'precio' => $producto->precio,
+                    'precio_publico' => $producto->precio_publico ?? $producto->precio,
                     'id_tipo_producto' => $producto->id_tipo_producto,
                     'tipo_nombre' => $producto->tipoProducto->nombre ?? '',
                     'es_cortinero' => $esCortinero,
                     'insumos' => $esCortinero
                         ? $producto->insumos->map(function ($insumo) {
                             return [
-                                'nombre' => $insumo->nombre_completo,
+                                'nombre' => $insumo->etiquetaClaveNombre(),
                                 'cantidad' => (float) ($insumo->pivot->cantidad ?? 0),
                             ];
                         })->values()->all()

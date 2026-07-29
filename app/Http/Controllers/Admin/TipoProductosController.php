@@ -28,14 +28,10 @@ class TipoProductosController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string|max:500',
-        ], [
-            'nombre.required' => 'El campo nombre es obligatorio.',
-            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
-            'descripcion.max' => 'La descripción no debe exceder 500 caracteres.',
-        ]);
+        ], $this->reglasCampos()), $this->mensajesValidacion());
 
         TipoProducto::create($validated);
 
@@ -53,17 +49,33 @@ class TipoProductosController extends Controller
     {
         $tipoProducto = TipoProducto::findOrFail($id);
 
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string|max:500',
-        ], [
-            'nombre.required' => 'El campo nombre es obligatorio.',
-            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
-            'descripcion.max' => 'La descripción no debe exceder 500 caracteres.',
-        ]);
+        ], $this->reglasCampos()), $this->mensajesValidacion());
 
         $tipoProducto->update($validated);
 
         return redirect()->route('admin.tipo-productos.index')->with('success', 'Tipo de producto actualizado exitosamente');
+    }
+
+    private function reglasCampos(): array
+    {
+        $rules = [];
+
+        for ($i = 1; $i <= TipoProducto::CAMPOS_DINAMICOS; $i++) {
+            $rules['campo' . $i] = 'nullable|string|max:255';
+        }
+
+        return $rules;
+    }
+
+    private function mensajesValidacion(): array
+    {
+        return [
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'nombre.max' => 'El campo nombre no debe exceder 255 caracteres.',
+            'descripcion.max' => 'La descripción no debe exceder 500 caracteres.',
+        ];
     }
 }

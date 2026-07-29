@@ -16,11 +16,13 @@ class ProductoPrecioTest extends TestCase
             'nombre' => 'Producto de prueba',
             'descripcion' => 'Descripción de prueba',
             'precio' => 125.50,
+            'precio_publico' => 199.99,
         ]);
 
         $this->assertDatabaseHas('productos', [
             'id' => $producto->id,
             'precio' => '125.50',
+            'precio_publico' => '199.99',
         ]);
     }
 }

@@ -4,6 +4,7 @@
 
 @section('content')
 @include('admin.partials.professional-styles')
+@php $veCostos = auth()->user()?->vePreciosInternosCatalogo() ?? false; @endphp
 
 <div class="section">
     <div class="admin-pro">
@@ -43,28 +44,38 @@
                     </div>
                     <div class="card-body">
                         <div class="form-row">
-                            <div class="form-group col-md-4">
-                                <label for="nombre" class="field-label">Nombre</label>
-                                <input type="text" name="nombre" id="nombre" class="form-control" value="{{ old('nombre') }}" required>
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="id_proveedor" class="field-label">Proveedor</label>
-                                <select name="id_proveedor" id="id_proveedor" class="form-control">
-                                    <option value="">Seleccione...</option>
-                                    @foreach($proveedores as $proveedor)
-                                        <option value="{{ $proveedor->id }}" {{ old('id_proveedor') == $proveedor->id ? 'selected' : '' }}>
-                                            {{ $proveedor->nombre }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-3">
                                 <label for="id_tipo_insumo" class="field-label">Tipo de Insumo</label>
                                 <select name="id_tipo_insumo" id="id_tipo_insumo" class="form-control" required>
                                     <option value="">Seleccione un tipo</option>
                                     @foreach($tiposInsumo as $tipo)
                                         <option value="{{ $tipo->id }}" data-campos='@json($tipo->campos_data)' {{ old('id_tipo_insumo') == $tipo->id ? 'selected' : '' }}>
                                             {{ $tipo->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="clave" class="field-label">Clave</label>
+                                <input type="text" name="clave" id="clave" class="form-control" value="{{ old('clave') }}">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="nombre" class="field-label">Nombre</label>
+                                <input type="text" name="nombre" id="nombre" class="form-control" value="{{ old('nombre') }}" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="color" class="field-label">Color</label>
+                                <input type="text" name="color" id="color" class="form-control" value="{{ old('color') }}">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="id_proveedor" class="field-label">Proveedor</label>
+                                <select name="id_proveedor" id="id_proveedor" class="form-control">
+                                    <option value="">Seleccione...</option>
+                                    @foreach($proveedores as $proveedor)
+                                        <option value="{{ $proveedor->id }}" {{ old('id_proveedor') == $proveedor->id ? 'selected' : '' }}>
+                                            {{ $proveedor->nombre }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -79,18 +90,22 @@
                     </div>
                     <div class="card-body">
                         <div class="form-row">
+                            @if($veCostos)
                             <div class="form-group col-md-4">
                                 <label for="costo" class="field-label">Costo</label>
                                 <input type="number" name="costo" id="costo" class="form-control" step="0.01" value="{{ old('costo') }}" required>
                             </div>
-                            <div class="form-group col-md-4">
+                            @endif
+                            <div class="form-group col-md-{{ $veCostos ? '4' : '12' }}">
                                 <label for="precio_publico" class="field-label">Precio Público</label>
                                 <input type="number" name="precio_publico" id="precio_publico" class="form-control" step="0.01" value="{{ old('precio_publico') }}" required>
                             </div>
+                            @if($veCostos)
                             <div class="form-group col-md-4">
                                 <label for="utilidad" class="field-label">Utilidad</label>
                                 <input type="number" name="utilidad" id="utilidad" class="form-control" step="0.01" value="{{ old('utilidad') }}" required>
                             </div>
+                            @endif
                         </div>
                     </div>
                 </div>
