@@ -59,17 +59,7 @@ class InsumoController extends Controller
     public function create()
     {
         $proveedores = Proveedor::all();
-        $tiposInsumo = TipoInsumo::exceptManoDeObra()->orderBy('nombre')->get()->map(function ($tipo) {
-            $campos = [];
-            for ($i = 1; $i <= 15; $i++) {
-                $campo = 'campo' . $i;
-                if (!empty($tipo->$campo)) {
-                    $campos[$campo] = $tipo->$campo;
-                }
-            }
-            $tipo->campos_data = $campos;
-            return $tipo;
-        });
+        $tiposInsumo = $this->tiposInsumoParaFormulario();
 
         return view('admin.insumos.create', compact('proveedores', 'tiposInsumo'));
     }
@@ -163,17 +153,7 @@ class InsumoController extends Controller
     {
         $insumo = Insumo::findOrFail($id);
         $proveedores = Proveedor::all();
-        $tiposInsumo = TipoInsumo::exceptManoDeObra()->orderBy('nombre')->get()->map(function ($tipo) {
-            $campos = [];
-            for ($i = 1; $i <= 15; $i++) {
-                $campo = 'campo' . $i;
-                if (!empty($tipo->$campo)) {
-                    $campos[$campo] = $tipo->$campo;
-                }
-            }
-            $tipo->campos_data = $campos;
-            return $tipo;
-        });
+        $tiposInsumo = $this->tiposInsumoParaFormulario();
 
         return view('admin.insumos.edit', compact('insumo', 'proveedores', 'tiposInsumo'));
     }
@@ -266,5 +246,21 @@ class InsumoController extends Controller
         $insumo = insumo::findOrFail($id);
         $insumo->update(['borrado' => 0]);
         return redirect()->route('admin.insumos.index', ['estado' => 'inhabilitado'])->with('success', 'insumo habilitado exitosamente');
+    }
+
+    private function tiposInsumoParaFormulario()
+    {
+        return TipoInsumo::orderBy('nombre')->get()->map(function ($tipo) {
+            $campos = [];
+            for ($i = 1; $i <= 15; $i++) {
+                $campo = 'campo' . $i;
+                if (!empty($tipo->$campo)) {
+                    $campos[$campo] = $tipo->$campo;
+                }
+            }
+            $tipo->campos_data = $campos;
+
+            return $tipo;
+        });
     }
 }
