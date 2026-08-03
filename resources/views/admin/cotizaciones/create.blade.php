@@ -684,7 +684,7 @@
     $precio = 100;
     }
     @endphp
-    <option value="{{ $tela->id }}" data-precio="{{ $precio }}" data-campo2="{{ $tela->campo2Mostrar() }}">
+    <option value="{{ $tela->id }}" data-precio="{{ $precio }}" data-campo1="{{ $tela->campo1Mostrar() }}">
         {{ $tela->etiquetaMaterialTextil() }}
     </option>
     @endforeach
@@ -1522,10 +1522,10 @@
             const limpiarNumero = (valor) => valor.toString().replace(/[^\d.]/g, '');
 
             if (selectEl.name.endsWith('[tela_id]')) {
-                const campo2 = selectEl.selectedOptions[0]?.dataset?.campo2 || '';
+                const campo1 = selectEl.selectedOptions[0]?.dataset?.campo1 || '';
                 const anchoTela = field('ancho_tela');
-                if (campo2 && anchoTela) {
-                    anchoTela.value = limpiarNumero(campo2);
+                if (campo1 && anchoTela) {
+                    anchoTela.value = limpiarNumero(campo1);
                 }
             }
 
@@ -1969,7 +1969,7 @@
                                                         $precioTelaDetalle = 100;
                                                     }
                                                 @endphp
-                                                <option value="{{ $tela->id }}" data-precio="{{ $precioTelaDetalle }}" data-campo2="{{ $tela->campo2Mostrar() }}">{{ $tela->etiquetaMaterialTextil() }}</option>
+                                                <option value="{{ $tela->id }}" data-precio="{{ $precioTelaDetalle }}" data-campo1="{{ $tela->campo1Mostrar() }}">{{ $tela->etiquetaMaterialTextil() }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -2513,11 +2513,11 @@
                                 $(telaSelect).on('change', function() {
                                     const selected = $(this).find('option:selected');
                                     const precio = selected.data('precio');
-                                    const campo2 = selected.data('campo2');
+                                    const campo1 = selected.data('campo1');
                                     $('#precio_m2_tela').val(Number(precio).toFixed(2)).trigger('input');
-                                    if (campo2 !== undefined && campo2 !== null && campo2 !== '') {
+                                    if (campo1 !== undefined && campo1 !== null && campo1 !== '') {
                                         // Limpia el valor para dejar solo números y punto decimal
-                                        let limpio = campo2.toString().replace(/[^\d.]/g, '');
+                                        let limpio = campo1.toString().replace(/[^\d.]/g, '');
                                         $('#ancho_tela').val(limpio);
                                     }
 
@@ -3580,8 +3580,14 @@
     });
 
     $(document).on('change', '#tela_id', function() {
-        const precio = $(this).find('option:selected').data('precio');
+        const selected = $(this).find('option:selected');
+        const precio = selected.data('precio');
+        const campo1 = selected.data('campo1');
         $('#precio_m2_tela').val(Number(precio).toFixed(2));
+
+        if (campo1 !== undefined && campo1 !== null && campo1 !== '') {
+            $('#ancho_tela').val(campo1.toString().replace(/[^\d.]/g, ''));
+        }
 
         // Recalcular total_tela (m²) al cambiar la tela
         const noLienzosCortina = parseFloat($('#no_lienzos_redondeado').val()) || 0;
