@@ -3,19 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Imports\InsumosImport;
+use App\Imports\InsumosImportReader;
 use App\Models\Insumo;
 use App\Models\TipoInsumo;
 use App\Models\Proveedor;
 use Illuminate\Http\Request;
-use App\Imports\InsumosImport;
-use Maatwebsite\Excel\Facades\Excel;
 
 class InsumoController extends Controller
 {
     public function index(Request $request)
     {
         $tipos = TipoInsumo::orderBy('nombre')->get();
-        $tiposImportacion = TipoInsumo::exceptManoDeObra()->orderBy('nombre')->get();
         $tipoSeleccionado = $request->get('tipo_insumo');
 
         $query = Insumo::with(['tipoInsumo', 'proveedor']);
@@ -53,7 +52,7 @@ class InsumoController extends Controller
 
         $insumos = $query->paginate(10)->appends($request->query());
 
-        return view('admin.insumos.index', compact('insumos', 'tipos', 'tiposImportacion', 'tipoSeleccionado', 'camposDinamicos', 'estado'));
+        return view('admin.insumos.index', compact('insumos', 'tipos', 'tipoSeleccionado', 'camposDinamicos', 'estado'));
     }
 
     public function create()
@@ -226,12 +225,44 @@ class InsumoController extends Controller
     {
         $request->validate([
             'id_tipo_insumo' => 'required|exists:tipo_insumo,id',
-            'archivo' => 'required|file|mimes:xlsx,csv,xls',
+            'archivo' => 'required|file|mimes:xlsx,csv,xls,xml,txt',
         ]);
 
-        Excel::import(new InsumosImport($request->id_tipo_insumo), $request->file('archivo'));
+        $import = new InsumosImport((int) $request->id_tipo_insumo);
 
-        return redirect()->back()->with('success', 'Insumos importados correctamente');
+        try {
+            $filas = InsumosImportReader::leerArchivo($request->file('archivo'));
+            $import->procesarFilas($filas);
+        } catch (\RuntimeException $e) {
+            return redirect()
+                ->route('admin.insumos.index', ['tipo_insumo' => $request->id_tipo_insumo])
+                ->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), 'beyond highest row')) {
+                return redirect()
+                    ->route('admin.insumos.index', ['tipo_insumo' => $request->id_tipo_insumo])
+                    ->with(
+                        'error',
+                        'No se pudieron leer filas de datos del archivo. Guarde el archivo como Excel (.xlsx) o CSV e intente de nuevo.'
+                    );
+            }
+
+            return redirect()
+                ->route('admin.insumos.index', ['tipo_insumo' => $request->id_tipo_insumo])
+                ->with('error', 'No se pudo leer el archivo. Guarde el archivo como Excel (.xlsx) e intente de nuevo.');
+        }
+
+        $resumen = $import->getResumen();
+        $mensaje = sprintf(
+            'Importación completada: %d creado(s), %d actualizado(s)%s.',
+            $resumen['creados'],
+            $resumen['actualizados'],
+            $resumen['omitidos'] > 0 ? ', ' . $resumen['omitidos'] . ' omitido(s)' : ''
+        );
+
+        return redirect()
+            ->route('admin.insumos.index', ['tipo_insumo' => $request->id_tipo_insumo])
+            ->with('success', $mensaje);
     }
 
     public function destroy($id)

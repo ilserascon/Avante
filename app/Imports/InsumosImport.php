@@ -4,82 +4,293 @@ namespace App\Imports;
 
 use App\Models\Insumo;
 use App\Models\Proveedor;
+use App\Models\TipoInsumo;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
-use Maatwebsite\Excel\Row;
-use Maatwebsite\Excel\Concerns\OnEachRow;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class InsumosImport implements OnEachRow, WithHeadingRow
+class InsumosImport
 {
-    protected $tipoInsumoId;
+    protected int $tipoInsumoId;
 
-    public function __construct($tipoInsumoId)
+    protected array $mapeoEtiquetasCampos = [];
+
+    protected int $creados = 0;
+
+    protected int $actualizados = 0;
+
+    protected int $omitidos = 0;
+
+    public function __construct(int $tipoInsumoId)
     {
         $this->tipoInsumoId = $tipoInsumoId;
     }
 
-    public function onRow(Row $row)
+    public function getResumen(): array
     {
-        $row = $row->toArray();
+        return [
+            'creados'      => $this->creados,
+            'actualizados' => $this->actualizados,
+            'omitidos'     => $this->omitidos,
+        ];
+    }
 
-        $nombreProveedor = trim($row['proveedor'] ?? '');
+    public function procesarFilas(array $filas): void
+    {
+        $this->cargarMapeoCamposTipo();
 
-        if ($nombreProveedor === '') {
-            Log::warning('Fila ignorada por proveedor vacío: ', $row);
+        $filas = array_values(array_filter($filas, fn (array $row) => $this->filaTieneDatos($row)));
+
+        if (count($filas) < 2) {
+            throw new \RuntimeException(
+                'El archivo no contiene filas de datos. Guarde el archivo como Excel (.xlsx) o CSV con encabezados en la primera fila y al menos una fila de información.'
+            );
+        }
+
+        $encabezados = array_values($filas[0]);
+        $datos = array_slice($filas, 1);
+
+        foreach ($datos as $fila) {
+            $this->procesarFila($encabezados, array_values($fila));
+        }
+
+        if ($this->creados === 0 && $this->actualizados === 0) {
+            throw new \RuntimeException(
+                'No se importó ningún insumo. Verifique que el archivo tenga las columnas nombre y proveedor, y que los encabezados coincidan con el formato esperado.'
+            );
+        }
+    }
+
+    private function procesarFila(array $encabezados, array $fila): void
+    {
+        $row = $this->combinarEncabezadosConFila($encabezados, $fila);
+
+        $nombre = $this->valorTexto($row, ['nombre']);
+        if ($nombre === null) {
+            $this->omitidos++;
+            Log::warning('Fila ignorada por nombre vacío del insumo.', $row);
+
             return;
         }
 
-        // Buscar proveedor por nombre
-        $proveedor = Proveedor::where('nombre', $nombreProveedor)->first();
+        $nombreProveedor = $this->valorTexto($row, ['proveedor']);
+        if ($nombreProveedor === null) {
+            $this->omitidos++;
+            Log::warning('Fila ignorada por proveedor vacío.', $row);
 
-        // Si no existe, crear con RFC temporal único
-        if (!$proveedor) {
-            $rfc = $this->generarRfcTemporal();
-
-            $proveedor = Proveedor::create([
-                'nombre' => $nombreProveedor,
-                'rfc' => $rfc,
-                'razon_social' => 'No especificada',
-            ]);
-        }
-
-        // Validar que 'nombre' del insumo no sea null
-        if (empty($row['nombre'])) {
-            Log::warning('Fila ignorada por nombre vacío del insumo: ', $row);
             return;
         }
+
+        $proveedor = $this->obtenerOCrearProveedor($nombreProveedor);
+
+        $clave = $this->valorTexto($row, ['clave']);
+        $color = $this->valorTexto($row, ['color']);
+        $campo1 = $this->valorTexto($row, ['campo1']);
 
         $data = [
-            'nombre'         => $row['nombre'],
-            'clave'          => $row['clave'] ?? null,
-            'color'          => $row['color'] ?? null,
+            'clave'          => $clave,
+            'nombre'         => $nombre,
+            'color'          => $color,
             'id_tipo_insumo' => $this->tipoInsumoId,
             'id_proveedor'   => $proveedor->id,
-            'costo'          => $row['costo'] ?? null,
-            'precio_publico' => $row['precio_publico'] ?? null,
-            'utilidad'       => $row['utilidad'] ?? null,
+            'costo'          => $this->valorNumerico($row, ['costo']),
+            'precio_publico' => $this->valorNumerico($row, ['precio_publico']),
+            'utilidad'       => $this->valorNumerico($row, ['utilidad']),
+            'borrado'        => 0,
         ];
 
-        // Campos dinámicos campo1 - campo15
         for ($i = 1; $i <= 15; $i++) {
             $campo = 'campo' . $i;
-            $data[$campo] = $row[$campo] ?? null;
+            $data[$campo] = $this->valorTexto($row, [$campo]);
+        }
+
+        $insumoExistente = $this->buscarInsumoExistente(
+            $this->tipoInsumoId,
+            $proveedor->id,
+            $nombre,
+            $clave,
+            $color,
+            $campo1
+        );
+
+        if ($insumoExistente) {
+            $insumoExistente->update($data);
+            $this->actualizados++;
+
+            return;
         }
 
         Insumo::create($data);
+        $this->creados++;
     }
 
-    private function generarRfcTemporal()
+    private function cargarMapeoCamposTipo(): void
+    {
+        $tipo = TipoInsumo::find($this->tipoInsumoId);
+        if (! $tipo) {
+            return;
+        }
+
+        for ($i = 1; $i <= 15; $i++) {
+            $campo = 'campo' . $i;
+            if (empty($tipo->$campo)) {
+                continue;
+            }
+
+            $etiqueta = $this->normalizarClaveEncabezado($tipo->$campo);
+            $this->mapeoEtiquetasCampos[$etiqueta] = $campo;
+        }
+    }
+
+    private function combinarEncabezadosConFila(array $encabezados, array $fila): array
+    {
+        $row = [];
+        $encabezados = array_values($encabezados);
+        $fila = array_values($fila);
+
+        foreach ($encabezados as $indice => $encabezado) {
+            $encabezadoTexto = Insumo::normalizarCampoMostrar($encabezado);
+            if ($encabezadoTexto === '') {
+                continue;
+            }
+
+            $clave = $this->normalizarClaveEncabezado($encabezadoTexto);
+            $clave = $this->mapearEncabezado($clave);
+            $clave = $this->mapeoEtiquetasCampos[$clave] ?? $clave;
+            $row[$clave] = $fila[$indice] ?? null;
+        }
+
+        return $row;
+    }
+
+    private function filaTieneDatos(array $row): bool
+    {
+        foreach ($row as $valor) {
+            if (Insumo::normalizarCampoMostrar($valor) !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function buscarInsumoExistente(
+        int $tipoInsumoId,
+        int $proveedorId,
+        string $nombre,
+        ?string $clave,
+        ?string $color,
+        ?string $campo1
+    ): ?Insumo {
+        $query = Insumo::query()
+            ->where('id_tipo_insumo', $tipoInsumoId)
+            ->where('id_proveedor', $proveedorId)
+            ->where('nombre', $nombre)
+            ->where('borrado', 0);
+
+        $this->aplicarFiltroTextoNullable($query, 'clave', $clave);
+        $this->aplicarFiltroTextoNullable($query, 'color', $color);
+        $this->aplicarFiltroTextoNullable($query, 'campo1', $campo1);
+
+        return $query->first();
+    }
+
+    private function aplicarFiltroTextoNullable($query, string $columna, ?string $valor): void
+    {
+        if ($valor === null) {
+            $query->where(function ($subquery) use ($columna) {
+                $subquery->whereNull($columna)->orWhere($columna, '');
+            });
+
+            return;
+        }
+
+        $query->where($columna, $valor);
+    }
+
+    private function normalizarClaveEncabezado($clave): string
+    {
+        $key = strtolower(trim((string) $clave));
+        $key = str_replace(['-', ' '], '_', $key);
+
+        return preg_replace('/_+/', '_', $key) ?? $key;
+    }
+
+    private function mapearEncabezado(string $clave): string
+    {
+        if (preg_match('/^precio_p.*blico$/', $clave)) {
+            return 'precio_publico';
+        }
+
+        if (preg_match('/^campo(\d{1,2})$/', $clave, $coincidencias)) {
+            return 'campo' . (int) $coincidencias[1];
+        }
+
+        return $clave;
+    }
+
+    private function valorTexto(array $row, array $claves): ?string
+    {
+        foreach ($claves as $clave) {
+            if (! array_key_exists($clave, $row)) {
+                continue;
+            }
+
+            $texto = Insumo::normalizarCampoMostrar($row[$clave]);
+            if ($texto !== '') {
+                return $texto;
+            }
+        }
+
+        return null;
+    }
+
+    private function valorNumerico(array $row, array $claves): ?float
+    {
+        $texto = $this->valorTexto($row, $claves);
+        if ($texto === null) {
+            return null;
+        }
+
+        $texto = str_replace(['$', ' '], '', $texto);
+        $texto = str_replace(',', '.', $texto);
+
+        if (! is_numeric($texto)) {
+            return null;
+        }
+
+        return (float) $texto;
+    }
+
+    private function obtenerOCrearProveedor(string $nombreProveedor): Proveedor
+    {
+        $nombreNormalizado = trim($nombreProveedor);
+
+        $proveedor = Proveedor::query()
+            ->whereRaw('LOWER(TRIM(nombre)) = ?', [mb_strtolower($nombreNormalizado)])
+            ->first();
+
+        if ($proveedor) {
+            return $proveedor;
+        }
+
+        return Proveedor::create([
+            'nombre'       => $nombreNormalizado,
+            'rfc'          => $this->generarRfcTemporal(),
+            'razon_social' => 'No especificada',
+            'borrado'      => 0,
+        ]);
+    }
+
+    private function generarRfcTemporal(): string
     {
         $base = 'TEMP-RFC-';
+
         for ($i = 1; $i <= 999; $i++) {
-            $rfc = $base . str_pad($i, 3, '0', STR_PAD_LEFT);
-            if (!Proveedor::where('rfc', $rfc)->exists()) {
+            $rfc = $base . str_pad((string) $i, 3, '0', STR_PAD_LEFT);
+            if (! Proveedor::where('rfc', $rfc)->exists()) {
                 return $rfc;
             }
         }
 
-        throw new \Exception('Se alcanzó el límite de RFCs temporales disponibles.');
+        throw new \RuntimeException('Se alcanzó el límite de RFCs temporales disponibles.');
     }
 }

@@ -64,6 +64,18 @@
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
+            @if (session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0 pl-3">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <div class="card table-card">
                 <div class="card-body table-responsive">
@@ -165,41 +177,158 @@
 
 <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form action="{{ route('admin.insumos.import') }}" method="POST" enctype="multipart/form-data" class="modal-content">
+        <form id="import-form" action="{{ route('admin.insumos.import') }}" method="POST" enctype="multipart/form-data" class="modal-content">
             @csrf
             <div class="modal-header">
-                <h5 class="modal-title" id="importModalLabel">Importar Insumos desde Excel</h5>
+                <h5 class="modal-title" id="importModalLabel">Importar Insumos desde Excel / CSV</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
+                <p class="text-muted small mb-3">
+                    La primera fila del archivo debe contener los encabezados. Columnas base:
+                    <strong>clave</strong>, <strong>nombre</strong> (obligatorio), <strong>color</strong>,
+                    <strong>proveedor</strong> (obligatorio), <strong>costo</strong>, <strong>precio_publico</strong>,
+                    <strong>utilidad</strong>, y los campos adicionales <strong>campo1</strong> a <strong>campo15</strong> según el tipo.
+                    Si el proveedor no existe, se creará automáticamente.
+                    Si ya existe un insumo con el mismo tipo, clave, nombre, color, proveedor y campo1, se actualizará en lugar de duplicarse.
+                    Los encabezados de campos adicionales pueden usar el nombre del campo (campo1) o la etiqueta configurada en el tipo (por ejemplo ANCHO, ARTICULO).
+                    Se recomienda guardar el archivo como <strong>.xlsx</strong> o <strong>.csv</strong>.
+                </p>
                 <div class="form-group">
                     <label class="field-label">Tipo de Insumo</label>
-                    <select name="id_tipo_insumo" class="form-control" required>
-                        @foreach($tiposImportacion as $tipo)
-                            <option value="{{ $tipo->id }}">{{ $tipo->nombre }}</option>
+                    <select name="id_tipo_insumo" id="import-tipo-insumo" class="form-control" required>
+                        @foreach($tipos as $tipo)
+                            @php
+                                $camposImportacion = [];
+                                for ($i = 1; $i <= 15; $i++) {
+                                    $campo = 'campo' . $i;
+                                    if (!empty($tipo->$campo)) {
+                                        $camposImportacion[$campo] = $tipo->$campo;
+                                    }
+                                }
+                            @endphp
+                            <option value="{{ $tipo->id }}" data-campos='@json($camposImportacion)'>
+                                {{ $tipo->nombre }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
+                <div class="alert alert-light border small mb-3" id="import-campos-tipo">
+                    Campos adicionales para este tipo: ninguno definido.
+                </div>
                 <div class="form-group mb-0">
-                    <label class="field-label">Archivo Excel</label>
-                    <input type="file" name="archivo" class="form-control-file" required accept=".xlsx,.xls,.csv">
+                    <label class="field-label">Archivo Excel / CSV</label>
+                    <input type="file" name="archivo" class="form-control-file" required accept=".xlsx,.xls,.csv,.xml,.txt">
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light border" data-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Importar</button>
+                <button type="button" class="btn btn-light border" data-dismiss="modal" id="import-cancel-btn">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="import-submit-btn">
+                    <span class="import-btn-default"><i class="fas fa-file-import mr-1"></i> Importar</span>
+                    <span class="import-btn-loading d-none"><i class="fas fa-spinner fa-spin mr-1"></i> Importando...</span>
+                </button>
             </div>
         </form>
+    </div>
+</div>
+
+<div id="import-loading-overlay" class="import-loading-overlay d-none" aria-live="polite" aria-busy="true">
+    <div class="import-loading-box">
+        <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3 d-block"></i>
+        <h5 class="mb-2">Importando insumos</h5>
+        <p class="text-muted mb-0 small">Por favor espere, esto puede tardar unos momentos...</p>
     </div>
 </div>
 @endsection
 
 @section('scripts')
+<style>
+.import-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(255, 255, 255, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.import-loading-box {
+    text-align: center;
+    padding: 2rem 2.5rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
+    max-width: 360px;
+}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const importForm = document.getElementById('import-form');
+    const importSubmitBtn = document.getElementById('import-submit-btn');
+    const importCancelBtn = document.getElementById('import-cancel-btn');
+    const importLoadingOverlay = document.getElementById('import-loading-overlay');
+    const importTipoSelect = document.getElementById('import-tipo-insumo');
+    const importCamposTipo = document.getElementById('import-campos-tipo');
+    let importEnviando = false;
+
+    function mostrarCargaImportacion() {
+        if (!importSubmitBtn || !importLoadingOverlay) {
+            return;
+        }
+
+        importSubmitBtn.disabled = true;
+        importSubmitBtn.querySelector('.import-btn-default').classList.add('d-none');
+        importSubmitBtn.querySelector('.import-btn-loading').classList.remove('d-none');
+
+        if (importCancelBtn) {
+            importCancelBtn.disabled = true;
+        }
+
+        importLoadingOverlay.classList.remove('d-none');
+    }
+
+    if (importForm) {
+        importForm.addEventListener('submit', function (event) {
+            if (importEnviando) {
+                event.preventDefault();
+                return;
+            }
+
+            importEnviando = true;
+            mostrarCargaImportacion();
+        });
+    }
+
+    function actualizarCamposImportacion() {
+        if (!importTipoSelect || !importCamposTipo) {
+            return;
+        }
+
+        const selectedOption = importTipoSelect.options[importTipoSelect.selectedIndex];
+        let campos = {};
+
+        try {
+            campos = JSON.parse(selectedOption.getAttribute('data-campos') || '{}');
+        } catch (e) {}
+
+        const etiquetas = Object.entries(campos)
+            .map(([campo, etiqueta]) => `<strong>${campo}</strong> (${etiqueta})`)
+            .join(', ');
+
+        importCamposTipo.innerHTML = etiquetas
+            ? `Campos adicionales para este tipo: ${etiquetas}`
+            : 'Campos adicionales para este tipo: ninguno definido.';
+    }
+
+    if (importTipoSelect) {
+        importTipoSelect.addEventListener('change', actualizarCamposImportacion);
+        actualizarCamposImportacion();
+    }
+
     document.querySelectorAll('.js-insumo-estado-form').forEach(function (form) {
         var enviando = false;
 
