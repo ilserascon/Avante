@@ -398,7 +398,7 @@
                                         <select name="detalle[cortinero_id]" id="cortinero_id" class="form-select select2 w-100">
                                             <option value="">Seleccione tipo de cortinero</option>
                                             @foreach($cortineros as $cortinero)
-                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico ?? $cortinero->precio }}">
+                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio ?? $cortinero->precio_publico }}">
                                                 {{ $cortinero->nombre }}
                                             </option>
                                             @endforeach
@@ -431,7 +431,7 @@
                                         <select name="detalle[cortinero_tergal_id]" id="cortinero_tergal_id" class="form-select select2 w-100">
                                             <option value="">Seleccione tipo de cortinero</option>
                                             @foreach($cortineros as $cortinero)
-                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico ?? $cortinero->precio }}">
+                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio ?? $cortinero->precio_publico }}">
                                                 {{ $cortinero->nombre }}
                                             </option>
                                             @endforeach
@@ -1152,7 +1152,7 @@
         function obtenerOpcionesCortinero(selectedId = '') {
             const opciones = cortinerosTabDisponibles.map(cortinero => {
                 const selected = String(cortinero.id) === String(selectedId) ? 'selected' : '';
-                return `<option value="${cortinero.id}" data-precio="${cortinero.precio_publico ?? cortinero.precio ?? ''}" ${selected}>${cortinero.nombre}</option>`;
+                return `<option value="${cortinero.id}" data-precio="${cortinero.precio ?? cortinero.precio_publico ?? ''}" ${selected}>${cortinero.nombre}</option>`;
             }).join('');
 
             return `<option value="">Seleccione un cortinero</option>${opciones}`;
@@ -3291,7 +3291,7 @@
             select.appendChild(option);
         });
 
-        // Cortineros (optgroup para diferenciarlos)
+            // Cortineros (optgroup para diferenciarlos)
         if (cortinerosDisponibles && cortinerosDisponibles.length > 0) {
             const cortineroGroup = document.createElement('optgroup');
             cortineroGroup.label = 'Cortineros';
@@ -3299,7 +3299,7 @@
                 const option = document.createElement('option');
                 option.value = 'cortinero_' + cortinero.id;
                 option.textContent = cortinero.nombre;
-                option.dataset.precio = cortinero.precio_publico ?? cortinero.precio ?? '';
+                option.dataset.precio = cortinero.precio ?? cortinero.precio_publico ?? '';
                 cortineroGroup.appendChild(option);
             });
             select.appendChild(cortineroGroup);
