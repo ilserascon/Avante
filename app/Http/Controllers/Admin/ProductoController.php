@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Imports\InsumosImportReader;
+use App\Imports\ProductosImport;
 use Illuminate\Http\Request;
 use App\Models\Producto;
 use App\Models\Insumo;
 use App\Models\ProductoInsumo;
+use App\Models\Proveedor;
 use App\Models\TipoProducto;
 use Illuminate\Support\Facades\DB;
 
@@ -36,7 +39,7 @@ class ProductoController extends Controller
             $query->where('id_tipo_producto', $request->id_tipo_producto);
         }
 
-        $productos = $query->with('tipoProducto')->paginate(10)->appends($request->query());
+        $productos = $query->with(['tipoProducto', 'proveedor'])->paginate(10)->appends($request->query());
         $tiposProducto = TipoProducto::orderBy('nombre')->get();
 
         return view('admin.productos.index', compact('productos', 'tiposProducto', 'tipoSeleccionado', 'camposDinamicos'));
@@ -58,8 +61,9 @@ class ProductoController extends Controller
             });
 
         $tiposProducto = $this->tiposProductoConCampos();
+        $proveedores = Proveedor::orderBy('nombre')->get();
 
-        return view('admin.productos.create', compact('insumos', 'tiposProducto'));
+        return view('admin.productos.create', compact('insumos', 'tiposProducto', 'proveedores'));
     }
 
     public function store(Request $request)
@@ -74,10 +78,14 @@ class ProductoController extends Controller
             'precio' => 'nullable|numeric|min:0',
             'precio_publico' => 'nullable|numeric|min:0',
             'id_tipo_producto' => 'nullable|exists:tipo_producto,id',
+            'id_proveedor' => 'required|exists:proveedores,id',
             'insumos' => 'nullable|array',
             'insumos.*.id' => 'required|exists:insumo,id',
             'insumos.*.cantidad' => 'required|numeric|min:0',
-        ], $this->reglasCamposProducto()));
+        ], $this->reglasCamposProducto()), [
+            'id_proveedor.required' => 'El campo proveedor es obligatorio.',
+            'id_proveedor.exists' => 'El proveedor seleccionado no es válido.',
+        ]);
 
         $producto = Producto::create([
             'nombre' => $validated['nombre'],
@@ -87,6 +95,7 @@ class ProductoController extends Controller
             'precio' => $veCostos ? ($validated['precio'] ?? null) : null,
             'precio_publico' => $validated['precio_publico'] ?? null,
             'id_tipo_producto' => $validated['id_tipo_producto'] ?? null,
+            'id_proveedor' => $validated['id_proveedor'],
             ...$this->datosCamposProducto($validated),
         ]);
 
@@ -107,7 +116,7 @@ class ProductoController extends Controller
     {
         $this->ensureTipoProductoCatalogExists();
 
-        $producto->load(['tipoProducto', 'insumos.proveedor']);
+        $producto->load(['tipoProducto', 'proveedor', 'insumos.proveedor']);
         $camposDinamicos = $producto->tipoProducto?->camposPersonalizados() ?? [];
 
         return view('admin.productos.show', compact('producto', 'camposDinamicos'));
@@ -117,7 +126,7 @@ class ProductoController extends Controller
     {
         $this->ensureTipoProductoCatalogExists();
 
-        $producto = Producto::with(['insumos.proveedor', 'tipoProducto'])->findOrFail($id);
+        $producto = Producto::with(['insumos.proveedor', 'tipoProducto', 'proveedor'])->findOrFail($id);
 
         $insumos = DB::table('insumo')
             ->select('insumo.id', 'insumo.clave', 'insumo.nombre')
@@ -131,8 +140,9 @@ class ProductoController extends Controller
             });
 
         $tiposProducto = $this->tiposProductoConCampos();
+        $proveedores = Proveedor::orderBy('nombre')->get();
 
-        return view('admin.productos.edit', compact('producto', 'insumos', 'tiposProducto'));
+        return view('admin.productos.edit', compact('producto', 'insumos', 'tiposProducto', 'proveedores'));
     }
 
     public function update(Request $request, Producto $producto)
@@ -147,14 +157,18 @@ class ProductoController extends Controller
             'precio' => 'nullable|numeric|min:0',
             'precio_publico' => 'nullable|numeric|min:0',
             'id_tipo_producto' => 'nullable|exists:tipo_producto,id',
+            'id_proveedor' => 'required|exists:proveedores,id',
             'insumos' => 'sometimes|array',
             'insumos.*.id' => 'required|exists:insumo,id',
             'insumos.*.cantidad' => 'required|numeric|min:0',
-        ], $this->reglasCamposProducto()));
+        ], $this->reglasCamposProducto()), [
+            'id_proveedor.required' => 'El campo proveedor es obligatorio.',
+            'id_proveedor.exists' => 'El proveedor seleccionado no es válido.',
+        ]);
 
         DB::transaction(function () use ($request, $producto, $veCostos, $validated) {
             $datos = array_merge(
-                $request->only('nombre', 'clave', 'color', 'descripcion', 'precio_publico', 'id_tipo_producto'),
+                $request->only('nombre', 'clave', 'color', 'descripcion', 'precio_publico', 'id_tipo_producto', 'id_proveedor'),
                 $this->datosCamposProducto($validated)
             );
             if ($veCostos) {
@@ -243,5 +257,41 @@ class ProductoController extends Controller
         $producto = Producto::with('insumos.proveedor')->findOrFail($id);
 
         return view('admin.productos.insumos', compact('producto'));
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'id_tipo_producto' => 'required|exists:tipo_producto,id',
+            'archivo' => 'required|file|mimes:xlsx,csv,xls,xml,txt',
+        ]);
+
+        $veCostos = auth()->user()?->vePreciosInternosCatalogo() ?? false;
+        $import = new ProductosImport((int) $request->id_tipo_producto, $veCostos);
+
+        try {
+            $filas = InsumosImportReader::leerArchivo($request->file('archivo'));
+            $import->procesarFilas($filas);
+        } catch (\RuntimeException $e) {
+            return redirect()
+                ->route('admin.productos.index', ['id_tipo_producto' => $request->id_tipo_producto])
+                ->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('admin.productos.index', ['id_tipo_producto' => $request->id_tipo_producto])
+                ->with('error', 'No se pudo leer el archivo. Guarde el archivo como Excel (.xlsx) e intente de nuevo.');
+        }
+
+        $resumen = $import->getResumen();
+        $mensaje = sprintf(
+            'Importación completada: %d creado(s), %d actualizado(s)%s.',
+            $resumen['creados'],
+            $resumen['actualizados'],
+            $resumen['omitidos'] > 0 ? ', ' . $resumen['omitidos'] . ' omitido(s)' : ''
+        );
+
+        return redirect()
+            ->route('admin.productos.index', ['id_tipo_producto' => $request->id_tipo_producto])
+            ->with('success', $mensaje);
     }
 }

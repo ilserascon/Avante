@@ -13,6 +13,7 @@ class Producto extends Model
         'clave',
         'color',
         'descripcion',
+        'id_proveedor',
         'campo1',
         'campo2',
         'campo3',
@@ -51,6 +52,11 @@ class Producto extends Model
     public function tipoProducto()
     {
         return $this->belongsTo(TipoProducto::class, 'id_tipo_producto');
+    }
+
+    public function proveedor()
+    {
+        return $this->belongsTo(Proveedor::class, 'id_proveedor');
     }
 
     /** Etiqueta clave - nombre para selects generales de productos. */

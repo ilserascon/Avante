@@ -72,4 +72,5 @@ Route::middleware(['auth', 'role:Administrador,Cotizador'])->prefix('admin')->na
     Route::get('cotizaciones/{cotizacion}/pdf', [CotizacionController::class, 'generarPdf'])->name('cotizaciones.pdf');
     Route::get('cotizaciones/{cotizacion}/pdfdecorador', [CotizacionController::class, 'pdfDecorador'])->name('cotizaciones.pdf-decorador');
     Route::post('/insumos/importar', [InsumoController::class, 'import'])->name('insumos.import');
+    Route::post('/productos/importar', [ProductoController::class, 'import'])->name('productos.import');
 });

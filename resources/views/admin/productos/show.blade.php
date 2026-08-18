@@ -50,6 +50,10 @@
                         <div class="value">{{ $producto->color ?: '-' }}</div>
                     </div>
                     <div class="meta-item">
+                        <div class="label">Proveedor</div>
+                        <div class="value">{{ $producto->proveedor->nombre ?? 'N/A' }}</div>
+                    </div>
+                    <div class="meta-item">
                         <div class="label">Tipo</div>
                         <div class="value">{{ $producto->tipoProducto->nombre ?? 'Sin tipo' }}</div>
                     </div>

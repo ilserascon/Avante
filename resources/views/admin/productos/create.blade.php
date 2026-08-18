@@ -88,11 +88,25 @@
                                     @error('precio_publico') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
+                            <div class="col-md-3">
+                                <div class="form-group mb-md-0">
                                     <label for="color" class="field-label">Color</label>
                                     <input name="color" id="color" class="form-control @error('color') is-invalid @enderror" value="{{ old('color') }}">
                                     @error('color') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group mb-md-0">
+                                    <label for="id_proveedor" class="field-label">Proveedor</label>
+                                    <select name="id_proveedor" id="id_proveedor" class="form-control @error('id_proveedor') is-invalid @enderror" required>
+                                        <option value="">Seleccione...</option>
+                                        @foreach($proveedores as $proveedor)
+                                            <option value="{{ $proveedor->id }}" {{ old('id_proveedor') == $proveedor->id ? 'selected' : '' }}>
+                                                {{ $proveedor->nombre }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('id_proveedor') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                         </div>
