@@ -105,6 +105,52 @@ class Insumo extends Model
         return implode(' - ', $partes);
     }
 
+    /** Campos adicionales de medida (Medida, Ancho, Largo) segun las etiquetas del tipo de insumo. */
+    public function medidaMostrar(): string
+    {
+        $tipo = $this->tipoInsumo;
+
+        if (!$tipo) {
+            return '';
+        }
+
+        $medidas = [];
+
+        for ($i = 1; $i <= 15; $i++) {
+            $campo = 'campo' . $i;
+            $etiqueta = self::normalizarCampoMostrar($tipo->$campo);
+
+            if ($etiqueta === '' || !self::etiquetaEsMedida($etiqueta)) {
+                continue;
+            }
+
+            $valor = self::normalizarCampoMostrar($this->$campo);
+            if ($valor !== '') {
+                $medidas[] = $valor;
+            }
+        }
+
+        return implode(' - ', $medidas);
+    }
+
+    public static function etiquetaEsMedida(string $etiqueta): bool
+    {
+        return in_array(mb_strtolower($etiqueta), ['medida', 'medidas', 'ancho', 'largo'], true);
+    }
+
+    /** Etiqueta clave - nombre - color - medida para selects de insumos en cotizaciones. */
+    public function etiquetaCotizacion(): string
+    {
+        $partes = array_filter([
+            self::normalizarCampoMostrar($this->clave),
+            self::normalizarCampoMostrar($this->nombre),
+            self::normalizarCampoMostrar($this->color),
+            $this->medidaMostrar(),
+        ]);
+
+        return implode(' - ', $partes);
+    }
+
     /** Etiqueta clave - nombre para selects generales de insumos. */
     public function etiquetaClaveNombre(): string
     {

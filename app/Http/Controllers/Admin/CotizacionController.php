@@ -1049,7 +1049,10 @@ class CotizacionController extends Controller
         return Insumo::with('tipoInsumo')
             ->where('borrado', 0)
             ->orderBy('nombre')
-            ->get();
+            ->get()
+            ->each(function ($insumo) {
+                $insumo->etiqueta = $insumo->etiquetaCotizacion();
+            });
     }
 
     /** @var list<string> */
@@ -1059,16 +1062,18 @@ class CotizacionController extends Controller
     {
         $tipoIds = TipoInsumo::whereNotIn('nombre', self::TIPOS_INSUMO_EXCLUIDOS_MATERIALES_VARIOS)->pluck('id');
 
-        return Insumo::whereIn('id_tipo_insumo', $tipoIds)
+        return Insumo::with('tipoInsumo')
+            ->whereIn('id_tipo_insumo', $tipoIds)
             ->where('borrado', 0)
             ->orderBy('nombre')
-            ->get(['id', 'nombre', 'clave', 'precio_publico', 'id_tipo_insumo'])
+            ->get()
             ->map(function ($insumo) {
                 return [
                     'id' => $insumo->id,
                     'nombre' => $insumo->nombre,
                     'clave' => $insumo->clave,
-                    'etiqueta' => $insumo->etiquetaClaveNombre(),
+                    'color' => $insumo->color,
+                    'etiqueta' => $insumo->etiquetaCotizacion(),
                     'precio_publico' => $insumo->precio_publico,
                     'id_tipo_insumo' => $insumo->id_tipo_insumo,
                 ];
@@ -1233,7 +1238,7 @@ class CotizacionController extends Controller
                     'id' => $producto->id,
                     'nombre' => $producto->nombre,
                     'clave' => $producto->clave,
-                    'etiqueta' => $producto->etiquetaClaveNombre(),
+                    'etiqueta' => $producto->etiquetaCotizacion(),
                     'precio' => $producto->precio,
                     'precio_publico' => $producto->precio_publico ?? $producto->precio,
                     'id_tipo_producto' => $producto->id_tipo_producto,

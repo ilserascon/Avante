@@ -70,6 +70,56 @@ class Producto extends Model
         return implode(' - ', $partes);
     }
 
+    /** Campos adicionales de medida (Medida, Ancho, Largo) segun las etiquetas del tipo de producto. */
+    public function medidaMostrar(): string
+    {
+        $tipo = $this->tipoProducto;
+
+        if (!$tipo) {
+            return '';
+        }
+
+        $medidas = [];
+
+        foreach ($tipo->camposPersonalizados() as $campo => $etiqueta) {
+            if (!Insumo::etiquetaEsMedida(Insumo::normalizarCampoMostrar($etiqueta))) {
+                continue;
+            }
+
+            $valor = Insumo::normalizarCampoMostrar($this->$campo);
+            if ($valor !== '') {
+                $medidas[] = $valor;
+            }
+        }
+
+        return implode(' - ', $medidas);
+    }
+
+    /** Etiqueta clave - nombre - color - medida para selects de productos en cotizaciones. */
+    public function etiquetaCotizacion(): string
+    {
+        $partes = array_filter([
+            Insumo::normalizarCampoMostrar($this->clave),
+            Insumo::normalizarCampoMostrar($this->nombre),
+            Insumo::normalizarCampoMostrar($this->color),
+            $this->medidaMostrar(),
+        ]);
+
+        return implode(' - ', $partes);
+    }
+
+    /** Etiqueta descripcion - medida (campo1) - color para selects de cortinero. */
+    public function etiquetaCortinero(): string
+    {
+        $partes = array_filter([
+            Insumo::normalizarCampoMostrar($this->descripcion),
+            Insumo::normalizarCampoMostrar($this->campo1),
+            Insumo::normalizarCampoMostrar($this->color),
+        ]);
+
+        return implode(' - ', $partes) ?: Insumo::normalizarCampoMostrar($this->nombre);
+    }
+
     private function syncInsumos(Producto $producto, $insumos)
     {
         $datosParaSync = [];
