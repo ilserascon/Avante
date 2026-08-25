@@ -1074,7 +1074,7 @@ class CotizacionController extends Controller
                     'clave' => $insumo->clave,
                     'color' => $insumo->color,
                     'etiqueta' => $insumo->etiquetaCotizacion(),
-                    'precio_publico' => $insumo->precio_publico,
+                    'costo' => $insumo->costo,
                     'id_tipo_insumo' => $insumo->id_tipo_insumo,
                 ];
             })

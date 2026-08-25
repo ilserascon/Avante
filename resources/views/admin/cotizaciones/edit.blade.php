@@ -445,7 +445,7 @@
                                         <select name="detalle[cortinero_id]" id="cortinero_id" class="form-select select2 w-100">
                                             <option value="">Seleccione tipo de cortinero</option>
                                             @foreach($cortineros as $cortinero)
-                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico ?? $cortinero->precio }}">
+                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio }}">
                                                 {{ $cortinero->etiquetaCortinero() }}
                                             </option>
                                             @endforeach
@@ -473,7 +473,7 @@
                                         <select name="detalle[cortinero_tergal_id]" id="cortinero_tergal_id" class="form-select select2 w-100">
                                             <option value="">Seleccione tipo de cortinero</option>
                                             @foreach($cortineros as $cortinero)
-                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio_publico ?? $cortinero->precio }}">
+                                            <option value="{{ $cortinero->id }}" data-precio="{{ $cortinero->precio }}">
                                                 {{ $cortinero->etiquetaCortinero() }}
                                             </option>
                                             @endforeach
@@ -815,15 +815,11 @@
             return '';
         }
 
-        const partes = [cortinero.descripcion, cortinero.campo1, cortinero.color]
+        const partes = [cortinero.nombre, cortinero.descripcion, cortinero.campo1, cortinero.color]
             .map(valor => valor != null ? String(valor).trim() : '')
             .filter(valor => valor && valor.toLowerCase() !== 'null');
 
-        if (partes.length) {
-            return partes.join(' - ');
-        }
-
-        return cortinero.nombre != null ? String(cortinero.nombre).trim() : '';
+        return partes.join(' - ');
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -1122,7 +1118,7 @@
         function obtenerOpcionesCortinero(selectedId = '') {
             const opciones = cortinerosTabDisponibles.map(cortinero => {
                 const selected = String(cortinero.id) === String(selectedId) ? 'selected' : '';
-                return `<option value="${cortinero.id}" data-precio="${cortinero.precio_publico ?? cortinero.precio ?? ''}" ${selected}>${etiquetaCortinero(cortinero)}</option>`;
+                return `<option value="${cortinero.id}" data-precio="${cortinero.precio ?? ''}" ${selected}>${etiquetaCortinero(cortinero)}</option>`;
             }).join('');
 
             return `<option value="">Seleccione un cortinero</option>${opciones}`;
@@ -1131,7 +1127,7 @@
         function obtenerOpcionesInsumoMaterialesVarios(selectedId = '') {
             const opciones = insumosMaterialesVarios.map(insumo => {
                 const selected = String(insumo.id) === String(selectedId) ? 'selected' : '';
-                return `<option value="${insumo.id}" data-precio="${insumo.precio_publico ?? ''}" ${selected}>${etiquetaClaveNombre(insumo)}</option>`;
+                return `<option value="${insumo.id}" data-precio="${insumo.costo ?? ''}" ${selected}>${etiquetaClaveNombre(insumo)}</option>`;
             }).join('');
 
             return `<option value="">Seleccione un insumo</option>${opciones}`;
@@ -3434,7 +3430,7 @@
             const option = document.createElement('option');
             option.value = insumo.id;
             option.textContent = etiquetaClaveNombre(insumo);
-            option.dataset.precio = insumo.precio_publico;
+            option.dataset.precio = insumo.costo ?? '';
             select.appendChild(option);
         });
 
@@ -3446,7 +3442,7 @@
                 const option = document.createElement('option');
                 option.value = 'cortinero_' + cortinero.id;
                 option.textContent = etiquetaCortinero(cortinero);
-                option.dataset.precio = cortinero.precio_publico ?? cortinero.precio ?? '';
+                option.dataset.precio = cortinero.precio ?? '';
                 cortineroGroup.appendChild(option);
             });
             select.appendChild(cortineroGroup);
