@@ -682,8 +682,8 @@
     <option value="">Seleccione una tela</option>
     @foreach($telas as $tela)
     @php
-    if($limpiarPrecio($tela->precio_publico) > 0) { // Prioriza precio_publico si es un número válido y mayor a 0
-    $precio = $limpiarPrecio($tela->precio_publico);
+    if($limpiarPrecio($tela->costo) > 0) { // Prioriza el costo si es un número válido y mayor a 0
+    $precio = $limpiarPrecio($tela->costo);
     } elseif($limpiarPrecio($tela->campo6) > 0) { // Si campo6 es un número válido y mayor a 0, úsalo como precio
     $precio = $limpiarPrecio($tela->campo6);
     } elseif($limpiarPrecio($tela->campo13) > 0) { // Si campo13 es un número válido y mayor a 0, úsalo como precio
@@ -703,7 +703,7 @@
     @foreach($tergales as $tergal)
         <option
             value="{{ $tergal->id }}"
-            data-precio="{{ is_numeric($tergal->precio_publico) ? $tergal->precio_publico : 0 }}"
+            data-precio="{{ is_numeric($tergal->costo) ? $tergal->costo : 0 }}"
             data-campo1="{{ $tergal->campo1Mostrar() }}"
             data-campo2="{{ $tergal->campo2Mostrar() }}"
         >
@@ -718,7 +718,7 @@
     @foreach($forros as $forro)
     <option
         value="{{ $forro->id }}"
-        data-precio="{{ is_numeric($forro->precio_publico) ? $forro->precio_publico : 0 }}"
+        data-precio="{{ is_numeric($forro->costo) ? $forro->costo : 0 }}"
         data-campo1="{{ $forro->campo1Mostrar() }}"
         data-campo2="{{ $forro->campo2Mostrar() }}">
         {{ $forro->etiquetaMaterialTextil() }}
@@ -1888,8 +1888,8 @@
                                             <option value="">Seleccione una tela</option>
                                             @foreach($telas as $tela)
                                                 @php
-                                                    if($limpiarPrecio($tela->precio_publico) > 0) {
-                                                        $precioTelaDetalle = $limpiarPrecio($tela->precio_publico);
+                                                    if($limpiarPrecio($tela->costo) > 0) {
+                                                        $precioTelaDetalle = $limpiarPrecio($tela->costo);
                                                     } elseif($limpiarPrecio($tela->campo6) > 0) {
                                                         $precioTelaDetalle = $limpiarPrecio($tela->campo6);
                                                     } elseif($limpiarPrecio($tela->campo13) > 0) {
@@ -1947,7 +1947,7 @@
                                         <select name="detalles[${index}][tergal_id]" class="form-control select2">
                                             <option value="">Seleccione un tergal</option>
                                             @foreach($tergales as $tergal)
-                                                <option value="{{ $tergal->id }}" data-precio="{{ is_numeric($tergal->precio_publico) ? $tergal->precio_publico : 0 }}" data-campo1="{{ $tergal->campo1Mostrar() }}" data-campo2="{{ $tergal->campo2Mostrar() }}">{{ $tergal->etiquetaMaterialTextil() }}</option>
+                                                <option value="{{ $tergal->id }}" data-precio="{{ is_numeric($tergal->costo) ? $tergal->costo : 0 }}" data-campo1="{{ $tergal->campo1Mostrar() }}" data-campo2="{{ $tergal->campo2Mostrar() }}">{{ $tergal->etiquetaMaterialTextil() }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -1996,7 +1996,7 @@
                                         <select name="detalles[${index}][forro_id]" class="form-control select2">
                                             <option value="">Seleccione un forro</option>
                                             @foreach($forros as $forro)
-                                                <option value="{{ $forro->id }}" data-precio="{{ is_numeric($forro->precio_publico) ? $forro->precio_publico : 0 }}" data-campo1="{{ $forro->campo1Mostrar() }}" data-campo2="{{ $forro->campo2Mostrar() }}">{{ $forro->etiquetaMaterialTextil() }}</option>
+                                                <option value="{{ $forro->id }}" data-precio="{{ is_numeric($forro->costo) ? $forro->costo : 0 }}" data-campo1="{{ $forro->campo1Mostrar() }}" data-campo2="{{ $forro->campo2Mostrar() }}">{{ $forro->etiquetaMaterialTextil() }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -2473,7 +2473,7 @@
                                                 <option value="">Seleccione un tergal</option>
                                                 @foreach($tergales as $tergal)
                                                     <option value="{{ $tergal->id }}"
-                                                        data-precio="{{ $tergal->precio ?? 0 }}"
+                                                        data-precio="{{ $tergal->costo ?? 0 }}"
                                                         data-campo1="{{ $tergal->campo1Mostrar() }}"
                                                         data-campo2="{{ $tergal->campo2Mostrar() }}"
                                                         {{ old('detalle.tergal_id', $detalleCotizacion->tergal_id ?? '') == $tergal->id ? 'selected' : '' }}>
