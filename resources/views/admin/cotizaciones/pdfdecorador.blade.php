@@ -236,6 +236,17 @@
         return '$' . number_format((float) ($value ?? 0), 2);
     };
 
+    $describirCatalogo = function ($nombre, $medida) {
+        $nombre = trim((string) $nombre);
+        $medida = trim((string) $medida);
+
+        if ($medida === '' || mb_stripos($nombre, $medida) !== false) {
+            return $nombre;
+        }
+
+        return $nombre === '' ? $medida : $nombre . ' - ' . $medida;
+    };
+
     $calcularCostoCortinaDetalle = function ($detalle) {
         $costo = (float) ($detalle->costo_cortina ?? 0);
         if ($costo > 0) {
@@ -293,7 +304,7 @@
         $subtotal = $descuentoPct > 0 ? $bruto * (1 - $descuentoPct / 100) : $bruto;
 
         $lineas[] = [
-            'descripcion' => $insumo->nombre,
+            'descripcion' => $describirCatalogo($insumo->nombre, $insumo->medidaMostrar()),
             'cantidad' => $cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1,
             'area' => '',
             'tipo' => $insumo->tipoInsumo?->nombre ?? 'Insumo',
@@ -313,7 +324,7 @@
         $subtotal = $descuentoPct > 0 ? $bruto * (1 - $descuentoPct / 100) : $bruto;
 
         $lineas[] = [
-            'descripcion' => $producto->nombre,
+            'descripcion' => $describirCatalogo($producto->nombre, $producto->medidaMostrar()),
             'cantidad' => $cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1,
             'area' => '',
             'tipo' => $producto->tipoProducto?->nombre ?? 'Producto',
