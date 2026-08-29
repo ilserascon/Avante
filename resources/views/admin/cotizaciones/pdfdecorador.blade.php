@@ -284,10 +284,13 @@
 
     foreach ($cotizacion->insumos as $insumo) {
         $cantidad = (float) ($insumo->pivot->cantidad ?? 0);
-        $precioUnit = (float) ($insumo->pivot->precio_unitario ?? 0);
+        $precioUnit = (float) ($insumo->costo ?? 0);
+        if ($precioUnit <= 0) {
+            $precioUnit = (float) ($insumo->pivot->precio_unitario ?? 0);
+        }
         $descuentoPct = (float) ($insumo->pivot->descuento ?? 0);
         $bruto = $cantidad * $precioUnit;
-        $subtotal = (float) ($insumo->pivot->subtotal ?? $bruto);
+        $subtotal = $descuentoPct > 0 ? $bruto * (1 - $descuentoPct / 100) : $bruto;
 
         $lineas[] = [
             'descripcion' => $insumo->nombre,
@@ -301,10 +304,13 @@
 
     foreach ($cotizacion->productos as $producto) {
         $cantidad = (float) ($producto->pivot->cantidad ?? 0);
-        $precioUnit = (float) ($producto->pivot->precio_unitario ?? 0);
+        $precioUnit = (float) ($producto->precio ?? 0);
+        if ($precioUnit <= 0) {
+            $precioUnit = (float) ($producto->pivot->precio_unitario ?? 0);
+        }
         $descuentoPct = (float) ($producto->pivot->descuento ?? 0);
         $bruto = $cantidad * $precioUnit;
-        $subtotal = (float) ($producto->pivot->subtotal ?? $bruto);
+        $subtotal = $descuentoPct > 0 ? $bruto * (1 - $descuentoPct / 100) : $bruto;
 
         $lineas[] = [
             'descripcion' => $producto->nombre,
