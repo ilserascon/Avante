@@ -289,6 +289,7 @@
             'area' => $detalle->area ?? '',
             'tipo' => implode(' / ', array_filter($nombresTelas)) ?: '-',
             'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
+            'precio_unitario' => $precioBruto,
             'precio' => $precioNeto,
         ];
     }
@@ -309,6 +310,7 @@
             'area' => '',
             'tipo' => $insumo->tipoInsumo?->nombre ?? 'Insumo',
             'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
+            'precio_unitario' => $precioUnit,
             'precio' => $subtotal,
         ];
     }
@@ -329,6 +331,7 @@
             'area' => '',
             'tipo' => $producto->tipoProducto?->nombre ?? 'Producto',
             'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
+            'precio_unitario' => $precioUnit,
             'precio' => $subtotal,
         ];
     }
@@ -364,13 +367,14 @@
     <table class="detail-table">
         <thead>
             <tr>
-                <th style="width: 5%;">#</th>
+                <th style="width: 4%;">#</th>
                 <th style="width: 24%;">Descripción</th>
-                <th style="width: 7%;">Cant.</th>
-                <th style="width: 12%;">Área</th>
-                <th style="width: 24%;">Tipo</th>
-                <th style="width: 8%;">Desc.</th>
-                <th style="width: 20%;">Precio</th>
+                <th style="width: 6%;">Cant.</th>
+                <th style="width: 10%;">Área</th>
+                <th style="width: 19%;">Tipo</th>
+                <th style="width: 7%;">Desc.</th>
+                <th style="width: 15%;">P. Unitario</th>
+                <th style="width: 15%;">Precio</th>
             </tr>
         </thead>
         <tbody>
@@ -382,11 +386,12 @@
                     <td class="text-center">{{ $linea['area'] ?: '-' }}</td>
                     <td>{{ $linea['tipo'] }}</td>
                     <td class="text-center">{{ $linea['descuento'] ?? '-' }}</td>
+                    <td class="text-right">{{ $fmtMoney($linea['precio_unitario'] ?? 0) }}</td>
                     <td class="text-right text-bold">{{ $fmtMoney($linea['precio']) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="text-center" style="padding: 16px; color: #6b7b95;">
+                    <td colspan="8" class="text-center" style="padding: 16px; color: #6b7b95;">
                         Sin conceptos registrados en esta cotización.
                     </td>
                 </tr>
@@ -394,17 +399,17 @@
         </tbody>
         <tfoot>
             <tr class="total-row">
-                <td colspan="6" class="text-right">Subtotal</td>
+                <td colspan="7" class="text-right">Subtotal</td>
                 <td class="text-right">{{ $fmtMoney($subtotalNeto) }}</td>
             </tr>
             @if($cotizacion->aplicar_iva)
                 <tr class="total-row">
-                    <td colspan="6" class="text-right">IVA (16%)</td>
+                    <td colspan="7" class="text-right">IVA (16%)</td>
                     <td class="text-right">{{ $fmtMoney($ivaMonto) }}</td>
                 </tr>
             @endif
             <tr class="grand-total-row">
-                <td colspan="6" class="text-right">PRECIO DECORADOR</td>
+                <td colspan="7" class="text-right">PRECIO DECORADOR</td>
                 <td class="text-right">{{ $fmtMoney($precioDecorador) }}</td>
             </tr>
         </tfoot>
