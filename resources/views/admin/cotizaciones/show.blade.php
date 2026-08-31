@@ -763,7 +763,12 @@
                                 @foreach($cotizacion->productos as $producto)
                                     <tr>
                                         <td>{{ $producto->tipoProducto?->nombre ?? '-' }}</td>
-                                        <td>{{ $producto->nombre }}</td>
+                                        <td>
+                                            {{ $producto->nombre }}
+                                            @if(filled($producto->descripcion))
+                                                <div class="small text-muted">{{ $producto->descripcion }}</div>
+                                            @endif
+                                        </td>
                                         <td>{{ $fmtNum($producto->pivot->cantidad) }}</td>
                                         <td>{{ $fmtMoney($producto->pivot->precio_unitario) }}</td>
                                         <td>{{ $fmtNum($producto->pivot->descuento ?? 0, 2) }}%</td>

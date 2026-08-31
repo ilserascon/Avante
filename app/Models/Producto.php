@@ -95,12 +95,13 @@ class Producto extends Model
         return implode(' - ', $medidas);
     }
 
-    /** Etiqueta clave - nombre - color - medida para selects de productos en cotizaciones. */
+    /** Etiqueta clave - nombre - descripcion - color - medida para selects de productos en cotizaciones. */
     public function etiquetaCotizacion(): string
     {
         $partes = array_filter([
             Insumo::normalizarCampoMostrar($this->clave),
             Insumo::normalizarCampoMostrar($this->nombre),
+            Insumo::normalizarCampoMostrar($this->descripcion),
             Insumo::normalizarCampoMostrar($this->color),
             $this->medidaMostrar(),
         ]);

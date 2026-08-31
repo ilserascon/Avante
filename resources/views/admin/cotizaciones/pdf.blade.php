@@ -382,7 +382,7 @@
             : $producto->medidaMostrar();
 
         $lineas[] = [
-            'descripcion' => $describirCatalogo($producto->nombre, $producto->color, $medidaProducto),
+            'descripcion' => $describirCatalogo($producto->nombre, $producto->descripcion, $producto->color, $medidaProducto),
             // Cada renglon es una persiana con su medida, y entre parentesis va la superficie que se cobra.
             'cantidad' => $esPersiana
                 ? ($cantidad > 0 ? '1 (' . rtrim(rtrim(number_format($cantidad, 2), '0'), '.') . ' m²)' : 1)
