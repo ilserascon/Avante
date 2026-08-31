@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TipoInsumo extends Model
 {
+    public const CAMPOS_DINAMICOS = 15;
+
     protected $table = 'tipo_insumo';
 
     protected $fillable = [
@@ -54,5 +56,20 @@ class TipoInsumo extends Model
     public function scopeExceptManoDeObra($query)
     {
         return $query->where('nombre', '!=', self::NOMBRE_MANO_OBRA);
+    }
+
+    /** @return array<string, string> campoN => etiqueta configurada */
+    public function camposPersonalizados(): array
+    {
+        $campos = [];
+
+        for ($i = 1; $i <= self::CAMPOS_DINAMICOS; $i++) {
+            $campo = 'campo' . $i;
+            if (!empty($this->$campo)) {
+                $campos[$campo] = $this->$campo;
+            }
+        }
+
+        return $campos;
     }
 }

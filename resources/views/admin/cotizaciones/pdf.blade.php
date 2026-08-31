@@ -8,7 +8,6 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 10px;
-            color:#1a8683;
             margin: 0;
             padding: 18px 22px;
             line-height: 1.4;
@@ -17,7 +16,7 @@
         .pdf-header {
             width: 100%;
             margin-bottom: 18px;
-            border-bottom: 3px solid #1a8683;
+            border-bottom: 3px solid rgb(39, 172, 138);
             padding-bottom: 12px;
         }
 
@@ -33,7 +32,7 @@
         .company-name {
             font-size: 18px;
             font-weight: bold;
-            color: #1a8683;
+            color: rgb(39, 172, 138);
             letter-spacing: 0.5px;
             margin-bottom: 4px;
         }
@@ -48,14 +47,14 @@
             text-align: right;
             font-size: 16px;
             font-weight: bold;
-            color: #1a8683;
+            color: rgb(39, 172, 138);
             margin-bottom: 4px;
         }
 
         .doc-number {
             text-align: right;
             font-size: 16px;
-            color:#145f5d;
+            color: rgb(39, 172, 138);
             font-weight: bold;
         }
 
@@ -75,7 +74,7 @@
             font-size: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color:#5a8a88;
+            color: #000;
             font-weight: bold;
             margin-bottom: 3px;
         }
@@ -100,7 +99,7 @@
         .status-cancelada { background: #ffedd5; color: #9a3412; }
 
         .section-title {
-            background: #1a8683;
+            background: rgb(39, 172, 138);
             color: #fff;
             font-size: 11px;
             font-weight: bold;
@@ -118,7 +117,7 @@
 
         .detail-table thead th {
             background: #e8f5f4;
-            color: #1a8683;
+            color: #000;
             font-size: 9px;
             font-weight: bold;
             text-transform: uppercase;
@@ -152,19 +151,19 @@
         .total-row {
             background: #e8f5f4;
             font-weight: bold;
-            color: #1a8683;
+            color: #000;
         }
 
         .grand-total-row {
-            background: #1a8683;
-            color: #fff;
+            background: rgb(39, 172, 138);
+            color: #000;
             font-weight: bold;
             font-size: 11px;
         }
 
         .grand-total-row td {
             border-color: #1a8683 !important;
-            color: #fff !important;
+            color: #000 !important;
         }
 
         .note-box {
@@ -186,7 +185,7 @@
         }
 
         .terms-box strong {
-            color: #1a8683;
+            color: rgb(39, 172, 138);
             display: block;
             margin-bottom: 4px;
         }
@@ -213,14 +212,14 @@
             font-size: 8px;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            color: #5a8a88;
+            color: #000;
             font-weight: bold;
             margin-bottom: 2px;
         }
 
         .receipt-field {
             min-height: 16px;
-            border-bottom: 1px solid #1a8683;
+            border-bottom: 1px solid rgb(39, 172, 138);
             padding: 4px 2px 6px 2px;
             font-size: 10px;
             color: #26344d;
@@ -228,12 +227,12 @@
 
         .receipt-field-empty {
             min-height: 16px;
-            border-bottom: 1px solid #1a8683;
+            border-bottom: 1px solid rgb(39, 172, 138);
         }
 
         .receipt-field-money {
             min-height: 28px;
-            border-bottom: 1px solid #1a8683;
+            border-bottom: 1px solid rgb(39, 172, 138);
             padding: 4px 2px 6px 2px;
             font-size: 10px;
             color: #26344d;
@@ -250,7 +249,7 @@
             display: inline-block;
             width: 11px;
             height: 11px;
-            border: 1px solid #1a8683;
+            border: 1px solid rgb(39, 172, 138);
             margin-right: 4px;
             vertical-align: middle;
         }
@@ -269,6 +268,38 @@
 @php
     $fmtMoney = function ($value) {
         return '$' . number_format((float) ($value ?? 0), 2);
+    };
+
+    $describirCatalogo = function ($nombre, ...$detalles) {
+        $limpiar = function ($valor) {
+            $texto = trim((string) $valor);
+
+            return strcasecmp($texto, 'null') === 0 ? '' : $texto;
+        };
+
+        $nombre = $limpiar($nombre);
+        $partes = $nombre === '' ? [] : [$nombre];
+
+        foreach ($detalles as $detalle) {
+            $detalle = $limpiar($detalle);
+            if ($detalle === '') {
+                continue;
+            }
+
+            $yaIncluido = false;
+            foreach ($partes as $parte) {
+                if (mb_stripos($parte, $detalle) !== false) {
+                    $yaIncluido = true;
+                    break;
+                }
+            }
+
+            if (!$yaIncluido) {
+                $partes[] = $detalle;
+            }
+        }
+
+        return implode(' - ', $partes);
     };
 
     $calcularCostoCortinaDetalle = function ($detalle) {
@@ -312,6 +343,7 @@
             'area' => $detalle->area ?? '',
             'tipo' => implode(' / ', array_filter($nombresTelas)) ?: '-',
             'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
+            'precio_unitario' => $precioBruto,
             'precio' => $precioNeto,
         ];
     }
@@ -324,11 +356,12 @@
         $subtotal = (float) ($insumo->pivot->subtotal ?? $bruto);
 
         $lineas[] = [
-            'descripcion' => $insumo->nombre,
+            'descripcion' => $describirCatalogo($insumo->nombre, $insumo->color, $insumo->medidaMostrar()),
             'cantidad' => $cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1,
             'area' => '',
             'tipo' => $insumo->tipoInsumo?->nombre ?? 'Insumo',
             'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
+            'precio_unitario' => $precioUnit,
             'precio' => $subtotal,
         ];
     }
@@ -340,12 +373,24 @@
         $bruto = $cantidad * $precioUnit;
         $subtotal = (float) ($producto->pivot->subtotal ?? $bruto);
 
+        // Las persianas se cotizan por medida, asi que se muestra la capturada en la cotizacion.
+        $anchoCotizado = (float) ($producto->pivot->ancho ?? 0);
+        $largoCotizado = (float) ($producto->pivot->largo ?? 0);
+        $esPersiana = $anchoCotizado > 0 && $largoCotizado > 0;
+        $medidaProducto = $esPersiana
+            ? number_format($anchoCotizado, 2) . ' x ' . number_format($largoCotizado, 2) . ' m'
+            : $producto->medidaMostrar();
+
         $lineas[] = [
-            'descripcion' => $producto->nombre,
-            'cantidad' => $cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1,
+            'descripcion' => $describirCatalogo($producto->nombre, $producto->color, $medidaProducto),
+            // Cada renglon es una persiana con su medida, y entre parentesis va la superficie que se cobra.
+            'cantidad' => $esPersiana
+                ? ($cantidad > 0 ? '1 (' . rtrim(rtrim(number_format($cantidad, 2), '0'), '.') . ' m²)' : 1)
+                : ($cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1),
             'area' => '',
             'tipo' => $producto->tipoProducto?->nombre ?? 'Producto',
             'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
+            'precio_unitario' => $precioUnit,
             'precio' => $subtotal,
         ];
     }
@@ -399,13 +444,14 @@
     <table class="detail-table">
         <thead>
             <tr>
-                <th style="width: 5%;">#</th>
+                <th style="width: 4%;">#</th>
                 <th style="width: 24%;">Descripción</th>
-                <th style="width: 7%;">Cant.</th>
-                <th style="width: 12%;">Área</th>
-                <th style="width: 24%;">Tipo</th>
-                <th style="width: 8%;">Desc.</th>
-                <th style="width: 20%;">Precio</th>
+                <th style="width: 11%;">Cant.</th>
+                <th style="width: 9%;">Área</th>
+                <th style="width: 15%;">Tipo</th>
+                <th style="width: 7%;">Desc.</th>
+                <th style="width: 15%;">P. Unitario</th>
+                <th style="width: 15%;">Precio</th>
             </tr>
         </thead>
         <tbody>
@@ -417,11 +463,12 @@
                     <td class="text-center">{{ $linea['area'] ?: '-' }}</td>
                     <td>{{ $linea['tipo'] }}</td>
                     <td class="text-center">{{ $linea['descuento'] ?? '-' }}</td>
+                    <td class="text-right">{{ $fmtMoney($linea['precio_unitario'] ?? 0) }}</td>
                     <td class="text-right text-bold">{{ $fmtMoney($linea['precio']) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="text-center" style="padding: 16px; color: #6b7b95;">
+                    <td colspan="8" class="text-center" style="padding: 16px; color: #6b7b95;">
                         Sin conceptos registrados en esta cotización.
                     </td>
                 </tr>
@@ -429,17 +476,17 @@
         </tbody>
         <tfoot>
             <tr class="total-row">
-                <td colspan="6" class="text-right">Subtotal</td>
+                <td colspan="7" class="text-right">Subtotal</td>
                 <td class="text-right">{{ $fmtMoney($subtotalNeto) }}</td>
             </tr>
             @if($cotizacion->aplicar_iva)
                 <tr class="total-row">
-                    <td colspan="6" class="text-right">IVA (16%)</td>
+                    <td colspan="7" class="text-right">IVA (16%)</td>
                     <td class="text-right">{{ $fmtMoney($ivaMonto) }}</td>
                 </tr>
             @endif
             <tr class="grand-total-row">
-                <td colspan="6" class="text-right">PRECIO PÚBLICO</td>
+                <td colspan="7" class="text-right">PRECIO PÚBLICO</td>
                 <td class="text-right">{{ $fmtMoney($precioPublico) }}</td>
             </tr>
         </tfoot>

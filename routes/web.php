@@ -32,6 +32,8 @@ Auth::routes();
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::post('users/{user}/habilitar', [App\Http\Controllers\Admin\UserController::class, 'habilitar'])->name('users.habilitar');
+    Route::get('tipo-insumos/{tipo_insumo}/plantilla', [TiposInsumosController::class, 'plantillaImportacion'])->name('tipo-insumos.plantilla');
+    Route::get('tipo-productos/{tipo_producto}/plantilla', [TipoProductosController::class, 'plantillaImportacion'])->name('tipo-productos.plantilla');
     Route::resource('tipo-insumos', TiposInsumosController::class)->except(['destroy']);
     Route::resource('tipo-productos', TipoProductosController::class)->except(['destroy']);
     Route::resource('insumos', InsumoController::class);

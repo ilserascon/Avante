@@ -56,6 +56,9 @@
                                             <a href="{{ route('admin.tipo-insumos.edit', $tipoInsumo->id) }}" class="action-btn btn-edit" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            <a href="{{ route('admin.tipo-insumos.plantilla', $tipoInsumo->id) }}" class="action-btn btn-enable" title="Descargar plantilla Excel para importar">
+                                                <i class="fas fa-file-excel"></i>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>

@@ -969,7 +969,7 @@
             return `<option value="">Seleccione un producto</option>${opciones}`;
         }
 
-        function crearFilaProducto(index, tipoId = '', productoId = '', cantidad = '', precio = '', descuento = '0') {
+        function crearFilaProducto(index, tipoId = '', productoId = '', cantidad = '', precio = '', descuento = '0', ancho = '', largo = '') {
             return `
                 <tr class="producto-fila">
                     <td colspan="8" class="p-0 pb-3">
@@ -994,12 +994,20 @@
                                 </div>
                             </div>
                             <div class="row align-items-end g-2">
-                                <div class="col-xl-2 col-md-3 col-6">
-                                    <label class="small font-weight-bold text-muted mb-1 d-block">Cantidad</label>
-                                    <input type="number" name="productos[${index}][cantidad]" class="form-control" step="0.01" value="${cantidad}">
+                                <div class="col-xl-2 col-md-3 col-6 producto-medida-col d-none">
+                                    <label class="small font-weight-bold text-muted mb-1 d-block">Ancho (m)</label>
+                                    <input type="number" name="productos[${index}][ancho]" class="form-control producto-ancho" step="0.01" min="0" value="${ancho}">
                                 </div>
-                                <div class="col-xl-3 col-md-3 col-6">
-                                    <label class="small font-weight-bold text-muted mb-1 d-block">Precio</label>
+                                <div class="col-xl-2 col-md-3 col-6 producto-medida-col d-none">
+                                    <label class="small font-weight-bold text-muted mb-1 d-block">Largo (m)</label>
+                                    <input type="number" name="productos[${index}][largo]" class="form-control producto-largo" step="0.01" min="0" value="${largo}">
+                                </div>
+                                <div class="col-xl-2 col-md-3 col-6">
+                                    <label class="small font-weight-bold text-muted mb-1 d-block producto-cantidad-label">Cantidad</label>
+                                    <input type="number" name="productos[${index}][cantidad]" class="form-control producto-cantidad" step="0.01" value="${cantidad}">
+                                </div>
+                                <div class="col-xl-2 col-md-3 col-6">
+                                    <label class="small font-weight-bold text-muted mb-1 d-block producto-precio-label">Precio</label>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
                                         <input type="number" name="productos[${index}][precio]" class="form-control producto-precio" step="0.01" value="${precio}" readonly>
@@ -1009,7 +1017,7 @@
                                     <label class="small font-weight-bold text-muted mb-1 d-block">Desc. %</label>
                                     <input type="number" name="productos[${index}][descuento]" class="form-control producto-descuento" min="0" max="100" step="0.01" value="${descuento}">
                                 </div>
-                                <div class="col-xl-3 col-md-4 col-6">
+                                <div class="col-xl-2 col-md-4 col-6">
                                     <label class="small font-weight-bold text-muted mb-1 d-block">Subtotal</label>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
@@ -1111,8 +1119,89 @@
             }
 
             if (fila) {
+                aplicarModoPersianaFila(fila);
                 actualizarSubtotalFila(fila, 'producto');
             }
+        }
+
+        function esTipoPersiana(tipoId) {
+            if (!tipoId) {
+                return false;
+            }
+
+            const tipo = tiposProductoDisponibles.find(item => String(item.id) === String(tipoId));
+
+            return Boolean(tipo?.es_persiana);
+        }
+
+        function filaProductoEsPersiana(fila) {
+            if (!fila) {
+                return false;
+            }
+
+            if (esTipoPersiana(fila.querySelector('.producto-tipo-select')?.value)) {
+                return true;
+            }
+
+            const producto = obtenerProductoPorId(fila.querySelector('.producto-select')?.value);
+
+            return Boolean(producto?.es_persiana);
+        }
+
+        /** Las persianas se cobran por metro cuadrado: la cantidad sale del ancho por el largo. */
+        function actualizarMetrosCuadradosFila(fila) {
+            const anchoInput = fila?.querySelector('.producto-ancho');
+            const largoInput = fila?.querySelector('.producto-largo');
+            const cantidadInput = fila?.querySelector('.producto-cantidad');
+            const sinMedidas = (anchoInput?.value ?? '') === '' && (largoInput?.value ?? '') === '';
+
+            // Sin medidas capturadas se respeta la cantidad guardada de cotizaciones anteriores.
+            if (cantidadInput && !sinMedidas) {
+                const ancho = parseFloat(anchoInput?.value) || 0;
+                const largo = parseFloat(largoInput?.value) || 0;
+                const metros = ancho > 0 && largo > 0 ? ancho * largo : 0;
+
+                cantidadInput.value = metros > 0 ? metros.toFixed(2) : '';
+            }
+
+            actualizarSubtotalFila(fila, 'producto');
+        }
+
+        function aplicarModoPersianaFila(fila) {
+            if (!fila) {
+                return;
+            }
+
+            const esPersiana = filaProductoEsPersiana(fila);
+            const cantidadInput = fila.querySelector('.producto-cantidad');
+            const cantidadLabel = fila.querySelector('.producto-cantidad-label');
+            const precioLabel = fila.querySelector('.producto-precio-label');
+
+            fila.querySelectorAll('.producto-medida-col').forEach(columna => {
+                columna.classList.toggle('d-none', !esPersiana);
+            });
+
+            if (cantidadLabel) {
+                cantidadLabel.textContent = esPersiana ? 'Metros cuadrados' : 'Cantidad';
+            }
+
+            if (precioLabel) {
+                precioLabel.textContent = esPersiana ? 'Precio por m²' : 'Precio';
+            }
+
+            if (cantidadInput) {
+                cantidadInput.readOnly = esPersiana;
+            }
+
+            if (!esPersiana) {
+                fila.querySelectorAll('.producto-ancho, .producto-largo').forEach(input => {
+                    input.value = '';
+                });
+
+                return;
+            }
+
+            actualizarMetrosCuadradosFila(fila);
         }
 
         function obtenerOpcionesCortinero(selectedId = '') {
@@ -2281,7 +2370,9 @@
                     producto.id ?? '',
                     producto.cantidad ?? '',
                     producto.precio ?? '',
-                    producto.descuento ?? '0'
+                    producto.descuento ?? '0',
+                    producto.ancho ?? '',
+                    producto.largo ?? ''
                 ));
             });
             inicializarSelect2EnContenedor(productosBody);
@@ -2499,6 +2590,7 @@
                 }
 
                 if (fila) {
+                    aplicarModoPersianaFila(fila);
                     actualizarSubtotalFila(fila, 'producto');
                 }
             }
@@ -2528,6 +2620,14 @@
                 event.target.name?.includes('[descuento]')
             )) {
                 actualizarSubtotalFila(fila, 'insumo');
+            }
+
+            if (event.target.closest('.productos-body') && (
+                event.target.name?.includes('[ancho]') ||
+                event.target.name?.includes('[largo]')
+            )) {
+                actualizarMetrosCuadradosFila(fila);
+                return;
             }
 
             if (event.target.closest('.productos-body') && (

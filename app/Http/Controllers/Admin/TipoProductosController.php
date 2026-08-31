@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\PlantillaImportacionExport;
 use App\Http\Controllers\Controller;
 use App\Models\TipoProducto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TipoProductosController extends Controller
 {
@@ -57,6 +60,22 @@ class TipoProductosController extends Controller
         $tipoProducto->update($validated);
 
         return redirect()->route('admin.tipo-productos.index')->with('success', 'Tipo de producto actualizado exitosamente');
+    }
+
+    /** Excel vacio con los encabezados que pide el importador de productos de este tipo. */
+    public function plantillaImportacion($id)
+    {
+        $tipoProducto = TipoProducto::findOrFail($id);
+
+        $plantilla = PlantillaImportacionExport::paraTipo(
+            ['clave', 'nombre', 'precio', 'precio_publico', 'color', 'descripcion', 'proveedor'],
+            $tipoProducto->camposPersonalizados(),
+            (string) $tipoProducto->nombre
+        );
+
+        $archivo = 'plantilla_productos_' . Str::slug($tipoProducto->nombre ?: 'tipo') . '.xlsx';
+
+        return Excel::download($plantilla, $archivo);
     }
 
     private function reglasCampos(): array

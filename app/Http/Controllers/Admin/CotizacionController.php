@@ -103,7 +103,7 @@ class CotizacionController extends Controller
             ->get();
         $productos = Producto::with('tipoProducto')->orderBy('nombre')->get();
         $productosDisponibles = $this->mapProductosParaCotizacion();
-        $tiposProductoCotizacion = TipoProducto::orderBy('nombre')->get();
+        $tiposProductoCotizacion = $this->tiposProductoParaCotizacion();
 
         $insumosMaterialesVarios = $this->insumosParaMaterialesVarios();
 
@@ -315,7 +315,6 @@ class CotizacionController extends Controller
         }
 
         $todosLosInsumos = [];
-        $todosLosProductos = [];
 
         foreach ($insumosGlobales as $insumoFila) {
             $this->acumularFilaPivot(
@@ -327,23 +326,11 @@ class CotizacionController extends Controller
             );
         }
 
-        foreach ($productosGlobales as $productoFila) {
-            $this->acumularFilaPivot(
-                $todosLosProductos,
-                (int) ($productoFila['id'] ?? 0),
-                (float) ($productoFila['cantidad'] ?? 0),
-                (float) ($productoFila['precio'] ?? 0),
-                (float) ($productoFila['descuento'] ?? 0)
-            );
-        }
-
         if (!empty($todosLosInsumos)) {
             $cotizacion->insumos()->attach($todosLosInsumos);
         }
 
-        if (!empty($todosLosProductos)) {
-            $cotizacion->productos()->attach($todosLosProductos);
-        }
+        $this->guardarProductosCotizacion($cotizacion, $productosGlobales);
 
         return redirect()->route('admin.cotizaciones.index')->with('success', 'Cotización creada exitosamente.');
     }
@@ -416,7 +403,7 @@ class CotizacionController extends Controller
 
         $productos = Producto::with('tipoProducto')->orderBy('nombre')->get();
         $productosDisponibles = $this->mapProductosParaCotizacion();
-        $tiposProductoCotizacion = TipoProducto::orderBy('nombre')->get();
+        $tiposProductoCotizacion = $this->tiposProductoParaCotizacion();
 
         $detallesExistentes = $cotizacion->detallesCotizacion;
         if ($detallesExistentes->isEmpty() && $detalleCotizacion) {
@@ -464,6 +451,8 @@ class CotizacionController extends Controller
                     'tipo_id' => $producto->id_tipo_producto,
                     'id' => $producto->id,
                     'cantidad' => $producto->pivot->cantidad,
+                    'ancho' => $producto->pivot->ancho,
+                    'largo' => $producto->pivot->largo,
                     'precio' => $producto->pivot->precio_unitario,
                     'descuento' => $producto->pivot->descuento ?? 0,
                 ];
@@ -682,7 +671,6 @@ class CotizacionController extends Controller
         }
 
         $todosLosInsumos = [];
-        $todosLosProductos = [];
 
         foreach ($insumosGlobales as $insumoFila) {
             $this->acumularFilaPivot(
@@ -694,18 +682,8 @@ class CotizacionController extends Controller
             );
         }
 
-        foreach ($productosGlobales as $productoFila) {
-            $this->acumularFilaPivot(
-                $todosLosProductos,
-                (int) ($productoFila['id'] ?? 0),
-                (float) ($productoFila['cantidad'] ?? 0),
-                (float) ($productoFila['precio'] ?? 0),
-                (float) ($productoFila['descuento'] ?? 0)
-            );
-        }
-
         $cotizacion->insumos()->sync($todosLosInsumos);
-        $cotizacion->productos()->sync($todosLosProductos);
+        $this->guardarProductosCotizacion($cotizacion, $productosGlobales);
             });
         } catch (RuntimeException $e) {
             return redirect()
@@ -750,7 +728,7 @@ class CotizacionController extends Controller
 
         foreach ($productos as $fila) {
             $productoId = (int) ($fila['id'] ?? 0);
-            $cantidad = (float) ($fila['cantidad'] ?? 0);
+            [, , $cantidad] = $this->medidasFilaProducto($fila);
             $precio = (float) ($fila['precio'] ?? 0);
             if ($productoId && $cantidad > 0 && $precio > 0) {
                 return true;
@@ -758,6 +736,23 @@ class CotizacionController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Las persianas se cotizan por metro cuadrado: la cantidad sale de multiplicar ancho por largo en metros.
+     *
+     * @return array{0: float|null, 1: float|null, 2: float} ancho, largo y cantidad a cobrar
+     */
+    private function medidasFilaProducto(array $productoFila): array
+    {
+        $ancho = (float) ($productoFila['ancho'] ?? 0);
+        $largo = (float) ($productoFila['largo'] ?? 0);
+
+        if ($ancho <= 0 || $largo <= 0) {
+            return [null, null, (float) ($productoFila['cantidad'] ?? 0)];
+        }
+
+        return [$ancho, $largo, round($ancho * $largo, 2)];
     }
 
     private function calcularSubtotalLinea(float $cantidad, float $precio, float $descuento = 0): float
@@ -800,6 +795,67 @@ class CotizacionController extends Controller
             'descuento' => $descuento > 0 ? round($descuento, 2) : 0,
             'subtotal' => $subtotalLinea,
         ];
+    }
+
+    /**
+     * Los productos con medidas (persianas) conservan un renglon por pieza, aunque se repita el producto.
+     * El resto se sigue agrupando por producto como en el resto de la cotizacion.
+     *
+     * @return list<array<string, float|int|null>>
+     */
+    private function filasPivotProductos(array $productosGlobales): array
+    {
+        $agrupados = [];
+        $independientes = [];
+
+        foreach ($productosGlobales as $productoFila) {
+            $productoId = (int) ($productoFila['id'] ?? 0);
+            [$ancho, $largo, $cantidad] = $this->medidasFilaProducto($productoFila);
+            $precio = (float) ($productoFila['precio'] ?? 0);
+            $descuento = (float) ($productoFila['descuento'] ?? 0);
+
+            if ($ancho === null || $largo === null) {
+                $this->acumularFilaPivot($agrupados, $productoId, $cantidad, $precio, $descuento);
+                continue;
+            }
+
+            if ($productoId <= 0 || $cantidad <= 0 || $precio <= 0) {
+                continue;
+            }
+
+            $independientes[] = [
+                'producto_id' => $productoId,
+                'cantidad' => $cantidad,
+                'ancho' => $ancho,
+                'largo' => $largo,
+                'precio_unitario' => $precio,
+                'descuento' => $descuento > 0 ? round($descuento, 2) : 0,
+                'subtotal' => $this->calcularSubtotalLinea($cantidad, $precio, $descuento),
+            ];
+        }
+
+        $filas = [];
+        foreach ($agrupados as $productoId => $datos) {
+            $filas[] = array_merge($datos, [
+                'producto_id' => (int) $productoId,
+                'ancho' => null,
+                'largo' => null,
+            ]);
+        }
+
+        return array_merge($filas, $independientes);
+    }
+
+    private function guardarProductosCotizacion(Cotizacion $cotizacion, array $productosGlobales): void
+    {
+        $cotizacion->productos()->detach();
+
+        foreach ($this->filasPivotProductos($productosGlobales) as $fila) {
+            $productoId = $fila['producto_id'];
+            unset($fila['producto_id']);
+
+            $cotizacion->productos()->attach($productoId, $fila);
+        }
     }
 
     private function calcularPrecioPublicoCotizacion(
@@ -845,7 +901,7 @@ class CotizacionController extends Controller
         }
 
         foreach ($productosGlobales as $productoFila) {
-            $cantidad = (float) ($productoFila['cantidad'] ?? 0);
+            [, , $cantidad] = $this->medidasFilaProducto($productoFila);
             $precio = (float) ($productoFila['precio'] ?? 0);
             $descuento = (float) ($productoFila['descuento'] ?? 0);
             if ((int) ($productoFila['id'] ?? 0) && $cantidad > 0 && $precio > 0) {
@@ -954,11 +1010,13 @@ class CotizacionController extends Controller
         $productosParaSincronizar = [];
         foreach ($detalleData['productos'] ?? [] as $productoRow) {
             $productoId = $productoRow['id'] ?? null;
-            $cantidad = (float) ($productoRow['cantidad'] ?? 0);
+            [$ancho, $largo, $cantidad] = $this->medidasFilaProducto($productoRow);
             $precio = (float) ($productoRow['precio'] ?? 0);
             if ($productoId && $cantidad > 0) {
                 $productosParaSincronizar[$productoId] = [
                     'cantidad' => $cantidad,
+                    'ancho' => $ancho,
+                    'largo' => $largo,
                     'precio_unitario' => $precio,
                     'subtotal' => $cantidad * $precio,
                 ];
@@ -1225,6 +1283,20 @@ class CotizacionController extends Controller
         return $pdf->stream('decorador_'.$cotizacion->id.'.pdf');
     }
 
+    private function tiposProductoParaCotizacion()
+    {
+        return TipoProducto::orderBy('nombre')
+            ->get()
+            ->map(function ($tipo) {
+                return [
+                    'id' => $tipo->id,
+                    'nombre' => $tipo->nombre,
+                    'es_persiana' => $tipo->esPersiana(),
+                ];
+            })
+            ->values();
+    }
+
     private function mapProductosParaCotizacion()
     {
         return Producto::with(['tipoProducto', 'insumos.proveedor'])
@@ -1244,6 +1316,7 @@ class CotizacionController extends Controller
                     'id_tipo_producto' => $producto->id_tipo_producto,
                     'tipo_nombre' => $producto->tipoProducto->nombre ?? '',
                     'es_cortinero' => $esCortinero,
+                    'es_persiana' => (bool) $producto->tipoProducto?->esPersiana(),
                     'insumos' => $esCortinero
                         ? $producto->insumos->map(function ($insumo) {
                             return [

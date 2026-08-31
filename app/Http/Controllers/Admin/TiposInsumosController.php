@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\PlantillaImportacionExport;
 use App\Http\Controllers\Controller;
 use App\Models\TipoInsumo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TiposInsumosController extends Controller
 {
@@ -122,5 +125,21 @@ class TiposInsumosController extends Controller
         $tipoInsumo->update($validated);
 
         return redirect()->route('admin.tipo-insumos.index')->with('success', 'Tipo de insumo actualizado exitosamente');
+    }
+
+    /** Excel vacio con los encabezados que pide el importador de insumos de este tipo. */
+    public function plantillaImportacion($id)
+    {
+        $tipoInsumo = TipoInsumo::findOrFail($id);
+
+        $plantilla = PlantillaImportacionExport::paraTipo(
+            ['clave', 'nombre', 'color', 'proveedor', 'costo', 'precio_publico', 'utilidad'],
+            $tipoInsumo->camposPersonalizados(),
+            (string) $tipoInsumo->nombre
+        );
+
+        $archivo = 'plantilla_insumos_' . Str::slug($tipoInsumo->nombre ?: 'tipo') . '.xlsx';
+
+        return Excel::download($plantilla, $archivo);
     }
 }

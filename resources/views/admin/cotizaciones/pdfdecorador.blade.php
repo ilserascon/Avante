@@ -8,7 +8,6 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 10px;
-            color: #1a8683;
             margin: 0;
             padding: 18px 22px;
             line-height: 1.4;
@@ -17,7 +16,7 @@
         .pdf-header {
             width: 100%;
             margin-bottom: 18px;
-            border-bottom: 3px solid #1a8683;
+            border-bottom: 3px solid rgb(39, 172, 138);
             padding-bottom: 14px;
             text-align: center;
         }
@@ -25,7 +24,7 @@
         .doc-title-center {
             font-size: 22px;
             font-weight: bold;
-            color: #1a8683;
+            color:rgb(39, 172, 138);
             letter-spacing: 1px;
             text-transform: uppercase;
             margin-bottom: 4px;
@@ -33,7 +32,7 @@
 
         .doc-number-center {
             font-size: 13px;
-            color: #145f5d;
+            color: rgb(39, 172, 138);
             font-weight: bold;
         }
 
@@ -53,7 +52,7 @@
             font-size: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #5a8a88;
+            color: #000;
             font-weight: bold;
             margin-bottom: 3px;
         }
@@ -63,7 +62,7 @@
         }
 
         .section-title {
-            background: #1a8683;
+            background: rgb(39, 172, 138);
             color: #fff;
             font-size: 11px;
             font-weight: bold;
@@ -81,7 +80,7 @@
 
         .detail-table thead th {
             background: #e8f5f4;
-            color: #1a8683;
+            color: #000;
             font-size: 9px;
             font-weight: bold;
             text-transform: uppercase;
@@ -115,19 +114,19 @@
         .total-row {
             background: #e8f5f4;
             font-weight: bold;
-            color: #1a8683;
+            color: #000;
         }
 
         .grand-total-row {
-            background: #1a8683;
-            color: #fff;
+            background: rgb(39, 172, 138);
+            color: #000;
             font-weight: bold;
             font-size: 11px;
         }
 
         .grand-total-row td {
             border-color: #1a8683 !important;
-            color: #fff !important;
+            color: #000 !important;
         }
 
         .note-box {
@@ -178,14 +177,14 @@
             font-size: 8px;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            color: #5a8a88;
+            color: #000;
             font-weight: bold;
             margin-bottom: 2px;
         }
 
         .receipt-field {
             min-height: 16px;
-            border-bottom: 1px solid #1a8683;
+            border-bottom: 1px solid rgb(39, 172, 138);
             padding: 4px 2px 6px 2px;
             font-size: 10px;
             color: #26344d;
@@ -193,12 +192,12 @@
 
         .receipt-field-empty {
             min-height: 16px;
-            border-bottom: 1px solid #1a8683;
+            border-bottom: 1px solid rgb(39, 172, 138);
         }
 
         .receipt-field-money {
             min-height: 28px;
-            border-bottom: 1px solid #1a8683;
+            border-bottom: 1px solid rgb(39, 172, 138);
             padding: 4px 2px 6px 2px;
             font-size: 10px;
             color: #26344d;
@@ -215,7 +214,7 @@
             display: inline-block;
             width: 11px;
             height: 11px;
-            border: 1px solid #1a8683;
+            border: 1px solid rgb(39, 172, 138);
             margin-right: 4px;
             vertical-align: middle;
         }
@@ -236,15 +235,36 @@
         return '$' . number_format((float) ($value ?? 0), 2);
     };
 
-    $describirCatalogo = function ($nombre, $medida) {
-        $nombre = trim((string) $nombre);
-        $medida = trim((string) $medida);
+    $describirCatalogo = function ($nombre, ...$detalles) {
+        $limpiar = function ($valor) {
+            $texto = trim((string) $valor);
 
-        if ($medida === '' || mb_stripos($nombre, $medida) !== false) {
-            return $nombre;
+            return strcasecmp($texto, 'null') === 0 ? '' : $texto;
+        };
+
+        $nombre = $limpiar($nombre);
+        $partes = $nombre === '' ? [] : [$nombre];
+
+        foreach ($detalles as $detalle) {
+            $detalle = $limpiar($detalle);
+            if ($detalle === '') {
+                continue;
+            }
+
+            $yaIncluido = false;
+            foreach ($partes as $parte) {
+                if (mb_stripos($parte, $detalle) !== false) {
+                    $yaIncluido = true;
+                    break;
+                }
+            }
+
+            if (!$yaIncluido) {
+                $partes[] = $detalle;
+            }
         }
 
-        return $nombre === '' ? $medida : $nombre . ' - ' . $medida;
+        return implode(' - ', $partes);
     };
 
     $calcularCostoCortinaDetalle = function ($detalle) {
@@ -305,7 +325,7 @@
         $subtotal = $descuentoPct > 0 ? $bruto * (1 - $descuentoPct / 100) : $bruto;
 
         $lineas[] = [
-            'descripcion' => $describirCatalogo($insumo->nombre, $insumo->medidaMostrar()),
+            'descripcion' => $describirCatalogo($insumo->nombre, $insumo->color, $insumo->medidaMostrar()),
             'cantidad' => $cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1,
             'area' => '',
             'tipo' => $insumo->tipoInsumo?->nombre ?? 'Insumo',
@@ -325,9 +345,20 @@
         $bruto = $cantidad * $precioUnit;
         $subtotal = $descuentoPct > 0 ? $bruto * (1 - $descuentoPct / 100) : $bruto;
 
+        // Las persianas se cotizan por medida, asi que se muestra la capturada en la cotizacion.
+        $anchoCotizado = (float) ($producto->pivot->ancho ?? 0);
+        $largoCotizado = (float) ($producto->pivot->largo ?? 0);
+        $esPersiana = $anchoCotizado > 0 && $largoCotizado > 0;
+        $medidaProducto = $esPersiana
+            ? number_format($anchoCotizado, 2) . ' x ' . number_format($largoCotizado, 2) . ' m'
+            : $producto->medidaMostrar();
+
         $lineas[] = [
-            'descripcion' => $describirCatalogo($producto->nombre, $producto->medidaMostrar()),
-            'cantidad' => $cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1,
+            'descripcion' => $describirCatalogo($producto->nombre, $producto->color, $medidaProducto),
+            // Cada renglon es una persiana con su medida, y entre parentesis va la superficie que se cobra.
+            'cantidad' => $esPersiana
+                ? ($cantidad > 0 ? '1 (' . rtrim(rtrim(number_format($cantidad, 2), '0'), '.') . ' m²)' : 1)
+                : ($cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1),
             'area' => '',
             'tipo' => $producto->tipoProducto?->nombre ?? 'Producto',
             'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
@@ -369,9 +400,9 @@
             <tr>
                 <th style="width: 4%;">#</th>
                 <th style="width: 24%;">Descripción</th>
-                <th style="width: 6%;">Cant.</th>
-                <th style="width: 10%;">Área</th>
-                <th style="width: 19%;">Tipo</th>
+                <th style="width: 11%;">Cant.</th>
+                <th style="width: 9%;">Área</th>
+                <th style="width: 15%;">Tipo</th>
                 <th style="width: 7%;">Desc.</th>
                 <th style="width: 15%;">P. Unitario</th>
                 <th style="width: 15%;">Precio</th>

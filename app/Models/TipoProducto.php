@@ -35,6 +35,12 @@ class TipoProducto extends Model
         return $this->hasMany(Producto::class, 'id_tipo_producto');
     }
 
+    /** Las persianas se cotizan por metro cuadrado en lugar de por pieza. */
+    public function esPersiana(): bool
+    {
+        return $this->nombre !== null && mb_stripos($this->nombre, 'persiana') !== false;
+    }
+
     public function camposPersonalizados(): array
     {
         $campos = [];
