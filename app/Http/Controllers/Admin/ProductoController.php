@@ -284,9 +284,8 @@ class ProductoController extends Controller
 
         $resumen = $import->getResumen();
         $mensaje = sprintf(
-            'Importación completada: %d creado(s), %d actualizado(s)%s.',
+            'Importación completada: %d creado(s)%s.',
             $resumen['creados'],
-            $resumen['actualizados'],
             $resumen['omitidos'] > 0 ? ', ' . $resumen['omitidos'] . ' omitido(s)' : ''
         );
 

@@ -163,7 +163,7 @@
                     <strong>precio_publico</strong>, <strong>color</strong>, <strong>descripcion</strong>,
                     <strong>proveedor</strong> (obligatorio), y los campos adicionales <strong>campo1</strong> a <strong>campo10</strong> según el tipo.
                     Si el proveedor no existe, se creará automáticamente.
-                    Si ya existe un producto con el mismo tipo, clave, nombre, color y proveedor, se actualizará en lugar de duplicarse.
+                    Cada fila del archivo se registra como un producto nuevo; los productos existentes no se modifican.
                     Se recomienda guardar el archivo como <strong>.xlsx</strong> o <strong>.csv</strong>.
                 </p>
                 <div class="form-group">

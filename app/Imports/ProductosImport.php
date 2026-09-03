@@ -18,8 +18,6 @@ class ProductosImport
 
     protected int $creados = 0;
 
-    protected int $actualizados = 0;
-
     protected int $omitidos = 0;
 
     public function __construct(int $tipoProductoId, bool $importarPrecioInterno = true)
@@ -31,9 +29,8 @@ class ProductosImport
     public function getResumen(): array
     {
         return [
-            'creados'      => $this->creados,
-            'actualizados' => $this->actualizados,
-            'omitidos'     => $this->omitidos,
+            'creados'  => $this->creados,
+            'omitidos' => $this->omitidos,
         ];
     }
 
@@ -56,7 +53,7 @@ class ProductosImport
             $this->procesarFila($encabezados, array_values($fila));
         }
 
-        if ($this->creados === 0 && $this->actualizados === 0) {
+        if ($this->creados === 0) {
             throw new \RuntimeException(
                 'No se importó ningún producto. Verifique que el archivo tenga las columnas nombre y proveedor, y que los encabezados coincidan con el formato esperado.'
             );
@@ -85,48 +82,21 @@ class ProductosImport
 
         $proveedor = $this->obtenerOCrearProveedor($nombreProveedor);
 
-        $clave = $this->valorTexto($row, ['clave']);
-        $color = $this->valorTexto($row, ['color']);
-
         $data = [
-            'clave'            => $clave,
+            'clave'            => $this->valorTexto($row, ['clave']),
             'nombre'           => $nombre,
-            'color'            => $color,
+            'color'            => $this->valorTexto($row, ['color']),
             'descripcion'      => $this->valorTexto($row, ['descripcion']),
             'precio_publico'   => $this->valorNumerico($row, ['precio_publico']),
             'id_tipo_producto' => $this->tipoProductoId,
             'id_proveedor'     => $proveedor->id,
         ];
 
-        if ($this->importarPrecioInterno) {
-            $data['precio'] = $this->valorNumerico($row, ['precio']);
-        }
+        $data['precio'] = $this->importarPrecioInterno ? $this->valorNumerico($row, ['precio']) : null;
 
         for ($i = 1; $i <= TipoProducto::CAMPOS_DINAMICOS; $i++) {
             $campo = 'campo' . $i;
             $data[$campo] = $this->valorTexto($row, [$campo]);
-        }
-
-        $productoExistente = $this->buscarProductoExistente(
-            $this->tipoProductoId,
-            $proveedor->id,
-            $nombre,
-            $clave,
-            $color
-        );
-
-        if ($productoExistente) {
-            if (! $this->importarPrecioInterno) {
-                unset($data['precio']);
-            }
-            $productoExistente->update($data);
-            $this->actualizados++;
-
-            return;
-        }
-
-        if (! $this->importarPrecioInterno) {
-            $data['precio'] = null;
         }
 
         Producto::create($data);
@@ -164,37 +134,6 @@ class ProductosImport
         }
 
         return $row;
-    }
-
-    private function buscarProductoExistente(
-        int $tipoProductoId,
-        int $proveedorId,
-        string $nombre,
-        ?string $clave,
-        ?string $color
-    ): ?Producto {
-        $query = Producto::query()
-            ->where('id_tipo_producto', $tipoProductoId)
-            ->where('id_proveedor', $proveedorId)
-            ->where('nombre', $nombre);
-
-        $this->aplicarFiltroTextoNullable($query, 'clave', $clave);
-        $this->aplicarFiltroTextoNullable($query, 'color', $color);
-
-        return $query->first();
-    }
-
-    private function aplicarFiltroTextoNullable($query, string $columna, ?string $valor): void
-    {
-        if ($valor === null) {
-            $query->where(function ($subquery) use ($columna) {
-                $subquery->whereNull($columna)->orWhere($columna, '');
-            });
-
-            return;
-        }
-
-        $query->where($columna, $valor);
     }
 
     private function filaTieneDatos(array $row): bool

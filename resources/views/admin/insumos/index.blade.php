@@ -192,7 +192,7 @@
                     <strong>proveedor</strong> (obligatorio), <strong>costo</strong>, <strong>precio_publico</strong>,
                     <strong>utilidad</strong>, y los campos adicionales <strong>campo1</strong> a <strong>campo15</strong> según el tipo.
                     Si el proveedor no existe, se creará automáticamente.
-                    Si ya existe un insumo con el mismo tipo, clave, nombre, color, proveedor y campo1, se actualizará en lugar de duplicarse.
+                    Cada fila del archivo se registra como un insumo nuevo; los insumos existentes no se modifican.
                     Los encabezados de campos adicionales pueden usar el nombre del campo (campo1) o la etiqueta configurada en el tipo (por ejemplo ANCHO, ARTICULO).
                     Se recomienda guardar el archivo como <strong>.xlsx</strong> o <strong>.csv</strong>.
                 </p>

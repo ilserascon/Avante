@@ -15,8 +15,6 @@ class InsumosImport
 
     protected int $creados = 0;
 
-    protected int $actualizados = 0;
-
     protected int $omitidos = 0;
 
     public function __construct(int $tipoInsumoId)
@@ -27,9 +25,8 @@ class InsumosImport
     public function getResumen(): array
     {
         return [
-            'creados'      => $this->creados,
-            'actualizados' => $this->actualizados,
-            'omitidos'     => $this->omitidos,
+            'creados'  => $this->creados,
+            'omitidos' => $this->omitidos,
         ];
     }
 
@@ -52,7 +49,7 @@ class InsumosImport
             $this->procesarFila($encabezados, array_values($fila));
         }
 
-        if ($this->creados === 0 && $this->actualizados === 0) {
+        if ($this->creados === 0) {
             throw new \RuntimeException(
                 'No se importó ningún insumo. Verifique que el archivo tenga las columnas nombre y proveedor, y que los encabezados coincidan con el formato esperado.'
             );
@@ -81,14 +78,10 @@ class InsumosImport
 
         $proveedor = $this->obtenerOCrearProveedor($nombreProveedor);
 
-        $clave = $this->valorTexto($row, ['clave']);
-        $color = $this->valorTexto($row, ['color']);
-        $campo1 = $this->valorTexto($row, ['campo1']);
-
         $data = [
-            'clave'          => $clave,
+            'clave'          => $this->valorTexto($row, ['clave']),
             'nombre'         => $nombre,
-            'color'          => $color,
+            'color'          => $this->valorTexto($row, ['color']),
             'id_tipo_insumo' => $this->tipoInsumoId,
             'id_proveedor'   => $proveedor->id,
             'costo'          => $this->valorNumerico($row, ['costo']),
@@ -100,22 +93,6 @@ class InsumosImport
         for ($i = 1; $i <= 15; $i++) {
             $campo = 'campo' . $i;
             $data[$campo] = $this->valorTexto($row, [$campo]);
-        }
-
-        $insumoExistente = $this->buscarInsumoExistente(
-            $this->tipoInsumoId,
-            $proveedor->id,
-            $nombre,
-            $clave,
-            $color,
-            $campo1
-        );
-
-        if ($insumoExistente) {
-            $insumoExistente->update($data);
-            $this->actualizados++;
-
-            return;
         }
 
         Insumo::create($data);
@@ -170,40 +147,6 @@ class InsumosImport
         }
 
         return false;
-    }
-
-    private function buscarInsumoExistente(
-        int $tipoInsumoId,
-        int $proveedorId,
-        string $nombre,
-        ?string $clave,
-        ?string $color,
-        ?string $campo1
-    ): ?Insumo {
-        $query = Insumo::query()
-            ->where('id_tipo_insumo', $tipoInsumoId)
-            ->where('id_proveedor', $proveedorId)
-            ->where('nombre', $nombre)
-            ->where('borrado', 0);
-
-        $this->aplicarFiltroTextoNullable($query, 'clave', $clave);
-        $this->aplicarFiltroTextoNullable($query, 'color', $color);
-        $this->aplicarFiltroTextoNullable($query, 'campo1', $campo1);
-
-        return $query->first();
-    }
-
-    private function aplicarFiltroTextoNullable($query, string $columna, ?string $valor): void
-    {
-        if ($valor === null) {
-            $query->where(function ($subquery) use ($columna) {
-                $subquery->whereNull($columna)->orWhere($columna, '');
-            });
-
-            return;
-        }
-
-        $query->where($columna, $valor);
     }
 
     private function normalizarClaveEncabezado($clave): string
