@@ -361,16 +361,16 @@ class CotizacionInventarioService
 
     private function nombreInsumo(int $insumoId): string
     {
-        $insumo = Insumo::with('proveedor')->find($insumoId);
+        $insumo = Insumo::with('tipoInsumo')->find($insumoId);
 
-        return $insumo ? ($insumo->nombre_completo ?: $insumo->nombre) : "ID {$insumoId}";
+        return $insumo ? $insumo->etiquetaEntrada() : "ID {$insumoId}";
     }
 
     private function nombreProducto(int $productoId): string
     {
-        $producto = Producto::find($productoId);
+        $producto = Producto::with('tipoProducto')->find($productoId);
 
-        return $producto ? $producto->nombre : "ID {$productoId}";
+        return $producto ? $producto->etiquetaEntrada() : "ID {$productoId}";
     }
 
     private function formatearCantidad(float $cantidad): string

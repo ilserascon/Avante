@@ -49,16 +49,7 @@ class ProductoController extends Controller
     {
         $this->ensureTipoProductoCatalogExists();
 
-        $insumos = DB::table('insumo')
-            ->select('insumo.id', 'insumo.clave', 'insumo.nombre')
-            ->orderBy('insumo.nombre')
-            ->get()
-            ->map(function ($insumo) {
-                $modelo = new Insumo((array) $insumo);
-                $insumo->etiqueta = $modelo->etiquetaClaveNombre();
-
-                return $insumo;
-            });
+        $insumos = $this->insumosParaAsignacion();
 
         $tiposProducto = $this->tiposProductoConCampos();
         $proveedores = Proveedor::orderBy('nombre')->get();
@@ -116,7 +107,7 @@ class ProductoController extends Controller
     {
         $this->ensureTipoProductoCatalogExists();
 
-        $producto->load(['tipoProducto', 'proveedor', 'insumos.proveedor']);
+        $producto->load(['tipoProducto', 'proveedor', 'insumos.tipoInsumo', 'insumos.proveedor']);
         $camposDinamicos = $producto->tipoProducto?->camposPersonalizados() ?? [];
 
         return view('admin.productos.show', compact('producto', 'camposDinamicos'));
@@ -126,18 +117,9 @@ class ProductoController extends Controller
     {
         $this->ensureTipoProductoCatalogExists();
 
-        $producto = Producto::with(['insumos.proveedor', 'tipoProducto', 'proveedor'])->findOrFail($id);
+        $producto = Producto::with(['insumos.tipoInsumo', 'insumos.proveedor', 'tipoProducto', 'proveedor'])->findOrFail($id);
 
-        $insumos = DB::table('insumo')
-            ->select('insumo.id', 'insumo.clave', 'insumo.nombre')
-            ->orderBy('insumo.nombre')
-            ->get()
-            ->map(function ($insumo) {
-                $modelo = new Insumo((array) $insumo);
-                $insumo->etiqueta = $modelo->etiquetaClaveNombre();
-
-                return $insumo;
-            });
+        $insumos = $this->insumosParaAsignacion();
 
         $tiposProducto = $this->tiposProductoConCampos();
         $proveedores = Proveedor::orderBy('nombre')->get();
@@ -207,6 +189,19 @@ class ProductoController extends Controller
         });
     }
 
+    private function insumosParaAsignacion()
+    {
+        return Insumo::with('tipoInsumo')
+            ->orderBy('nombre')
+            ->get()
+            ->map(function (Insumo $insumo) {
+                return (object) [
+                    'id' => $insumo->id,
+                    'etiqueta' => $insumo->etiquetaEntrada(),
+                ];
+            });
+    }
+
     private function reglasCamposProducto(): array
     {
         $rules = [];
@@ -254,7 +249,7 @@ class ProductoController extends Controller
 
     public function verInsumos($id)
     {
-        $producto = Producto::with('insumos.proveedor')->findOrFail($id);
+        $producto = Producto::with(['insumos.tipoInsumo', 'insumos.proveedor'])->findOrFail($id);
 
         return view('admin.productos.insumos', compact('producto'));
     }

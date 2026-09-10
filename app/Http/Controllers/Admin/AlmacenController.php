@@ -67,17 +67,21 @@ class AlmacenController extends Controller
     {
         $almacen = Almacen::findOrFail($id);
 
-        $existenciasQuery = $almacen->existencias()->with(['producto', 'insumo']);
+        $existenciasQuery = $almacen->existencias()->with(['producto.tipoProducto', 'insumo.tipoInsumo']);
 
         // Filtros
         if ($request->filled('producto')) {
             $existenciasQuery->whereHas('producto', function ($q) use ($request) {
-                $q->where('nombre', 'like', '%' . $request->producto . '%');
+                $q->where('nombre', 'like', '%' . $request->producto . '%')
+                    ->orWhere('clave', 'like', '%' . $request->producto . '%')
+                    ->orWhere('color', 'like', '%' . $request->producto . '%');
             });
         }
         if ($request->filled('insumo')) {
             $existenciasQuery->whereHas('insumo', function ($q) use ($request) {
-                $q->where('nombre', 'like', '%' . $request->insumo . '%');
+                $q->where('nombre', 'like', '%' . $request->insumo . '%')
+                    ->orWhere('clave', 'like', '%' . $request->insumo . '%')
+                    ->orWhere('color', 'like', '%' . $request->insumo . '%');
             });
         }
 
@@ -90,23 +94,23 @@ class AlmacenController extends Controller
             if ($tipo == 'producto') {
                 if ($existencia->producto) {
                     $filas[] = [
-                        'producto' => $existencia->producto->nombre,
+                        'producto' => $existencia->producto->etiquetaEntrada(),
                         'cantidad_producto' => $existencia->cantidad,
                     ];
                 }
             } elseif ($tipo == 'insumo') {
                 if ($existencia->insumo) {
                     $filas[] = [
-                        'insumo' => $existencia->insumo->nombre_completo ?? $existencia->insumo->nombre ?? '-',
+                        'insumo' => $existencia->insumo->etiquetaEntrada(),
                         'cantidad_insumo' => $existencia->cantidad,
                     ];
                 }
             } else {
                 // Ambos
                 $filas[] = [
-                    'producto' => $existencia->producto->nombre ?? '-',
+                    'producto' => $existencia->producto?->etiquetaEntrada() ?? '-',
                     'cantidad_producto' => $existencia->producto ? $existencia->cantidad : '-',
-                    'insumo' => $existencia->insumo->nombre_completo ?? $existencia->insumo->nombre ?? '-',
+                    'insumo' => $existencia->insumo?->etiquetaEntrada() ?? '-',
                     'cantidad_insumo' => $existencia->insumo ? $existencia->cantidad : '-',
                 ];
             }

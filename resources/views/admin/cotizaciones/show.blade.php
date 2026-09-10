@@ -344,10 +344,13 @@
                 ((float) ($detalle->cortinero_cantidad ?? 0) * (float) ($detalle->cortinero_precio ?? 0)) +
                 ((float) ($detalle->cortinero_tergal_cantidad ?? 0) * (float) ($detalle->cortinero_tergal_precio ?? 0)) +
                 $materialesVariosSubtotal;
-            $insumosMaterialesNombres = \App\Models\Insumo::whereIn(
-                'id',
-                collect($detalle->materiales_varios ?? [])->pluck('insumo_id')->filter()->unique()
-            )->pluck('nombre', 'id');
+            $insumosMaterialesNombres = \App\Models\Insumo::with('tipoInsumo')
+                ->whereIn(
+                    'id',
+                    collect($detalle->materiales_varios ?? [])->pluck('insumo_id')->filter()->unique()
+                )
+                ->get()
+                ->mapWithKeys(fn ($insumo) => [$insumo->id => $insumo->etiquetaEntrada()]);
 
             $totalLienzosDetalle = $detalle->total_lienzos;
             if ($totalLienzosDetalle === null || $totalLienzosDetalle === '') {
@@ -393,7 +396,7 @@
                             <div class="row g-3">
                                 <div class="col-md-12">
                                     <label class="small text-muted font-weight-bold">Tela</label>
-                                    <div class="readonly-field">{{ $detalle->tela?->nombre ?? $fmtVal($detalle->descripcion_tela) }}</div>
+                                    <div class="readonly-field">{{ $detalle->tela?->etiquetaEntrada() ?? $fmtVal($detalle->descripcion_tela) }}</div>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="small text-muted font-weight-bold">Ancho tela (cm)</label>
@@ -431,7 +434,7 @@
                             <div class="row g-3">
                                 <div class="col-md-12">
                                     <label class="small text-muted font-weight-bold">Tergal</label>
-                                    <div class="readonly-field">{{ $detalle->tergal?->nombre ?? $fmtVal($detalle->descripcion_tergal) }}</div>
+                                    <div class="readonly-field">{{ $detalle->tergal?->etiquetaEntrada() ?? $fmtVal($detalle->descripcion_tergal) }}</div>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="small text-muted font-weight-bold">Ancho tela (cm)</label>
@@ -469,7 +472,7 @@
                             <div class="row g-3">
                                 <div class="col-md-12">
                                     <label class="small text-muted font-weight-bold">Forro</label>
-                                    <div class="readonly-field">{{ $detalle->forro?->nombre ?? $fmtVal($detalle->descripcion_forro) }}</div>
+                                    <div class="readonly-field">{{ $detalle->forro?->etiquetaEntrada() ?? $fmtVal($detalle->descripcion_forro) }}</div>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="small text-muted font-weight-bold">Ancho forro (cm)</label>
@@ -596,7 +599,7 @@
                                 <tbody>
                                     @if((float) ($detalle->cortinero_cantidad ?? 0) > 0 || $detalle->cortinero_id)
                                     <tr>
-                                        <td>{{ $detalle->cortinero?->nombre ?? 'Cortinero cortina' }}</td>
+                                        <td>{{ $detalle->cortinero?->etiquetaEntrada() ?? 'Cortinero cortina' }}</td>
                                         <td>{{ $fmtNum($detalle->cortinero_cantidad) }}</td>
                                         @if($veCostos)
                                         <td>{{ $fmtMoney($detalle->cortinero_precio) }}</td>
@@ -606,7 +609,7 @@
                                     @endif
                                     @if((float) ($detalle->cortinero_tergal_cantidad ?? 0) > 0 || $detalle->cortinero_tergal_id)
                                     <tr>
-                                        <td>{{ $detalle->cortineroTergal?->nombre ?? 'Cortinero tergal' }}</td>
+                                        <td>{{ $detalle->cortineroTergal?->etiquetaEntrada() ?? 'Cortinero tergal' }}</td>
                                         <td>{{ $fmtNum($detalle->cortinero_tergal_cantidad) }}</td>
                                         @if($veCostos)
                                         <td>{{ $fmtMoney($detalle->cortinero_tergal_precio) }}</td>
@@ -717,7 +720,7 @@
                                 @foreach($cotizacion->insumos as $insumo)
                                     <tr>
                                         <td>{{ $insumo->tipoInsumo?->nombre ?? '-' }}</td>
-                                        <td>{{ $insumo->nombre }}</td>
+                                        <td>{{ $insumo->etiquetaEntrada() }}</td>
                                         <td>{{ $fmtNum($insumo->pivot->cantidad) }}</td>
                                         <td>{{ $fmtMoney($insumo->pivot->precio_unitario) }}</td>
                                         <td>{{ $fmtNum($insumo->pivot->descuento ?? 0, 2) }}%</td>
@@ -764,7 +767,7 @@
                                     <tr>
                                         <td>{{ $producto->tipoProducto?->nombre ?? '-' }}</td>
                                         <td>
-                                            {{ $producto->nombre }}
+                                            {{ $producto->etiquetaEntrada() }}
                                             @if(filled($producto->descripcion))
                                                 <div class="small text-muted">{{ $producto->descripcion }}</div>
                                             @endif

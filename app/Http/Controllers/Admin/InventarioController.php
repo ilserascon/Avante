@@ -15,7 +15,7 @@ class InventarioController extends Controller
         $tipo = $request->input('tipo', '');
 
         $query = Existencia::query()
-            ->with(['producto', 'insumo.proveedor', 'almacen'])
+            ->with(['producto.tipoProducto', 'insumo.tipoInsumo', 'almacen'])
             ->where('cantidad', '>', 0);
 
         if ($tipo === 'producto') {
@@ -27,9 +27,13 @@ class InventarioController extends Controller
         if ($nombre !== '') {
             $query->where(function ($q) use ($nombre) {
                 $q->whereHas('producto', function ($productoQuery) use ($nombre) {
-                    $productoQuery->where('nombre', 'like', '%' . $nombre . '%');
+                    $productoQuery->where('nombre', 'like', '%' . $nombre . '%')
+                        ->orWhere('clave', 'like', '%' . $nombre . '%')
+                        ->orWhere('color', 'like', '%' . $nombre . '%');
                 })->orWhereHas('insumo', function ($insumoQuery) use ($nombre) {
                     $insumoQuery->where('nombre', 'like', '%' . $nombre . '%')
+                        ->orWhere('clave', 'like', '%' . $nombre . '%')
+                        ->orWhere('color', 'like', '%' . $nombre . '%')
                         ->orWhere('campo1', 'like', '%' . $nombre . '%')
                         ->orWhere('campo2', 'like', '%' . $nombre . '%');
                 });
@@ -44,7 +48,7 @@ class InventarioController extends Controller
                 if (!isset($agrupado[$key])) {
                     $agrupado[$key] = [
                         'tipo' => 'Producto',
-                        'nombre' => $existencia->producto->nombre,
+                        'nombre' => $existencia->producto->etiquetaEntrada(),
                         'cantidad_total' => 0.0,
                         'almacenes' => [],
                     ];
@@ -55,7 +59,7 @@ class InventarioController extends Controller
                     $insumo = $existencia->insumo;
                     $agrupado[$key] = [
                         'tipo' => 'Insumo',
-                        'nombre' => $insumo->nombre_completo ?: $insumo->nombre,
+                        'nombre' => $insumo->etiquetaEntrada(),
                         'cantidad_total' => 0.0,
                         'almacenes' => [],
                     ];

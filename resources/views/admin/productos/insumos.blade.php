@@ -82,7 +82,7 @@
                             @forelse ($producto->insumos as $index => $insumo)
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
-                                    <td>{{ $insumo->nombre_completo }}</td>
+                                    <td>{{ $insumo->etiquetaEntrada() }}</td>
                                     <td class="text-right">
                                         <span class="cantidad-badge">{{ number_format((float) ($insumo->pivot->cantidad ?? 0), 2) }}</span>
                                     </td>
