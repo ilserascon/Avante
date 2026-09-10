@@ -223,6 +223,7 @@ class CotizacionController extends Controller
             $dataDetalle['lleva_tergal'] = in_array('tergal', $tiposBloque) ? 1 : 0;
             $dataDetalle['lleva_forro'] = !empty($detalleBloque['lleva_forro']) ? 1 : 0;
             $dataDetalle['area'] = $detalleBloque['area'] ?? null;
+            $dataDetalle['descripcion'] = $this->descripcionDesdeDetalleBloque($detalleBloque, $dataDetalle);
 
             if ($dataDetalle['lleva_cortina']) {
                 $dataDetalle['tela_id'] = $detalleBloque['tela_id'] ?? null;
@@ -232,11 +233,6 @@ class CotizacionController extends Controller
                 $dataDetalle['no_lienzos'] = $detalleBloque['no_lienzos'] ?? null;
                 $dataDetalle['no_lienzos_redondeado'] = $detalleBloque['no_lienzos_redondeado'] ?? null;
                 $dataDetalle['bastilla'] = $detalleBloque['valor_bastilla'] ?? null;
-                $dataDetalle['descripcion'] = $detalleBloque['descripcion'] ?? trim(implode(' | ', array_filter([
-                    $detalleBloque['descripcion_tela'] ?? null,
-                    $detalleBloque['descripcion_tergal'] ?? null,
-                    $detalleBloque['descripcion_forro'] ?? null,
-                ])));
                 $dataDetalle['descripcion_tela'] = $detalleBloque['descripcion_tela'] ?? null;
                 $dataDetalle['total_tela'] = $detalleBloque['total_tela'] ?? null;
                 $dataDetalle['precio_m2_tela'] = $detalleBloque['precio_m2_tela'] ?? null;
@@ -579,6 +575,7 @@ class CotizacionController extends Controller
             $dataDetalle['lleva_tergal'] = in_array('tergal', $tiposBloque) ? 1 : 0;
             $dataDetalle['lleva_forro'] = !empty($detalleBloque['lleva_forro']) ? 1 : 0;
             $dataDetalle['area'] = $detalleBloque['area'] ?? null;
+            $dataDetalle['descripcion'] = $this->descripcionDesdeDetalleBloque($detalleBloque, $dataDetalle);
 
             if ($dataDetalle['lleva_cortina']) {
                 $dataDetalle['tela_id'] = $detalleBloque['tela_id'] ?? null;
@@ -588,11 +585,6 @@ class CotizacionController extends Controller
                 $dataDetalle['no_lienzos'] = $detalleBloque['no_lienzos'] ?? null;
                 $dataDetalle['no_lienzos_redondeado'] = $detalleBloque['no_lienzos_redondeado'] ?? null;
                 $dataDetalle['bastilla'] = $detalleBloque['valor_bastilla'] ?? null;
-                $dataDetalle['descripcion'] = $detalleBloque['descripcion'] ?? trim(implode(' | ', array_filter([
-                    $detalleBloque['descripcion_tela'] ?? null,
-                    $detalleBloque['descripcion_tergal'] ?? null,
-                    $detalleBloque['descripcion_forro'] ?? null,
-                ])));
                 $dataDetalle['descripcion_tela'] = $detalleBloque['descripcion_tela'] ?? null;
                 $dataDetalle['total_tela'] = $detalleBloque['total_tela'] ?? null;
                 $dataDetalle['precio_m2_tela'] = $detalleBloque['precio_m2_tela'] ?? null;
@@ -920,6 +912,29 @@ class CotizacionController extends Controller
         $precioForm = (float) ($precioPublicoForm ?? 0);
 
         return $precioForm > 0 ? round($precioForm, 2) : null;
+    }
+
+    private function descripcionDesdeDetalleBloque(array $detalleBloque, array $dataDetalle): ?string
+    {
+        $texto = trim((string) ($detalleBloque['descripcion'] ?? ''));
+        if ($texto !== '') {
+            return $texto;
+        }
+
+        $partes = [];
+        if (!empty($dataDetalle['lleva_cortina'])) {
+            $partes[] = $detalleBloque['descripcion_tela'] ?? null;
+        }
+        if (!empty($dataDetalle['lleva_tergal'])) {
+            $partes[] = $detalleBloque['descripcion_tergal'] ?? null;
+        }
+        if (!empty($dataDetalle['lleva_forro'])) {
+            $partes[] = $detalleBloque['descripcion_forro'] ?? null;
+        }
+
+        $compuesta = trim(implode(' | ', array_filter($partes, fn ($parte) => trim((string) $parte) !== '')));
+
+        return $compuesta !== '' ? $compuesta : null;
     }
 
     private function guardarDetalleCotizacion(Cotizacion $cotizacion, array $detalleData, array $totales = []): void

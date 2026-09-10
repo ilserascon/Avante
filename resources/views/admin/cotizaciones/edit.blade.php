@@ -1793,9 +1793,9 @@
             const localCostoDecorador = localCostoCortina * (1 + decoradorPorcentaje / 100);
             const descuento = parseFloat(pane.querySelector('.detalle-descuento')?.value) || 0;
             const descripcionCompuesta = [
-                field('descripcion_tela')?.value?.trim(),
-                field('descripcion_tergal')?.value?.trim(),
-                field('descripcion_forro')?.value?.trim()
+                cortinaChecked ? field('descripcion_tela')?.value?.trim() : '',
+                tergalChecked ? field('descripcion_tergal')?.value?.trim() : '',
+                forroChecked ? field('descripcion_forro')?.value?.trim() : ''
             ].filter(Boolean).join(' | ');
             let localPrecioPublico = localCostoCortina * 2;
             if (descuento > 0) localPrecioPublico -= localPrecioPublico * (descuento / 100);
