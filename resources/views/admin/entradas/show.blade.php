@@ -208,9 +208,9 @@
                                 </td>
                                 <td>
                                     @if($detalle->id_producto)
-                                        {{ $detalle->producto->nombre ?? '-' }}
+                                        {{ $detalle->producto?->etiquetaEntrada() ?? '-' }}
                                     @else
-                                        {{ $detalle->insumo->nombre_completo ?? $detalle->insumo->nombre ?? '-' }}
+                                        {{ $detalle->insumo?->etiquetaEntrada() ?? '-' }}
                                     @endif
                                 </td>
                                 <td class="text-right">

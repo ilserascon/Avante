@@ -146,6 +146,7 @@
                             <tr>
                                 <th>No.</th>
                                 <th>Almacén</th>
+                                <th>Artículos</th>
                                 <th>Usuario</th>
                                 <th>Fecha</th>
                                 <th class="text-right">Acciones</th>
@@ -160,6 +161,20 @@
                                         </a>
                                     </td>
                                     <td>{{ $entrada->almacen->nombre ?? 'N/A' }}</td>
+                                    <td>
+                                        @forelse($entrada->detalles as $detalle)
+                                            <div class="small {{ !$loop->last ? 'mb-1' : '' }}">
+                                                @if($detalle->id_producto)
+                                                    {{ $detalle->producto?->etiquetaEntrada() ?? '-' }}
+                                                @else
+                                                    {{ $detalle->insumo?->etiquetaEntrada() ?? '-' }}
+                                                @endif
+                                                <span class="text-muted">× {{ rtrim(rtrim(number_format((float) $detalle->cantidad, 2), '0'), '.') }}</span>
+                                            </div>
+                                        @empty
+                                            <span class="text-muted">-</span>
+                                        @endforelse
+                                    </td>
                                     <td>{{ $entrada->usuario->name ?? 'N/A' }}</td>
                                     <td>{{ $entrada->created_at->format('d/m/Y') }}</td>
                                     <td>
@@ -175,7 +190,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">No hay entradas registradas.</td>
+                                    <td colspan="6" class="text-center text-muted py-4">No hay entradas registradas.</td>
                                 </tr>
                             @endforelse
                         </tbody>

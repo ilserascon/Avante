@@ -2,7 +2,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
 use App\Models\Entrada;
 use App\Models\DetalleEntrada;
 use App\Models\Existencia;
@@ -16,7 +15,13 @@ class EntradaController extends Controller
 {
     public function index()
     {
-        $entradas = Entrada::with(['almacen', 'usuario'])->paginate(10); 
+        $entradas = Entrada::with([
+            'almacen',
+            'usuario',
+            'detalles.producto.tipoProducto',
+            'detalles.insumo.tipoInsumo',
+        ])->paginate(10);
+
         return view('admin.entradas.index', compact('entradas'));
     }
 
@@ -25,10 +30,10 @@ class EntradaController extends Controller
         $entrada = Entrada::with([
             'almacen',
             'usuario',
-            'detalles.insumo.proveedor',
-            'detalles.producto'
+            'detalles.insumo.tipoInsumo',
+            'detalles.producto.tipoProducto',
         ])->findOrFail($id);
-        $tipos = TipoInsumo::all(); 
+        $tipos = TipoInsumo::all();
         $tipoSeleccionado = $entrada->detalles->first()->producto->tipo_insumo_id ?? null;
         return view('admin.entradas.show', compact('entrada', 'tipos', 'tipoSeleccionado'));
     }
@@ -36,18 +41,7 @@ class EntradaController extends Controller
     public function create()
     {
         $almacenes = Almacen::all();
-        $productos = Producto::all();
-        $insumos = DB::table('insumo')
-            ->select(
-                'insumo.id',
-                DB::raw("TRIM(CONCAT_WS(' | ', 
-                    COALESCE(insumo.nombre, ''), 
-                    COALESCE(insumo.campo1, ''), 
-                    COALESCE(insumo.campo2, ''), 
-                    COALESCE((SELECT nombre FROM proveedores WHERE proveedores.id = insumo.id_proveedor), '')
-                )) AS nombre_completo")
-            )
-            ->get();
+        [$productos, $insumos] = $this->catalogosParaEntrada();
 
         return view('admin.entradas.create', compact('almacenes', 'productos', 'insumos'));
     }
@@ -56,20 +50,37 @@ class EntradaController extends Controller
     {
         $entrada = Entrada::with('detalles')->findOrFail($id);
         $almacenes = Almacen::all();
-        $productos = Producto::all();
-        $insumos = DB::table('insumo')
-            ->select(
-                'insumo.id',
-                DB::raw("TRIM(CONCAT_WS(' | ', 
-                    COALESCE(insumo.nombre, ''), 
-                    COALESCE(insumo.campo1, ''), 
-                    COALESCE(insumo.campo2, ''), 
-                    COALESCE((SELECT nombre FROM proveedores WHERE proveedores.id = insumo.id_proveedor), '')
-                )) AS nombre_completo")
-            )
-            ->get();
+        [$productos, $insumos] = $this->catalogosParaEntrada();
 
         return view('admin.entradas.edit', compact('entrada', 'almacenes', 'productos', 'insumos'));
+    }
+
+    /** @return array{0: \Illuminate\Support\Collection, 1: \Illuminate\Support\Collection} */
+    private function catalogosParaEntrada(): array
+    {
+        $productos = Producto::with('tipoProducto')
+            ->orderBy('nombre')
+            ->get()
+            ->map(function (Producto $producto) {
+                return [
+                    'id' => $producto->id,
+                    'etiqueta' => $producto->etiquetaEntrada(),
+                ];
+            })
+            ->values();
+
+        $insumos = Insumo::with('tipoInsumo')
+            ->orderBy('nombre')
+            ->get()
+            ->map(function (Insumo $insumo) {
+                return [
+                    'id' => $insumo->id,
+                    'etiqueta' => $insumo->etiquetaEntrada(),
+                ];
+            })
+            ->values();
+
+        return [$productos, $insumos];
     }
 
     public function update(Request $request, $id)

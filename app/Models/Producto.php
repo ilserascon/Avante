@@ -95,6 +95,42 @@ class Producto extends Model
         return implode(' - ', $medidas);
     }
 
+    /** Primer campo adicional cuya etiqueta sea Medida, Ancho o Largo. */
+    public function primeraMedidaMostrar(): string
+    {
+        $tipo = $this->tipoProducto;
+
+        if (!$tipo) {
+            return '';
+        }
+
+        foreach ($tipo->camposPersonalizados() as $campo => $etiqueta) {
+            if (!Insumo::etiquetaEsMedida(Insumo::normalizarCampoMostrar($etiqueta))) {
+                continue;
+            }
+
+            $valor = Insumo::normalizarCampoMostrar($this->$campo);
+            if ($valor !== '') {
+                return $valor;
+            }
+        }
+
+        return '';
+    }
+
+    /** Etiqueta clave - nombre - color - medida para entradas e inventario. */
+    public function etiquetaEntrada(): string
+    {
+        $partes = array_filter([
+            Insumo::normalizarCampoMostrar($this->clave),
+            Insumo::normalizarCampoMostrar($this->nombre),
+            Insumo::normalizarCampoMostrar($this->color),
+            $this->primeraMedidaMostrar(),
+        ]);
+
+        return implode(' - ', $partes);
+    }
+
     /** Etiqueta clave - nombre - descripcion - color - medida para selects de productos en cotizaciones. */
     public function etiquetaCotizacion(): string
     {

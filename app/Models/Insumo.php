@@ -133,6 +133,45 @@ class Insumo extends Model
         return implode(' - ', $medidas);
     }
 
+    /** Primer campo adicional cuya etiqueta sea Medida, Ancho o Largo. */
+    public function primeraMedidaMostrar(): string
+    {
+        $tipo = $this->tipoInsumo;
+
+        if (!$tipo) {
+            return '';
+        }
+
+        for ($i = 1; $i <= 15; $i++) {
+            $campo = 'campo' . $i;
+            $etiqueta = self::normalizarCampoMostrar($tipo->$campo);
+
+            if ($etiqueta === '' || !self::etiquetaEsMedida($etiqueta)) {
+                continue;
+            }
+
+            $valor = self::normalizarCampoMostrar($this->$campo);
+            if ($valor !== '') {
+                return $valor;
+            }
+        }
+
+        return '';
+    }
+
+    /** Etiqueta clave - nombre - color - medida para entradas e inventario. */
+    public function etiquetaEntrada(): string
+    {
+        $partes = array_filter([
+            self::normalizarCampoMostrar($this->clave),
+            self::normalizarCampoMostrar($this->nombre),
+            self::normalizarCampoMostrar($this->color),
+            $this->primeraMedidaMostrar(),
+        ]);
+
+        return implode(' - ', $partes);
+    }
+
     public static function etiquetaEsMedida(string $etiqueta): bool
     {
         return in_array(mb_strtolower($etiqueta), ['medida', 'medidas', 'ancho', 'largo'], true);

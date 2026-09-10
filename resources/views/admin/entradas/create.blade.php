@@ -242,8 +242,8 @@ function buildItemRow(type) {
     const badgeLabel = isProduct ? 'Producto' : 'Insumo';
     const selectName = isProduct ? `items[${index}][id_producto]` : `items[${index}][id_insumo]`;
     const options = isProduct
-        ? `@foreach($productos as $producto)<option value="{{ $producto->id }}">{{ $producto->nombre }}</option>@endforeach`
-        : `@foreach($insumos as $insumo)<option value="{{ $insumo->id }}">{{ $insumo->nombre_completo }}</option>@endforeach`;
+        ? `@foreach($productos as $producto)<option value="{{ $producto['id'] }}">{{ $producto['etiqueta'] }}</option>@endforeach`
+        : `@foreach($insumos as $insumo)<option value="{{ $insumo['id'] }}">{{ $insumo['etiqueta'] }}</option>@endforeach`;
     const placeholder = isProduct ? 'Seleccione un producto...' : 'Seleccione un insumo...';
 
     return `

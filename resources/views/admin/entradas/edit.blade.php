@@ -207,14 +207,14 @@
                                             <select name="items[{{ $i }}][id]" class="form-control id-select select2">
                                                 @if($esProducto)
                                                     @foreach($productos as $producto)
-                                                        <option value="{{ $producto->id }}" data-tipo="producto" {{ (int) $detalle->id_producto === (int) $producto->id ? 'selected' : '' }}>
-                                                            {{ $producto->nombre }}
+                                                        <option value="{{ $producto['id'] }}" data-tipo="producto" {{ (int) $detalle->id_producto === (int) $producto['id'] ? 'selected' : '' }}>
+                                                            {{ $producto['etiqueta'] }}
                                                         </option>
                                                     @endforeach
                                                 @else
                                                     @foreach($insumos as $insumo)
-                                                        <option value="{{ $insumo->id }}" data-tipo="insumo" {{ (int) $detalle->id_insumo === (int) $insumo->id ? 'selected' : '' }}>
-                                                            {{ $insumo->nombre_completo }}
+                                                        <option value="{{ $insumo['id'] }}" data-tipo="insumo" {{ (int) $detalle->id_insumo === (int) $insumo['id'] ? 'selected' : '' }}>
+                                                            {{ $insumo['etiqueta'] }}
                                                         </option>
                                                     @endforeach
                                                 @endif
@@ -263,7 +263,7 @@
                 <select class="form-control id-select select2">
                     <option value="">Buscar artículo...</option>
                     @foreach($productos as $producto)
-                        <option value="{{ $producto->id }}" data-tipo="producto">{{ $producto->nombre }}</option>
+                        <option value="{{ $producto['id'] }}" data-tipo="producto">{{ $producto['etiqueta'] }}</option>
                     @endforeach
                 </select>
             </div>
@@ -314,12 +314,12 @@
         if (tipo === 'producto') {
             productos.forEach(function (p) {
                 const selected = selectedId && Number(selectedId) === Number(p.id) ? ' selected' : '';
-                options += `<option value="${p.id}" data-tipo="producto"${selected}>${p.nombre}</option>`;
+                options += `<option value="${p.id}" data-tipo="producto"${selected}>${p.etiqueta}</option>`;
             });
         } else {
             insumos.forEach(function (i) {
                 const selected = selectedId && Number(selectedId) === Number(i.id) ? ' selected' : '';
-                options += `<option value="${i.id}" data-tipo="insumo"${selected}>${i.nombre_completo}</option>`;
+                options += `<option value="${i.id}" data-tipo="insumo"${selected}>${i.etiqueta}</option>`;
             });
         }
 
