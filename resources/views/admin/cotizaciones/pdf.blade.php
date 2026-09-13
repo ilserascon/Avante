@@ -377,9 +377,7 @@
         $anchoCotizado = (float) ($producto->pivot->ancho ?? 0);
         $largoCotizado = (float) ($producto->pivot->largo ?? 0);
         $esPersiana = $anchoCotizado > 0 && $largoCotizado > 0;
-        $medidaProducto = $esPersiana
-            ? number_format($anchoCotizado, 2) . ' x ' . number_format($largoCotizado, 2) . ' m'
-            : $producto->medidaMostrar();
+        $medidaProducto = $esPersiana ? '' : $producto->medidaMostrar();
 
         $lineas[] = [
             'descripcion' => $describirCatalogo($producto->nombre, $producto->descripcion, $producto->color, $medidaProducto),
