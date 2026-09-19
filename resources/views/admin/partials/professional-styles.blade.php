@@ -56,7 +56,7 @@
 
     .admin-pro .table thead th {
         background: #f5f8ff;
-        color: #4a5f83;
+        color: #000;
         font-weight: 700;
         border-bottom: 0;
         white-space: nowrap;

@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{{ asset('stisla/assets/modules/fontawesome/css/all.min.css') }}">
   <link rel="stylesheet" href="{{ asset('stisla/assets/css/style.css') }}">
   <link rel="stylesheet" href="{{ asset('stisla/assets/css/components.css') }}">
+  <link rel="stylesheet" href="{{ asset('stisla/assets/css/custom.css') }}">
   <style>
     :root {
       --login-accent: #1a8683;
@@ -39,7 +40,7 @@
     }
 
     .login-brand p {
-      color: #6c757d;
+      color: #000;
       margin-top: 0.75rem;
       margin-bottom: 0;
       font-size: 0.95rem;
@@ -121,7 +122,7 @@
 
     .custom-control-label {
       font-size: 0.875rem;
-      color: #6c757d;
+      color: #000;
       cursor: pointer;
     }
 

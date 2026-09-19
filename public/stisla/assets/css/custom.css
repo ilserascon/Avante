@@ -1,8 +1,35 @@
 /**
- *
- * You can write your CSS code here, DO NOT touch the default JavaScript file
- * because it will make it harder for you to update.
- * 
+ * Texto que Bootstrap/Stisla pintan en #6c757d: se ve muy claro.
  */
+.text-muted,
+.text-secondary,
+.form-text,
+.blockquote-footer,
+.figure-caption,
+.custom-control-label,
+.form-check-label,
+.breadcrumb-item.active,
+.section .section-header p,
+label,
+.form-label,
+.col-form-label,
+.control-label,
+.field-label,
+strong,
+b {
+  color: #000 !important;
+}
 
-/*# sourceMappingURL=custom.css.map */
+.table,
+.table td,
+.table th,
+.table thead th,
+.table tbody td,
+.table tfoot td,
+.table tfoot th {
+  color: #000;
+}
+
+.table:not(.table-sm) thead th {
+  color: #000 !important;
+}
