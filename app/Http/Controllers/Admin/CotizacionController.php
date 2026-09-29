@@ -80,6 +80,7 @@ class CotizacionController extends Controller
 
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
+            ->where('borrado', 0)
             ->get()
             ->keyBy('nombre');
 
@@ -89,19 +90,21 @@ class CotizacionController extends Controller
             'Mano de Obra Tergal'
         ])
             ->where('id_tipo_insumo', 3)
+            ->where('borrado', 0)
             ->get()
             ->keyBy('nombre');
 
-        $telas = Insumo::where('id_tipo_insumo', 1)->get();
+        $telas = Insumo::where('id_tipo_insumo', 1)->where('borrado', 0)->get();
 
-        $tergales = Insumo::where('id_tipo_insumo', 4)->get();
+        $tergales = Insumo::where('id_tipo_insumo', 4)->where('borrado', 0)->get();
 
-        $forros = Insumo::where('id_tipo_insumo', 5)->get();
+        $forros = Insumo::where('id_tipo_insumo', 5)->where('borrado', 0)->get();
 
         $cortineros = Producto::where('id_tipo_producto', 1)
+            ->where('borrado', 0)
             ->orderBy('nombre')
             ->get();
-        $productos = Producto::with('tipoProducto')->orderBy('nombre')->get();
+        $productos = Producto::with('tipoProducto')->where('borrado', 0)->orderBy('nombre')->get();
         $productosDisponibles = $this->mapProductosParaCotizacion();
         $tiposProductoCotizacion = $this->tiposProductoParaCotizacion();
 
@@ -378,6 +381,7 @@ class CotizacionController extends Controller
 
         $insumosFijos = Insumo::whereIn('nombre', ['Ojillos', 'Cortinero', 'Puntas', 'Mensulas'])
             ->where('id_tipo_insumo', 2)
+            ->where('borrado', 0)
             ->get()
             ->keyBy('nombre');
 
@@ -386,18 +390,20 @@ class CotizacionController extends Controller
             'Mano de Obra Tergal'
         ])
             ->where('id_tipo_insumo', 3)
+            ->where('borrado', 0)
             ->get()
             ->keyBy('nombre');
 
-        $telas = Insumo::where('id_tipo_insumo', 1)->get();
-        $tergales = Insumo::where('id_tipo_insumo', 4)->get();
-        $forros = Insumo::where('id_tipo_insumo', 5)->get();
+        $telas = Insumo::where('id_tipo_insumo', 1)->where('borrado', 0)->get();
+        $tergales = Insumo::where('id_tipo_insumo', 4)->where('borrado', 0)->get();
+        $forros = Insumo::where('id_tipo_insumo', 5)->where('borrado', 0)->get();
 
         $cortineros = Producto::where('id_tipo_producto', 1)
+            ->where('borrado', 0)
             ->orderBy('nombre')
             ->get();
 
-        $productos = Producto::with('tipoProducto')->orderBy('nombre')->get();
+        $productos = Producto::with('tipoProducto')->where('borrado', 0)->orderBy('nombre')->get();
         $productosDisponibles = $this->mapProductosParaCotizacion();
         $tiposProductoCotizacion = $this->tiposProductoParaCotizacion();
 
@@ -1315,6 +1321,7 @@ class CotizacionController extends Controller
     private function mapProductosParaCotizacion()
     {
         return Producto::with(['tipoProducto', 'insumos.proveedor'])
+            ->where('borrado', 0)
             ->orderBy('nombre')
             ->get()
             ->map(function ($producto) {

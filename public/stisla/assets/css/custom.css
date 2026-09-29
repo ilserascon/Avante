@@ -33,3 +33,18 @@ b {
 .table:not(.table-sm) thead th {
   color: #000 !important;
 }
+
+.main-sidebar .sidebar-menu li.menu-header,
+.main-sidebar .sidebar-menu li a,
+.main-sidebar .sidebar-menu li a span,
+.main-sidebar .sidebar-menu li a i,
+.main-sidebar .sidebar-menu li ul.dropdown-menu li a {
+  color: #000 !important;
+}
+
+.main-sidebar .sidebar-menu li.active > a,
+.main-sidebar .sidebar-menu li.active > a span,
+.main-sidebar .sidebar-menu li.active > a i,
+.main-sidebar .sidebar-menu li ul.dropdown-menu li.active a {
+  color: #1a8683 !important;
+}

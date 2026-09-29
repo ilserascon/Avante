@@ -27,6 +27,11 @@ class Producto extends Model
         'precio',
         'precio_publico',
         'id_tipo_producto',
+        'borrado',
+    ];
+
+    protected $attributes = [
+        'borrado' => 0,
     ];
 
     public $timestamps = true;

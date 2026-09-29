@@ -31,11 +31,11 @@
             <div class="card filter-card">
                 <div class="card-body">
                     <div class="form-row align-items-end">
-                        <div class="col-md-4 mb-2 mb-md-0">
+                        <div class="col-md-3 mb-2 mb-md-0">
                             <label class="field-label">Nombre o clave</label>
                             <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre o clave" value="{{ request('nombre') }}">
                         </div>
-                        <div class="col-md-4 mb-2 mb-md-0">
+                        <div class="col-md-3 mb-2 mb-md-0">
                             <label class="field-label">Tipo de producto</label>
                             <select name="id_tipo_producto" class="form-control">
                                 <option value="">Todos los tipos</option>
@@ -44,7 +44,14 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4 d-flex">
+                        <div class="col-md-3 mb-2 mb-md-0">
+                            <label class="field-label">Estado</label>
+                            <select name="estado" class="form-control">
+                                <option value="habilitado" {{ $estado == 'habilitado' ? 'selected' : '' }}>Habilitados</option>
+                                <option value="inhabilitado" {{ $estado == 'inhabilitado' ? 'selected' : '' }}>Inhabilitados</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex">
                             <button type="submit" class="btn btn-primary mr-2 flex-grow-1">Buscar</button>
                             <a href="{{ route('admin.productos.index') }}" class="btn btn-light border flex-grow-1">Limpiar</a>
                         </div>
@@ -87,12 +94,13 @@
                                 @foreach($camposDinamicos as $campo => $etiqueta)
                                     <th>{{ $etiqueta }}</th>
                                 @endforeach
+                                <th>Estado</th>
                                 <th class="text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @php
-                                $columnasTabla = 7 + ($veCostos ? 1 : 0) + count($camposDinamicos) + 1;
+                                $columnasTabla = 8 + ($veCostos ? 1 : 0) + count($camposDinamicos) + 1;
                             @endphp
                             @forelse ($productos as $producto)
                                 @php
@@ -124,10 +132,33 @@
                                         <td>{{ $producto->$campo ?: '-' }}</td>
                                     @endforeach
                                     <td>
+                                        @if($producto->borrado == 0)
+                                            <span class="status-chip status-active">Activo</span>
+                                        @else
+                                            <span class="status-chip status-inactive">Inactivo</span>
+                                        @endif
+                                    </td>
+                                    <td>
                                         <div class="actions-wrap">
-                                            <a href="{{ route('admin.productos.edit', $producto->id) }}" class="action-btn btn-edit" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
+                                            @if($producto->borrado == 0)
+                                                <a href="{{ route('admin.productos.edit', $producto->id) }}" class="action-btn btn-edit" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <form action="{{ route('admin.productos.destroy', $producto->id) }}" method="POST" class="mb-0 d-inline js-producto-estado-form" data-accion="inhabilitar">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="action-btn btn-delete" title="Inhabilitar">
+                                                        <i class="fas fa-ban"></i>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('admin.productos.habilitar', $producto->id) }}" method="POST" class="mb-0 d-inline js-producto-estado-form" data-accion="habilitar">
+                                                    @csrf
+                                                    <button type="submit" class="action-btn btn-enable" title="Habilitar">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -208,6 +239,7 @@
 @endsection
 
 @section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js"></script>
 <style>
 .import-loading-overlay {
     position: fixed;
@@ -291,6 +323,35 @@ document.addEventListener('DOMContentLoaded', function () {
         importTipoSelect.addEventListener('change', actualizarCamposImportacion);
         actualizarCamposImportacion();
     }
+
+    document.querySelectorAll('.js-producto-estado-form').forEach(function (form) {
+        var enviando = false;
+
+        form.addEventListener('submit', function (event) {
+            if (enviando) {
+                return;
+            }
+
+            event.preventDefault();
+
+            var esInhabilitar = form.getAttribute('data-accion') === 'inhabilitar';
+
+            swal({
+                title: '¿Está seguro?',
+                text: esInhabilitar
+                    ? '¿Desea inhabilitar este producto?'
+                    : '¿Desea habilitar este producto?',
+                icon: 'warning',
+                buttons: ['Cancelar', esInhabilitar ? 'Sí, inhabilitar' : 'Sí, habilitar'],
+                dangerMode: esInhabilitar,
+            }).then(function (confirmado) {
+                if (confirmado) {
+                    enviando = true;
+                    form.submit();
+                }
+            });
+        });
+    });
 });
 </script>
 @endsection

@@ -39,10 +39,17 @@ class ProductoController extends Controller
             $query->where('id_tipo_producto', $request->id_tipo_producto);
         }
 
+        $estado = $request->get('estado', 'habilitado');
+        if ($estado === 'habilitado') {
+            $query->where('borrado', 0);
+        } elseif ($estado === 'inhabilitado') {
+            $query->where('borrado', 1);
+        }
+
         $productos = $query->with(['tipoProducto', 'proveedor'])->paginate(10)->appends($request->query());
         $tiposProducto = TipoProducto::orderBy('nombre')->get();
 
-        return view('admin.productos.index', compact('productos', 'tiposProducto', 'tipoSeleccionado', 'camposDinamicos'));
+        return view('admin.productos.index', compact('productos', 'tiposProducto', 'tipoSeleccionado', 'camposDinamicos', 'estado'));
     }
 
     public function create()
@@ -87,6 +94,7 @@ class ProductoController extends Controller
             'precio_publico' => $validated['precio_publico'] ?? null,
             'id_tipo_producto' => $validated['id_tipo_producto'] ?? null,
             'id_proveedor' => $validated['id_proveedor'],
+            'borrado' => 0,
             ...$this->datosCamposProducto($validated),
         ]);
 
@@ -192,6 +200,7 @@ class ProductoController extends Controller
     private function insumosParaAsignacion()
     {
         return Insumo::with('tipoInsumo')
+            ->where('borrado', 0)
             ->orderBy('nombre')
             ->get()
             ->map(function (Insumo $insumo) {
@@ -252,6 +261,24 @@ class ProductoController extends Controller
         $producto = Producto::with(['insumos.tipoInsumo', 'insumos.proveedor'])->findOrFail($id);
 
         return view('admin.productos.insumos', compact('producto'));
+    }
+
+    public function destroy($id)
+    {
+        $producto = Producto::findOrFail($id);
+        $producto->update(['borrado' => 1]);
+
+        return redirect()->route('admin.productos.index')->with('success', 'Producto inhabilitado correctamente.');
+    }
+
+    public function habilitar($id)
+    {
+        $producto = Producto::findOrFail($id);
+        $producto->update(['borrado' => 0]);
+
+        return redirect()
+            ->route('admin.productos.index', ['estado' => 'inhabilitado'])
+            ->with('success', 'Producto habilitado correctamente.');
     }
 
     public function import(Request $request)

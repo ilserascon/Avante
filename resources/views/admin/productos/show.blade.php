@@ -57,6 +57,16 @@
                         <div class="label">Tipo</div>
                         <div class="value">{{ $producto->tipoProducto->nombre ?? 'Sin tipo' }}</div>
                     </div>
+                    <div class="meta-item">
+                        <div class="label">Estado</div>
+                        <div class="value">
+                            @if($producto->borrado == 0)
+                                <span class="status-chip status-active">Activo</span>
+                            @else
+                                <span class="status-chip status-inactive">Inactivo</span>
+                            @endif
+                        </div>
+                    </div>
                     @if($veCostos)
                     <div class="meta-item">
                         <div class="label">Precio</div>

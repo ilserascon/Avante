@@ -1473,7 +1473,7 @@
                                                 ${obtenerOpcionesCortinero()}
                                             </select>
                                         </td>
-                                        <td><input type="number" name="detalles[${index}][cortinero_cantidad]" class="form-control detalle-cortinero-cantidad" step="1" value="1" readonly></td>
+                                        <td><input type="number" name="detalles[${index}][cortinero_cantidad]" class="form-control detalle-cortinero-cantidad" step="1" min="0" max="2" value="1"></td>
                                         <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][cortinero_precio]" class="form-control detalle-cortinero-precio" step="0.01" readonly></div></td>
                                         <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-cortinero-subtotal" step="0.01" readonly></div></td>
                                     </tr>
@@ -1484,7 +1484,7 @@
                                                 ${obtenerOpcionesCortinero()}
                                             </select>
                                         </td>
-                                        <td><input type="number" name="detalles[${index}][cortinero_tergal_cantidad]" class="form-control detalle-cortinero-tergal-cantidad" step="1" value="1" readonly></td>
+                                        <td><input type="number" name="detalles[${index}][cortinero_tergal_cantidad]" class="form-control detalle-cortinero-tergal-cantidad" step="1" min="0" max="2" value="1"></td>
                                         <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" name="detalles[${index}][cortinero_tergal_precio]" class="form-control detalle-cortinero-tergal-precio" step="0.01" readonly></div></td>
                                         <td class="${claseOcultarPrecioMateriales}"><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control detalle-cortinero-tergal-subtotal" step="0.01" readonly></div></td>
                                     </tr>
@@ -1726,13 +1726,18 @@
                 ['no_lienzos_forro','no_lienzos_redondeado_forro','total_forro','total_final_forro'].forEach(name => set(name, ''));
             }
 
+            const cantidadCortinero = (input) => {
+                const parsed = parseFloat(input?.value);
+                if (!Number.isFinite(parsed)) {
+                    return 1;
+                }
+                return Math.min(2, Math.max(0, parsed));
+            };
+
             const cortineroSelect = pane.querySelector('.detalle-cortinero-select');
             const cortineroPrecio = pane.querySelector('.detalle-cortinero-precio');
             const cortineroCantidadInput = pane.querySelector('.detalle-cortinero-cantidad');
-            if (cortineroCantidadInput) {
-                cortineroCantidadInput.value = 1;
-            }
-            const cortineroCantidad = 1;
+            const cortineroCantidad = cantidadCortinero(cortineroCantidadInput);
             const cortineroPrecioVal = parseFloat(cortineroSelect?.selectedOptions[0]?.dataset?.precio) || parseFloat(cortineroPrecio?.value) || 0;
             if (cortineroPrecio) cortineroPrecio.value = cortineroPrecioVal ? cortineroPrecioVal.toFixed(2) : '';
             const cortineroSubtotal = cortineroCantidad * cortineroPrecioVal;
@@ -1742,10 +1747,7 @@
             const cortineroTergalSelect = pane.querySelector('.detalle-cortinero-tergal-select');
             const cortineroTergalPrecio = pane.querySelector('.detalle-cortinero-tergal-precio');
             const cortineroTergalCantidadInput = pane.querySelector('.detalle-cortinero-tergal-cantidad');
-            if (cortineroTergalCantidadInput) {
-                cortineroTergalCantidadInput.value = 1;
-            }
-            const cortineroTergalCantidad = 1;
+            const cortineroTergalCantidad = cantidadCortinero(cortineroTergalCantidadInput);
             const cortineroTergalPrecioVal = parseFloat(cortineroTergalSelect?.selectedOptions[0]?.dataset?.precio) || parseFloat(cortineroTergalPrecio?.value) || 0;
             if (cortineroTergalPrecio) cortineroTergalPrecio.value = cortineroTergalPrecioVal ? cortineroTergalPrecioVal.toFixed(2) : '';
             const cortineroTergalSubtotal = cortineroTergalCantidad * cortineroTergalPrecioVal;
@@ -1994,10 +1996,10 @@
                 total_mano_obra_2: datos.total_mano_obra_2,
                 costo_total_mano_obra: datos.costo_total_mano_obra,
                 cortinero_id: datos.cortinero_id,
-                cortinero_cantidad: 1,
+                cortinero_cantidad: datos.cortinero_cantidad ?? 1,
                 cortinero_precio: datos.cortinero_precio,
                 cortinero_tergal_id: datos.cortinero_tergal_id,
-                cortinero_tergal_cantidad: 1,
+                cortinero_tergal_cantidad: datos.cortinero_tergal_cantidad ?? 1,
                 cortinero_tergal_precio: datos.cortinero_tergal_precio,
                 decorador_porcentaje: datos.decorador_porcentaje,
                 descuento: datos.descuento,

@@ -59,6 +59,7 @@ class EntradaController extends Controller
     private function catalogosParaEntrada(): array
     {
         $productos = Producto::with('tipoProducto')
+            ->where('borrado', 0)
             ->orderBy('nombre')
             ->get()
             ->map(function (Producto $producto) {
@@ -70,6 +71,7 @@ class EntradaController extends Controller
             ->values();
 
         $insumos = Insumo::with('tipoInsumo')
+            ->where('borrado', 0)
             ->orderBy('nombre')
             ->get()
             ->map(function (Insumo $insumo) {

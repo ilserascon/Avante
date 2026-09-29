@@ -90,6 +90,7 @@ class ProductosImport
             'precio_publico'   => $this->valorNumerico($row, ['precio_publico']),
             'id_tipo_producto' => $this->tipoProductoId,
             'id_proveedor'     => $proveedor->id,
+            'borrado'          => 0,
         ];
 
         $data['precio'] = $this->importarPrecioInterno ? $this->valorNumerico($row, ['precio']) : null;
