@@ -150,10 +150,11 @@ class Producto extends Model
         return implode(' - ', $partes);
     }
 
-    /** Etiqueta nombre - descripcion - medida (campo1) - color para selects de cortinero. */
+    /** Etiqueta clave - nombre - descripcion - medida (campo1) - color para selects de cortinero. */
     public function etiquetaCortinero(): string
     {
         $partes = array_filter([
+            Insumo::normalizarCampoMostrar($this->clave),
             Insumo::normalizarCampoMostrar($this->nombre),
             Insumo::normalizarCampoMostrar($this->descripcion),
             Insumo::normalizarCampoMostrar($this->campo1),

@@ -786,7 +786,7 @@
             return '';
         }
 
-        const partes = [cortinero.nombre, cortinero.descripcion, cortinero.campo1, cortinero.color]
+        const partes = [cortinero.clave, cortinero.nombre, cortinero.descripcion, cortinero.campo1, cortinero.color]
             .map(valor => valor != null ? String(valor).trim() : '')
             .filter(valor => valor && valor.toLowerCase() !== 'null');
 
@@ -1534,10 +1534,21 @@
             const limpiarNumero = (valor) => valor.toString().replace(/[^\d.]/g, '');
 
             if (selectEl.name.endsWith('[tela_id]')) {
-                const campo1 = selectEl.selectedOptions[0]?.dataset?.campo1 || '';
+                const selected = selectEl.selectedOptions[0];
+                const campo1 = selected?.dataset?.campo1 || '';
                 const anchoTela = field('ancho_tela');
                 if (campo1 && anchoTela) {
                     anchoTela.value = limpiarNumero(campo1);
+                }
+
+                const descripcionTela = field('descripcion_tela');
+                if (descripcionTela) {
+                    const partes = [selected?.dataset?.nombre, selected?.dataset?.color]
+                        .map(valor => valor != null ? String(valor).trim() : '')
+                        .filter(valor => valor && valor.toLowerCase() !== 'null');
+                    descripcionTela.value = selectEl.value && partes.length
+                        ? ('CORTINA ' + partes.join(' '))
+                        : '';
                 }
             }
 
@@ -1989,7 +2000,7 @@
                                                         $precioTelaDetalle = 100;
                                                     }
                                                 @endphp
-                                                <option value="{{ $tela->id }}" data-precio="{{ $precioTelaDetalle }}" data-campo1="{{ $tela->campo1Mostrar() }}">{{ $tela->etiquetaMaterialTextil() }}</option>
+                                                <option value="{{ $tela->id }}" data-precio="{{ $precioTelaDetalle }}" data-campo1="{{ $tela->campo1Mostrar() }}" data-nombre="{{ $tela->nombre }}" data-color="{{ $tela->color }}">{{ $tela->etiquetaMaterialTextil() }}</option>
                                             @endforeach
                                         </select>
                                     </div>
