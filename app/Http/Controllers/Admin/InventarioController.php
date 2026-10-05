@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\InventarioExport;
 use App\Http\Controllers\Controller;
 use App\Models\Existencia;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InventarioController extends Controller
 {
@@ -13,7 +15,40 @@ class InventarioController extends Controller
     {
         $nombre = trim((string) $request->input('nombre', ''));
         $tipo = $request->input('tipo', '');
+        $items = $this->recopilarInventario($nombre, (string) $tipo);
 
+        $page = max(1, (int) $request->input('page', 1));
+        $perPage = 15;
+        $total = count($items);
+        $pagina = array_slice($items, ($page - 1) * $perPage, $perPage);
+
+        $inventario = new LengthAwarePaginator(
+            $pagina,
+            $total,
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('admin.inventario.index', compact('inventario', 'nombre', 'tipo'));
+    }
+
+    public function export(Request $request)
+    {
+        $nombre = trim((string) $request->input('nombre', ''));
+        $tipo = $request->input('tipo', '');
+        $items = $this->recopilarInventario($nombre, (string) $tipo);
+
+        $archivo = 'inventario_' . now()->format('Y-m-d_His') . '.xlsx';
+
+        return Excel::download(new InventarioExport($items), $archivo);
+    }
+
+    /**
+     * @return list<array{tipo: string, nombre: string, cantidad_total: float, almacenes: list<array{nombre: string, cantidad: float}>}>
+     */
+    private function recopilarInventario(string $nombre, string $tipo): array
+    {
         $query = Existencia::query()
             ->with(['producto.tipoProducto', 'insumo.tipoInsumo', 'almacen'])
             ->where('cantidad', '>', 0);
@@ -56,10 +91,9 @@ class InventarioController extends Controller
             } elseif ($existencia->id_insumo && $existencia->insumo) {
                 $key = 'insumo_' . $existencia->id_insumo;
                 if (!isset($agrupado[$key])) {
-                    $insumo = $existencia->insumo;
                     $agrupado[$key] = [
                         'tipo' => 'Insumo',
-                        'nombre' => $insumo->etiquetaEntrada(),
+                        'nombre' => $existencia->insumo->etiquetaEntrada(),
                         'cantidad_total' => 0.0,
                         'almacenes' => [],
                     ];
@@ -78,20 +112,6 @@ class InventarioController extends Controller
 
         usort($agrupado, fn (array $a, array $b) => strcasecmp($a['nombre'], $b['nombre']));
 
-        $page = max(1, (int) $request->input('page', 1));
-        $perPage = 15;
-        $items = array_values($agrupado);
-        $total = count($items);
-        $pagina = array_slice($items, ($page - 1) * $perPage, $perPage);
-
-        $inventario = new LengthAwarePaginator(
-            $pagina,
-            $total,
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-
-        return view('admin.inventario.index', compact('inventario', 'nombre', 'tipo'));
+        return array_values($agrupado);
     }
 }

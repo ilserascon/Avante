@@ -58,6 +58,7 @@ Route::middleware(['auth', 'role:Administrador,Almacén,Almacen'])->prefix('admi
     Route::resource('almacenes', AlmacenController::class)->parameters(['almacenes' => 'almacen']);
     Route::get('/almacenes/{id}/existencia', [AlmacenController::class, 'showExistencia'])->name('almacenes.existencia');
     Route::get('inventario', [InventarioController::class, 'index'])->name('inventario.index');
+    Route::get('inventario/excel', [InventarioController::class, 'export'])->name('inventario.export');
     Route::resource('entradas', App\Http\Controllers\Admin\EntradaController::class);
 });
 

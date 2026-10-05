@@ -103,6 +103,11 @@
                         <h3>Inventario</h3>
                         <p class="text-muted mb-0">Existencia de productos e insumos en todos los almacenes.</p>
                     </div>
+                    <div class="hero-actions">
+                        <a href="{{ route('admin.inventario.export', request()->only(['nombre', 'tipo'])) }}" class="btn btn-success px-4">
+                            <i class="fas fa-file-excel mr-1"></i> Excel
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
