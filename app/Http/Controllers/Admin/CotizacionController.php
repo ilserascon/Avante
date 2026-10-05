@@ -94,9 +94,8 @@ class CotizacionController extends Controller
             ->get()
             ->keyBy('nombre');
 
-        $telas = Insumo::where('id_tipo_insumo', 1)->where('borrado', 0)->get();
-
-        $tergales = Insumo::where('id_tipo_insumo', 4)->where('borrado', 0)->get();
+        $telas = $this->insumosTelasParaCotizacion();
+        $tergales = $this->insumosTergalesParaCotizacion();
 
         $forros = Insumo::where('id_tipo_insumo', 5)->where('borrado', 0)->get();
 
@@ -394,8 +393,8 @@ class CotizacionController extends Controller
             ->get()
             ->keyBy('nombre');
 
-        $telas = Insumo::where('id_tipo_insumo', 1)->where('borrado', 0)->get();
-        $tergales = Insumo::where('id_tipo_insumo', 4)->where('borrado', 0)->get();
+        $telas = $this->insumosTelasParaCotizacion();
+        $tergales = $this->insumosTergalesParaCotizacion();
         $forros = Insumo::where('id_tipo_insumo', 5)->where('borrado', 0)->get();
 
         $cortineros = Producto::where('id_tipo_producto', 1)
@@ -411,6 +410,9 @@ class CotizacionController extends Controller
         if ($detallesExistentes->isEmpty() && $detalleCotizacion) {
             $detallesExistentes = collect([$detalleCotizacion]);
         }
+
+        $telas = $this->incluirInsumosUsadosEnDetalles($telas, $detallesExistentes, 'tela_id');
+        $tergales = $this->incluirInsumosUsadosEnDetalles($tergales, $detallesExistentes, 'tergal_id');
 
         $cortineroIds = $detallesExistentes
             ->flatMap(function ($detalle) {
@@ -1121,6 +1123,46 @@ class CotizacionController extends Controller
     private function tiposInsumoParaCotizacion()
     {
         return TipoInsumo::orderBy('nombre')->get();
+    }
+
+    private function insumosTelasParaCotizacion()
+    {
+        return Insumo::with('tipoInsumo')
+            ->where('id_tipo_insumo', Insumo::idTipoTelas())
+            ->where('borrado', 0)
+            ->orderBy('nombre')
+            ->get();
+    }
+
+    private function insumosTergalesParaCotizacion()
+    {
+        $telas = $this->insumosTelasParaCotizacion();
+        $clavesTela = $telas->map(fn (Insumo $tela) => $tela->claveEquivalenciaTextil())->all();
+
+        $tergalesPropios = Insumo::with('tipoInsumo')
+            ->where('id_tipo_insumo', Insumo::idTipoTergal())
+            ->where('borrado', 0)
+            ->orderBy('nombre')
+            ->get()
+            ->filter(fn (Insumo $tergal) => ! in_array($tergal->claveEquivalenciaTextil(), $clavesTela, true));
+
+        return $telas->concat($tergalesPropios)->unique('id')->values();
+    }
+
+    private function incluirInsumosUsadosEnDetalles($insumos, $detalles, string $campo)
+    {
+        $idsUsados = $detalles->pluck($campo)->filter()->unique()->values();
+
+        $faltantes = Insumo::with('tipoInsumo')
+            ->whereIn('id', $idsUsados)
+            ->whereNotIn('id', $insumos->pluck('id'))
+            ->get();
+
+        if ($faltantes->isEmpty()) {
+            return $insumos;
+        }
+
+        return $insumos->concat($faltantes)->unique('id')->values();
     }
 
     private function insumosParaTabCotizacion()

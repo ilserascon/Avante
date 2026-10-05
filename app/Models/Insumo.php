@@ -201,6 +201,34 @@ class Insumo extends Model
         return implode(' - ', $partes);
     }
 
+    /** Clave para unir la misma tela física aunque exista como Tela y como Tergal. */
+    public function claveEquivalenciaTextil(): string
+    {
+        return implode('|', [
+            mb_strtolower(self::normalizarCampoMostrar($this->nombre)),
+            mb_strtolower(self::normalizarCampoMostrar($this->color)),
+            mb_strtolower($this->primeraMedidaMostrar()),
+        ]);
+    }
+
+    public static function idTipoTelas(): ?int
+    {
+        $tipo = TipoInsumo::query()
+            ->whereRaw('LOWER(nombre) in (?, ?)', ['telas', 'tela'])
+            ->first();
+
+        return $tipo?->id ?? 1;
+    }
+
+    public static function idTipoTergal(): ?int
+    {
+        $tipo = TipoInsumo::query()
+            ->whereRaw('LOWER(nombre) in (?, ?, ?)', ['tergal', 'tergales', 'tergals'])
+            ->first();
+
+        return $tipo?->id ?? 4;
+    }
+
     public function getNombreCompletoAttribute()
     {
         $proveedor = $this->proveedor ? $this->proveedor->nombre : '';

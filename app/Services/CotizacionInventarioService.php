@@ -12,6 +12,9 @@ use RuntimeException;
 
 class CotizacionInventarioService
 {
+    /** @var array<int, list<int>> */
+    private array $idsInsumoEquivalentesCache = [];
+
     /**
      * Valida existencia, descuenta inventario y marca como completada. Retorna mensaje de error o null.
      */
@@ -288,7 +291,7 @@ class CotizacionInventarioService
         $restante = $cantidad;
 
         $existencias = Existencia::query()
-            ->where('id_insumo', $insumoId)
+            ->whereIn('id_insumo', $this->idsInsumoEquivalentes($insumoId))
             ->where('cantidad', '>', 0)
             ->orderBy('id_almacen')
             ->lockForUpdate()
@@ -332,8 +335,40 @@ class CotizacionInventarioService
     private function obtenerStockInsumo(int $insumoId): float
     {
         return (float) Existencia::query()
-            ->where('id_insumo', $insumoId)
+            ->whereIn('id_insumo', $this->idsInsumoEquivalentes($insumoId))
             ->sum('cantidad');
+    }
+
+    /**
+     * Incluye duplicados de catálogo con el mismo nombre, color y medida.
+     * Las importaciones crean filas nuevas; la cotización puede apuntar a un id sin stock.
+     *
+     * @return list<int>
+     */
+    private function idsInsumoEquivalentes(int $insumoId): array
+    {
+        if (isset($this->idsInsumoEquivalentesCache[$insumoId])) {
+            return $this->idsInsumoEquivalentesCache[$insumoId];
+        }
+
+        $insumo = Insumo::with('tipoInsumo')->find($insumoId);
+        if (!$insumo) {
+            return $this->idsInsumoEquivalentesCache[$insumoId] = [$insumoId];
+        }
+
+        $clave = $insumo->claveEquivalenciaTextil();
+
+        $ids = Insumo::with('tipoInsumo')
+            ->where('nombre', $insumo->nombre)
+            ->get()
+            ->filter(fn (Insumo $otro) => $otro->claveEquivalenciaTextil() === $clave)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        return $this->idsInsumoEquivalentesCache[$insumoId] = ($ids !== [] ? $ids : [$insumoId]);
     }
 
     private function obtenerStockProducto(int $productoId): float
