@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use RuntimeException;
 
 class CotizacionController extends Controller
@@ -1109,6 +1110,139 @@ class CotizacionController extends Controller
         return $redirect;
     }
 
+    public function ordenTaller($id)
+    {
+        $cotizacion = $this->cargarCotizacionOrdenTaller($id);
+
+        if ($redirect = $this->redireccionSiOrdenTallerNoDisponible($cotizacion)) {
+            return $redirect;
+        }
+
+        $detalles = $this->detallesOrdenTaller($cotizacion);
+        if ($detalles->isEmpty()) {
+            return redirect()
+                ->route('admin.cotizaciones.show', $cotizacion->id)
+                ->with('error', 'Esta cotización no tiene partidas de cortina para la orden de taller.');
+        }
+
+        $bastonesPorDetalle = $this->bastonesPorDetalle($detalles);
+        $correderas = $this->insumosCorredera($detalles);
+        $cintas = $this->insumosCinta($detalles);
+
+        return view('admin.cotizaciones.orden-taller', compact(
+            'cotizacion',
+            'detalles',
+            'bastonesPorDetalle',
+            'correderas',
+            'cintas'
+        ));
+    }
+
+    public function guardarOrdenTaller(Request $request, $id)
+    {
+        $cotizacion = $this->cargarCotizacionOrdenTaller($id);
+
+        if ($redirect = $this->redireccionSiOrdenTallerNoDisponible($cotizacion)) {
+            return $redirect;
+        }
+
+        $detalles = $this->detallesOrdenTaller($cotizacion);
+        if ($detalles->isEmpty()) {
+            return redirect()
+                ->route('admin.cotizaciones.show', $cotizacion->id)
+                ->with('error', 'Esta cotización no tiene partidas de cortina para la orden de taller.');
+        }
+
+        $idsPermitidos = $detalles->pluck('id')->map(fn ($detalleId) => (int) $detalleId)->all();
+        $idsCorrederas = $this->insumosCorredera($detalles)->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $idsCintas = $this->insumosCinta($detalles)->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        $request->validate([
+            'partidas' => 'required|array',
+            'partidas.*.id' => ['required', 'integer', Rule::in($idsPermitidos)],
+            'partidas.*.techo_muro' => 'nullable|in:Piso Techo,Muro',
+            'partidas.*.confeccion' => 'nullable|string|max:255',
+            'partidas.*.apertura' => 'nullable|in:Central,Izquierdo,Derecho,Jalón izquierdo,Jalón derecho,Híbrido',
+            'partidas.*.corredera_id' => ['nullable', 'integer', Rule::in($idsCorrederas)],
+            'partidas.*.cinta_id' => ['nullable', 'integer', Rule::in($idsCintas)],
+            'partidas.*.altura_izq' => 'nullable|numeric|min:0',
+            'partidas.*.altura_centro' => 'nullable|numeric|min:0',
+            'partidas.*.altura_der' => 'nullable|numeric|min:0',
+            'partidas.*.control' => 'nullable|string|max:100',
+            'partidas.*.vuelta_lateral' => 'nullable|numeric|min:0',
+            'partidas.*.observacion_taller' => 'nullable|string|max:2000',
+        ], [
+            'partidas.required' => 'No hay partidas para guardar.',
+            'partidas.*.id.in' => 'Hay una partida que no pertenece a esta cotización.',
+            'numeric' => 'Las medidas deben ser números.',
+            'min' => 'Las medidas no pueden ser negativas.',
+            'in' => 'Hay una opción no válida en techo/muro o apertura.',
+            'max' => 'Hay un texto demasiado largo.',
+        ]);
+
+        $partidas = collect($request->input('partidas', []))->keyBy(fn ($partida) => (int) ($partida['id'] ?? 0));
+
+        DB::transaction(function () use ($detalles, $partidas) {
+            foreach ($detalles as $detalle) {
+                $partida = $partidas->get((int) $detalle->id);
+                if (!$partida) {
+                    continue;
+                }
+
+                $detalle->update([
+                    'techo_muro' => $partida['techo_muro'] ?? null,
+                    'confeccion' => $this->textoOrdenTaller($partida['confeccion'] ?? null),
+                    'apertura' => $partida['apertura'] ?? null,
+                    'corredera_id' => ($partida['corredera_id'] ?? '') === '' ? null : (int) $partida['corredera_id'],
+                    'cinta_id' => ($partida['cinta_id'] ?? '') === '' ? null : (int) $partida['cinta_id'],
+                    'altura_izq' => $this->numeroOrdenTaller($partida['altura_izq'] ?? null),
+                    'altura_centro' => $this->numeroOrdenTaller($partida['altura_centro'] ?? null),
+                    'altura_der' => $this->numeroOrdenTaller($partida['altura_der'] ?? null),
+                    'control' => $this->textoOrdenTaller($partida['control'] ?? null),
+                    'vuelta_lateral' => $this->numeroOrdenTaller($partida['vuelta_lateral'] ?? null),
+                    'observacion_taller' => $this->textoOrdenTaller($partida['observacion_taller'] ?? null),
+                ]);
+            }
+        });
+
+        if ($request->input('despues') === 'pdf') {
+            return redirect()->route('admin.cotizaciones.orden-taller.pdf', $cotizacion->id);
+        }
+
+        return redirect()
+            ->route('admin.cotizaciones.orden-taller', $cotizacion->id)
+            ->with('success', 'Datos de la orden de taller guardados.');
+    }
+
+    public function pdfOrdenTaller($id)
+    {
+        $cotizacion = $this->cargarCotizacionOrdenTaller($id);
+
+        if ($redirect = $this->redireccionSiOrdenTallerNoDisponible($cotizacion)) {
+            return $redirect;
+        }
+
+        $detalles = $this->detallesOrdenTaller($cotizacion);
+        if ($detalles->isEmpty()) {
+            return redirect()
+                ->route('admin.cotizaciones.show', $cotizacion->id)
+                ->with('error', 'Esta cotización no tiene partidas de cortina para la orden de taller.');
+        }
+
+        if ($cotizacion->orden_taller_fecha === null) {
+            $cotizacion->orden_taller_fecha = now()->toDateString();
+            $cotizacion->save();
+        }
+
+        $bastonesPorDetalle = $this->bastonesPorDetalle($detalles);
+        $numeroCorrederas = $this->textosNumeroCorrederas($detalles);
+
+        $pdf = Pdf::loadView('admin.cotizaciones.pdf-orden-taller', compact('cotizacion', 'detalles', 'bastonesPorDetalle', 'numeroCorrederas'))
+            ->setPaper('letter', 'portrait');
+
+        return $pdf->stream('orden_taller_' . $cotizacion->id . '.pdf');
+    }
+
     private function redireccionSiCotizacionNoEditable(Cotizacion $cotizacion)
     {
         if (!in_array($cotizacion->estatus, ['aceptada', 'completada'], true)) {
@@ -1392,5 +1526,237 @@ class CotizacionController extends Controller
                 ];
             })
             ->values();
+    }
+
+    private function cargarCotizacionOrdenTaller($id): Cotizacion
+    {
+        return Cotizacion::with([
+            'cliente',
+            'creadoPor',
+            'detallesCotizacion.tela',
+            'detallesCotizacion.tergal',
+            'detallesCotizacion.cortinero',
+            'detallesCotizacion.cortineroTergal',
+            'detallesCotizacion.corredera.tipoInsumo',
+            'detallesCotizacion.cinta.tipoInsumo',
+            'detalleCotizacion.tela',
+            'detalleCotizacion.tergal',
+            'detalleCotizacion.cortinero',
+            'detalleCotizacion.cortineroTergal',
+            'detalleCotizacion.corredera.tipoInsumo',
+            'detalleCotizacion.cinta.tipoInsumo',
+        ])->findOrFail($id);
+    }
+
+    private function detallesOrdenTaller(Cotizacion $cotizacion)
+    {
+        $detalles = $cotizacion->detallesCotizacion;
+        if ($detalles->isEmpty() && $cotizacion->detalleCotizacion) {
+            $detalles = collect([$cotizacion->detalleCotizacion]);
+        }
+
+        return $detalles
+            ->filter(fn ($detalle) => $detalle->lleva_cortina)
+            ->values();
+    }
+
+    private function redireccionSiOrdenTallerNoDisponible(Cotizacion $cotizacion)
+    {
+        if (in_array($cotizacion->estatus, ['aceptada', 'completada'], true)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('admin.cotizaciones.show', $cotizacion->id)
+            ->with('error', 'La orden de taller solo está disponible cuando la cotización está aceptada o completada.');
+    }
+
+    private function bastonesPorDetalle($detalles): array
+    {
+        $ids = [];
+        foreach ($detalles as $detalle) {
+            foreach ($detalle->materiales_varios ?? [] as $fila) {
+                if (!empty($fila['insumo_id'])) {
+                    $ids[] = (int) $fila['insumo_id'];
+                }
+            }
+        }
+
+        $insumos = Insumo::with('tipoInsumo')
+            ->whereIn('id', array_unique($ids))
+            ->get()
+            ->keyBy('id');
+
+        $resultado = [];
+        foreach ($detalles as $detalle) {
+            $numeros = [];
+            $medidas = [];
+            foreach ($detalle->materiales_varios ?? [] as $fila) {
+                $insumo = $insumos->get((int) ($fila['insumo_id'] ?? 0));
+                $tipo = $insumo?->tipoInsumo?->nombre ?? '';
+                if (!$insumo || strcasecmp($tipo, 'Baston') !== 0) {
+                    continue;
+                }
+
+                $cantidad = (float) ($fila['cantidad'] ?? 0);
+                $numeros[] = rtrim(rtrim(number_format($cantidad, 2, '.', ''), '0'), '.');
+                $medida = trim($insumo->primeraMedidaMostrar());
+                if ($medida !== '') {
+                    $medidas[] = $medida;
+                }
+            }
+
+            $resultado[$detalle->id] = [
+                'numero' => $numeros === [] ? null : implode(', ', $numeros),
+                'medida' => $medidas === [] ? null : implode(', ', array_unique($medidas)),
+            ];
+        }
+
+        return $resultado;
+    }
+
+    private function insumosCorredera($detalles)
+    {
+        $correderas = Insumo::with('tipoInsumo')
+            ->where('borrado', 0)
+            ->whereHas('tipoInsumo', function ($query) {
+                $query->whereRaw('LOWER(nombre) like ?', ['%corredera%']);
+            })
+            ->orderBy('nombre')
+            ->get();
+
+        $ids = $correderas->pluck('id');
+        $seleccionadas = collect($detalles)->pluck('corredera_id')->filter()->map(fn ($id) => (int) $id)->unique();
+        $faltantes = $seleccionadas->diff($ids);
+        if ($faltantes->isEmpty()) {
+            return $correderas;
+        }
+
+        return $correderas
+            ->concat(Insumo::with('tipoInsumo')->whereIn('id', $faltantes)->get())
+            ->sortBy('nombre')
+            ->values();
+    }
+
+    private function insumosCinta($detalles)
+    {
+        $cintas = Insumo::with('tipoInsumo')
+            ->where('borrado', 0)
+            ->whereHas('tipoInsumo', function ($query) {
+                $query->whereRaw('LOWER(nombre) like ?', ['cinta%']);
+            })
+            ->orderBy('nombre')
+            ->get();
+
+        $ids = $cintas->pluck('id');
+        $seleccionadas = collect($detalles)->pluck('cinta_id')->filter()->map(fn ($id) => (int) $id)->unique();
+        $faltantes = $seleccionadas->diff($ids);
+        if ($faltantes->isEmpty()) {
+            return $cintas;
+        }
+
+        return $cintas
+            ->concat(Insumo::with('tipoInsumo')->whereIn('id', $faltantes)->get())
+            ->sortBy('nombre')
+            ->values();
+    }
+
+    private function textosNumeroCorrederas($detalles): array
+    {
+        $textos = [];
+        foreach ($detalles as $detalle) {
+            $textos[$detalle->id] = $this->textoNumeroCorrederas(
+                $detalle->apertura,
+                $detalle->ancho,
+                $detalle->corredera?->primeraMedidaMostrar()
+            );
+        }
+
+        return $textos;
+    }
+
+    private function textoNumeroCorrederas($apertura, $ancho, $medidaCorredera): ?string
+    {
+        $medida = (float) str_replace(',', '.', (string) $medidaCorredera);
+        $anchoCm = $this->anchoCortinaEnCm($ancho);
+        if ($medida <= 0 || $anchoCm === null) {
+            return null;
+        }
+
+        $medidaTexto = rtrim(rtrim(number_format($medida, 3, '.', ''), '0'), '.');
+        $tipo = $this->normalizarApertura($apertura);
+        if ($tipo === 'central') {
+            $piezas = $this->redondearCorrederas(($anchoCm / 2) / $medida, true);
+
+            return $piezas . ' CADA LADO ' . $medidaTexto . ' CM';
+        }
+
+        if ($tipo === 'jalon') {
+            $piezas = $this->redondearCorrederas($anchoCm / $medida, false);
+
+            return $piezas . ' PIN ' . $medidaTexto . ' CM';
+        }
+
+        return null;
+    }
+
+    private function anchoCortinaEnCm($ancho): ?float
+    {
+        if ($ancho === null || $ancho === '') {
+            return null;
+        }
+
+        $valor = (float) str_replace(',', '.', (string) $ancho);
+        if ($valor <= 0) {
+            return null;
+        }
+
+        return $valor <= 10 ? $valor * 100 : $valor;
+    }
+
+    private function normalizarApertura($apertura): ?string
+    {
+        $texto = mb_strtolower(trim((string) $apertura));
+        $texto = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $texto);
+
+        if ($texto === 'central' || $texto === 'hibrido') {
+            return 'central';
+        }
+
+        if (in_array($texto, ['izquierdo', 'derecho', 'jalon izquierdo', 'jalon derecho'], true)) {
+            return 'jalon';
+        }
+
+        return null;
+    }
+
+    private function redondearCorrederas(float $valor, bool $par): int
+    {
+        $redondeado = (int) ceil($valor - 0.0000001);
+        if ($redondeado < 1) {
+            $redondeado = 1;
+        }
+
+        if ($par && $redondeado % 2 !== 0) {
+            $redondeado++;
+        }
+
+        return $redondeado;
+    }
+
+    private function numeroOrdenTaller($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return number_format((float) $value, 3, '.', '');
+    }
+
+    private function textoOrdenTaller($value): ?string
+    {
+        $texto = trim((string) ($value ?? ''));
+
+        return $texto === '' ? null : $texto;
     }
 }

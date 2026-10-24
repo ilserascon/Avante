@@ -49,6 +49,9 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::post('cotizaciones/{cotizacion}/cambiar-estatus', [CotizacionController::class, 'cambiarEstatus'])->name('cotizaciones.cambiar-estatus');
     Route::get('cotizaciones/{cotizacion}/pdf', [CotizacionController::class, 'generarPdf'])->name('cotizaciones.pdf');
     Route::get('cotizaciones/{cotizacion}/pdfdecorador', [CotizacionController::class, 'pdfDecorador'])->name('cotizaciones.pdf-decorador');
+    Route::get('cotizaciones/{cotizacion}/orden-taller', [CotizacionController::class, 'ordenTaller'])->name('cotizaciones.orden-taller');
+    Route::post('cotizaciones/{cotizacion}/orden-taller', [CotizacionController::class, 'guardarOrdenTaller'])->name('cotizaciones.orden-taller.guardar');
+    Route::get('cotizaciones/{cotizacion}/orden-taller/pdf', [CotizacionController::class, 'pdfOrdenTaller'])->name('cotizaciones.orden-taller.pdf');
 });
 
 // Rutas para Administrador y Almacén
@@ -77,6 +80,9 @@ Route::middleware(['auth', 'role:Administrador,Cotizador'])->prefix('admin')->na
     Route::post('cotizaciones/{cotizacion}/cambiar-estatus', [CotizacionController::class, 'cambiarEstatus'])->name('cotizaciones.cambiar-estatus');
     Route::get('cotizaciones/{cotizacion}/pdf', [CotizacionController::class, 'generarPdf'])->name('cotizaciones.pdf');
     Route::get('cotizaciones/{cotizacion}/pdfdecorador', [CotizacionController::class, 'pdfDecorador'])->name('cotizaciones.pdf-decorador');
+    Route::get('cotizaciones/{cotizacion}/orden-taller', [CotizacionController::class, 'ordenTaller'])->name('cotizaciones.orden-taller');
+    Route::post('cotizaciones/{cotizacion}/orden-taller', [CotizacionController::class, 'guardarOrdenTaller'])->name('cotizaciones.orden-taller.guardar');
+    Route::get('cotizaciones/{cotizacion}/orden-taller/pdf', [CotizacionController::class, 'pdfOrdenTaller'])->name('cotizaciones.orden-taller.pdf');
     Route::post('/insumos/importar', [InsumoController::class, 'import'])->name('insumos.import');
     Route::post('productos/importar', [ProductoController::class, 'import'])->name('productos.import');
 });

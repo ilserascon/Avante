@@ -86,6 +86,28 @@ class DetalleCotizacion extends Model
 
         'materiales_varios',
 
+        'techo_muro',
+        'corredera_id',
+        'cinta_id',
+        'confeccion',
+        'altura_izq',
+        'altura_centro',
+        'altura_der',
+        'vuelta_lateral',
+        'observacion_taller',
+        'num_bastones',
+        'medida_baston',
+        'ancho_fabricacion',
+        'largo_fabricacion',
+        'cinta_onda',
+        'apertura',
+        'control',
+        'ancho_fabricacion_tergal',
+        'largo_fabricacion_tergal',
+        'cinta_onda_tergal',
+        'apertura_tergal',
+        'control_tergal',
+
     ];
 
     protected $casts = [
@@ -115,6 +137,16 @@ class DetalleCotizacion extends Model
     public function cortinero()
     {
         return $this->belongsTo(Producto::class, 'cortinero_id');
+    }
+
+    public function corredera()
+    {
+        return $this->belongsTo(Insumo::class, 'corredera_id');
+    }
+
+    public function cinta()
+    {
+        return $this->belongsTo(Insumo::class, 'cinta_id');
     }
 
     public function cortineroTergal()

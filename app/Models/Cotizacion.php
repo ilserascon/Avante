@@ -29,6 +29,11 @@ class Cotizacion extends Model
         'estatus',
         'aplicar_iva',
         'descuento',
+        'orden_taller_fecha',
+    ];
+
+    protected $casts = [
+        'orden_taller_fecha' => 'date',
     ];
 
     public function cliente()
