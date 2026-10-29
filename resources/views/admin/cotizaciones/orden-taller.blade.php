@@ -8,6 +8,22 @@
         return ($value !== null && $value !== '') ? $value : '—';
     };
 
+    $largoFabricacion = function ($largo, $bastillaCm) {
+        if ($largo === null || $largo === '') {
+            return '—';
+        }
+
+        $metros = (float) $largo;
+        if ($bastillaCm !== null && $bastillaCm !== '') {
+            $metros -= ((float) $bastillaCm) / 100;
+        }
+        if ($metros < 0) {
+            $metros = 0;
+        }
+
+        return rtrim(rtrim(number_format($metros, 3, '.', ''), '0'), '.');
+    };
+
     $anchoNominal = function ($value) {
         if ($value === null || $value === '') {
             return '—';
@@ -135,17 +151,30 @@
 
                     @php
                         $baston = $bastonesPorDetalle[$detalle->id] ?? ['numero' => null, 'medida' => null];
+                        $bastillaInfo = $bastillas[$detalle->id] ?? ['codigo' => null, 'sugerida' => null, 'efectiva' => null];
+                        $bastillaValor = $campo($index, $detalle, 'bastilla_taller');
+                        if ($bastillaValor === '' && !is_array(old('partidas')) && $bastillaInfo['sugerida'] !== null) {
+                            $bastillaValor = rtrim(rtrim(number_format((float) $bastillaInfo['sugerida'], 2, '.', ''), '0'), '.');
+                        }
+                        $largoFab = $largoFabricacion($detalle->largo, $bastillaValor);
                     @endphp
                     <div class="row mb-3">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label>Área</label>
                             <div class="readonly-field">{{ $fmtVal($detalle->area) }}</div>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label>Medida de fabricación</label>
-                            <div class="readonly-field">{{ $anchoNominal($detalle->ancho) }} × {{ $fmtVal($detalle->largo) }} m</div>
+                        <div class="col-md-3 mb-3">
+                            <label for="bastilla_taller_{{ $detalle->id }}">Bastilla (cm)</label>
+                            <input id="bastilla_taller_{{ $detalle->id }}" type="number" min="0" step="0.01" class="form-control js-bastilla" data-medida="medida_fab_{{ $detalle->id }}" name="partidas[{{ $index }}][bastilla_taller]" value="{{ $bastillaValor }}">
+                            @if($bastillaInfo['codigo'])
+                                <small class="text-muted">Cortinero {{ $bastillaInfo['codigo'] }}. Puedes cambiar el descuento.</small>
+                            @endif
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
+                            <label>Medida de fabricación</label>
+                            <div class="readonly-field js-medida-fab" id="medida_fab_{{ $detalle->id }}" data-ancho="{{ $anchoNominal($detalle->ancho) }}" data-largo="{{ $detalle->largo }}">{{ $anchoNominal($detalle->ancho) }} × {{ $largoFab }} m</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
                             <label>Tela cortina</label>
                             <div class="readonly-field">{{ $fmtVal($detalle->tela?->nombre ?: $detalle->descripcion_tela) }}</div>
                         </div>
@@ -263,4 +292,31 @@
         </button>
     </form>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+document.querySelectorAll('.js-bastilla').forEach(function (input) {
+    const actualizar = function () {
+        const medida = document.getElementById(input.dataset.medida);
+        if (!medida) {
+            return;
+        }
+        const ancho = medida.dataset.ancho || '—';
+        let largo = parseFloat(medida.dataset.largo);
+        const bastilla = parseFloat(input.value);
+        if (!Number.isNaN(largo) && !Number.isNaN(bastilla)) {
+            largo -= bastilla / 100;
+            if (largo < 0) {
+                largo = 0;
+            }
+            largo = String(Math.round(largo * 1000) / 1000);
+        } else if (Number.isNaN(largo)) {
+            largo = '—';
+        }
+        medida.textContent = ancho + ' × ' + largo + ' m';
+    };
+    input.addEventListener('input', actualizar);
+});
+</script>
 @endsection

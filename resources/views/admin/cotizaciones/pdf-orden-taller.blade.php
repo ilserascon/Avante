@@ -174,6 +174,12 @@
 
         @php
             $baston = $bastonesPorDetalle[$detalle->id] ?? ['numero' => null, 'medida' => null];
+            $bastillaCm = $bastillas[$detalle->id]['efectiva'] ?? null;
+            $largoFab = $numero($detalle->largo);
+            if ($detalle->largo !== null && $detalle->largo !== '' && $bastillaCm !== null && $bastillaCm !== '') {
+                $largoMetros = (float) $detalle->largo - ((float) $bastillaCm / 100);
+                $largoFab = $numero($largoMetros < 0 ? 0 : $largoMetros);
+            }
         @endphp
         <div class="section-title">Cortina</div>
         <table class="grid">
@@ -184,7 +190,7 @@
                 </td>
                 <td colspan="2">
                     <div class="lbl">Medida de fabricación</div>
-                    <div class="val">{{ $medida($anchoAMetros($detalle->ancho), $numero($detalle->largo)) }}</div>
+                    <div class="val">{{ $medida($anchoAMetros($detalle->ancho), $largoFab) }}</div>
                 </td>
             </tr>
             <tr>

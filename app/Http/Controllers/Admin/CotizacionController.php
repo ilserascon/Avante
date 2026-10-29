@@ -1128,13 +1128,15 @@ class CotizacionController extends Controller
         $bastonesPorDetalle = $this->bastonesPorDetalle($detalles);
         $correderas = $this->insumosCorredera($detalles);
         $cintas = $this->insumosCinta($detalles);
+        $bastillas = $this->bastillasOrdenTaller($detalles);
 
         return view('admin.cotizaciones.orden-taller', compact(
             'cotizacion',
             'detalles',
             'bastonesPorDetalle',
             'correderas',
-            'cintas'
+            'cintas',
+            'bastillas'
         ));
     }
 
@@ -1169,6 +1171,7 @@ class CotizacionController extends Controller
             'partidas.*.altura_centro' => 'nullable|numeric|min:0',
             'partidas.*.altura_der' => 'nullable|numeric|min:0',
             'partidas.*.control' => 'nullable|string|max:100',
+            'partidas.*.bastilla_taller' => 'nullable|numeric|min:0',
             'partidas.*.vuelta_lateral' => 'nullable|numeric|min:0',
             'partidas.*.observacion_taller' => 'nullable|string|max:2000',
         ], [
@@ -1199,6 +1202,7 @@ class CotizacionController extends Controller
                     'altura_centro' => $this->numeroOrdenTaller($partida['altura_centro'] ?? null),
                     'altura_der' => $this->numeroOrdenTaller($partida['altura_der'] ?? null),
                     'control' => $this->textoOrdenTaller($partida['control'] ?? null),
+                    'bastilla_taller' => $this->numeroOrdenTaller($partida['bastilla_taller'] ?? null),
                     'vuelta_lateral' => $this->numeroOrdenTaller($partida['vuelta_lateral'] ?? null),
                     'observacion_taller' => $this->textoOrdenTaller($partida['observacion_taller'] ?? null),
                 ]);
@@ -1236,8 +1240,9 @@ class CotizacionController extends Controller
 
         $bastonesPorDetalle = $this->bastonesPorDetalle($detalles);
         $numeroCorrederas = $this->textosNumeroCorrederas($detalles);
+        $bastillas = $this->bastillasOrdenTaller($detalles);
 
-        $pdf = Pdf::loadView('admin.cotizaciones.pdf-orden-taller', compact('cotizacion', 'detalles', 'bastonesPorDetalle', 'numeroCorrederas'))
+        $pdf = Pdf::loadView('admin.cotizaciones.pdf-orden-taller', compact('cotizacion', 'detalles', 'bastonesPorDetalle', 'numeroCorrederas', 'bastillas'))
             ->setPaper('letter', 'portrait');
 
         return $pdf->stream('orden_taller_' . $cotizacion->id . '.pdf');
@@ -1742,6 +1747,55 @@ class CotizacionController extends Controller
         }
 
         return $redondeado;
+    }
+
+    /** Descuento de bastilla en cm, según el código del cortinero. */
+    private const BASTILLA_CM = [
+        'FLOSTRACKH' => ['cortina' => 5.5, 'tergal' => 5.0],
+        'FLOSTRACK' => ['cortina' => 5.5, 'tergal' => 5.0],
+        'CRTM' => ['cortina' => 4.5, 'tergal' => 4.0],
+        'CRTH' => ['cortina' => 1.5, 'tergal' => 1.0],
+        'CRT' => ['cortina' => 4.0, 'tergal' => 3.5],
+        'RMH' => ['cortina' => 1.5, 'tergal' => 5.0],
+        'RM' => ['cortina' => 1.5, 'tergal' => 4.5],
+    ];
+
+    private function bastillasOrdenTaller($detalles): array
+    {
+        $resultado = [];
+        foreach ($detalles as $detalle) {
+            $sugerida = $this->bastillaPorCortinero($detalle->cortinero, 'cortina');
+            $guardada = $detalle->bastilla_taller;
+            $efectiva = ($guardada !== null && $guardada !== '')
+                ? (float) $guardada
+                : $sugerida['cm'];
+
+            $resultado[$detalle->id] = [
+                'codigo' => $sugerida['codigo'],
+                'sugerida' => $sugerida['cm'],
+                'efectiva' => $efectiva,
+            ];
+        }
+
+        return $resultado;
+    }
+
+    private function bastillaPorCortinero($cortinero, string $tipo): array
+    {
+        $clave = strtoupper(preg_replace('/\s+/', '', (string) ($cortinero?->clave ?? '')));
+        $codigos = array_keys(self::BASTILLA_CM);
+        usort($codigos, fn ($a, $b) => strlen($b) <=> strlen($a));
+
+        foreach ($codigos as $codigo) {
+            if ($clave !== '' && str_starts_with($clave, $codigo)) {
+                return [
+                    'codigo' => $codigo,
+                    'cm' => self::BASTILLA_CM[$codigo][$tipo],
+                ];
+            }
+        }
+
+        return ['codigo' => null, 'cm' => null];
     }
 
     private function numeroOrdenTaller($value): ?string

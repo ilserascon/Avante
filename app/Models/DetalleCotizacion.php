@@ -89,6 +89,7 @@ class DetalleCotizacion extends Model
         'techo_muro',
         'corredera_id',
         'cinta_id',
+        'bastilla_taller',
         'confeccion',
         'altura_izq',
         'altura_centro',
