@@ -306,7 +306,7 @@
                                 <i class="fas fa-file-pdf mr-1"></i> PDF Decorador
                             </a>&nbsp;
                         @endif
-                        @if(in_array($cotizacion->estatus, ['aceptada', 'completada'], true) && $detalles->contains(fn ($detalleOrden) => $detalleOrden->lleva_cortina))
+                        @if(auth()->user()->esAdministrador() && in_array($cotizacion->estatus, ['aceptada', 'completada'], true) && $detalles->contains(fn ($detalleOrden) => $detalleOrden->lleva_cortina || $detalleOrden->lleva_tergal))
                             <a href="{{ route('admin.cotizaciones.orden-taller', $cotizacion->id) }}" class="btn btn-success">
                                 <i class="fas fa-clipboard-list mr-1"></i> Orden de taller
                             </a>&nbsp;

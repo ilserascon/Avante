@@ -44,6 +44,15 @@
         return $value === null ? '' : $value;
     };
 
+    $bastillaCampo = function ($index, $detalle, $field, $sugerida) use ($campo) {
+        $valor = $campo($index, $detalle, $field);
+        if ($valor === '' && !is_array(old('partidas')) && $sugerida !== null) {
+            return rtrim(rtrim(number_format((float) $sugerida, 2, '.', ''), '0'), '.');
+        }
+
+        return $valor;
+    };
+
     $totalPartidas = $detalles->count();
 @endphp
 
@@ -151,19 +160,24 @@
 
                     @php
                         $baston = $bastonesPorDetalle[$detalle->id] ?? ['numero' => null, 'medida' => null];
-                        $bastillaInfo = $bastillas[$detalle->id] ?? ['codigo' => null, 'sugerida' => null, 'efectiva' => null];
-                        $bastillaValor = $campo($index, $detalle, 'bastilla_taller');
-                        if ($bastillaValor === '' && !is_array(old('partidas')) && $bastillaInfo['sugerida'] !== null) {
-                            $bastillaValor = rtrim(rtrim(number_format((float) $bastillaInfo['sugerida'], 2, '.', ''), '0'), '.');
-                        }
+                        $bastillaInfo = $bastillas[$detalle->id] ?? ['codigo' => null, 'sugerida' => null, 'efectiva' => null, 'tergal' => ['codigo' => null, 'sugerida' => null]];
+                        $bastillaTergalInfo = $bastillaInfo['tergal'] ?? ['codigo' => null, 'sugerida' => null];
+                        $bastillaValor = $bastillaCampo($index, $detalle, 'bastilla_taller', $bastillaInfo['sugerida'] ?? null);
+                        $bastillaTergalValor = $bastillaCampo($index, $detalle, 'bastilla_taller_tergal', $bastillaTergalInfo['sugerida'] ?? null);
                         $largoFab = $largoFabricacion($detalle->largo, $bastillaValor);
+                        $largoFabTergal = $largoFabricacion($detalle->largo_tergal, $bastillaTergalValor);
                     @endphp
-                    <div class="row mb-3">
-                        <div class="col-md-3 mb-3">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
                             <label>Área</label>
                             <div class="readonly-field">{{ $fmtVal($detalle->area) }}</div>
                         </div>
-                        <div class="col-md-3 mb-3">
+                    </div>
+
+                    @if($detalle->lleva_cortina)
+                    <h6 class="bloque-titulo">Cortina</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-2 mb-3">
                             <label for="bastilla_taller_{{ $detalle->id }}">Bastilla (cm)</label>
                             <input id="bastilla_taller_{{ $detalle->id }}" type="number" min="0" step="0.01" class="form-control js-bastilla" data-medida="medida_fab_{{ $detalle->id }}" name="partidas[{{ $index }}][bastilla_taller]" value="{{ $bastillaValor }}">
                             @if($bastillaInfo['codigo'])
@@ -178,23 +192,45 @@
                             <label>Tela cortina</label>
                             <div class="readonly-field">{{ $fmtVal($detalle->tela?->nombre ?: $detalle->descripcion_tela) }}</div>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-2 mb-3">
                             <label>Color cortina</label>
                             <div class="readonly-field">{{ $fmtVal($detalle->tela?->color) }}</div>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-2 mb-3">
                             <label>Cortinero cortina</label>
                             <div class="readonly-field">{{ $fmtVal($detalle->cortinero?->nombre) }}</div>
                         </div>
-                        <div class="col-md-2 mb-3">
-                            <label>Número de bastones</label>
-                            <div class="readonly-field">{{ $fmtVal($baston['numero']) }}</div>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label>Medida de bastón</label>
-                            <div class="readonly-field">{{ $fmtVal($baston['medida']) }}</div>
-                        </div>
                     </div>
+                    @endif
+
+                    @if($detalle->lleva_tergal)
+                        <h6 class="bloque-titulo">Tergal</h6>
+                        <div class="row mb-2">
+                            <div class="col-md-2 mb-3">
+                                <label for="bastilla_taller_tergal_{{ $detalle->id }}">Bastilla (cm)</label>
+                                <input id="bastilla_taller_tergal_{{ $detalle->id }}" type="number" min="0" step="0.01" class="form-control js-bastilla" data-medida="medida_fab_tergal_{{ $detalle->id }}" name="partidas[{{ $index }}][bastilla_taller_tergal]" value="{{ $bastillaTergalValor }}">
+                                @if($bastillaTergalInfo['codigo'])
+                                    <small class="text-muted">Cortinero {{ $bastillaTergalInfo['codigo'] }}. Puedes cambiar el descuento.</small>
+                                @endif
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>Medida de fabricación</label>
+                                <div class="readonly-field js-medida-fab" id="medida_fab_tergal_{{ $detalle->id }}" data-ancho="{{ $anchoNominal($detalle->ancho_tergal_real) }}" data-largo="{{ $detalle->largo_tergal }}">{{ $anchoNominal($detalle->ancho_tergal_real) }} × {{ $largoFabTergal }} m</div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>Tela tergal</label>
+                                <div class="readonly-field">{{ $fmtVal($detalle->tergal?->nombre ?: $detalle->descripcion_tergal) }}</div>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label>Color tergal</label>
+                                <div class="readonly-field">{{ $fmtVal($detalle->tergal?->color) }}</div>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label>Cortinero tergal</label>
+                                <div class="readonly-field">{{ $fmtVal($detalle->cortineroTergal?->nombre) }}</div>
+                            </div>
+                        </div>
+                    @endif
 
                     <h6 class="bloque-titulo">Datos de taller</h6>
                     <div class="row">
@@ -274,6 +310,15 @@
                         <div class="col-md-6 mb-3">
                             <label for="control_{{ $detalle->id }}">Control cortina</label>
                             <input id="control_{{ $detalle->id }}" type="text" maxlength="100" class="form-control" name="partidas[{{ $index }}][control]" value="{{ $campo($index, $detalle, 'control') }}">
+                        </div>
+                        <div class="w-100"></div>
+                        <div class="col-md-3 mb-3">
+                            <label>Número de bastones</label>
+                            <div class="readonly-field">{{ $fmtVal($baston['numero']) }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label>Medida de bastón</label>
+                            <div class="readonly-field">{{ $fmtVal($baston['medida']) }}</div>
                         </div>
                         <div class="col-md-12 mb-3">
                             <label for="observacion_taller_{{ $detalle->id }}">Observación</label>

@@ -1122,7 +1122,7 @@ class CotizacionController extends Controller
         if ($detalles->isEmpty()) {
             return redirect()
                 ->route('admin.cotizaciones.show', $cotizacion->id)
-                ->with('error', 'Esta cotización no tiene partidas de cortina para la orden de taller.');
+                ->with('error', 'Esta cotización no tiene cortinas ni tergales para la orden de taller.');
         }
 
         $bastonesPorDetalle = $this->bastonesPorDetalle($detalles);
@@ -1152,7 +1152,7 @@ class CotizacionController extends Controller
         if ($detalles->isEmpty()) {
             return redirect()
                 ->route('admin.cotizaciones.show', $cotizacion->id)
-                ->with('error', 'Esta cotización no tiene partidas de cortina para la orden de taller.');
+                ->with('error', 'Esta cotización no tiene cortinas ni tergales para la orden de taller.');
         }
 
         $idsPermitidos = $detalles->pluck('id')->map(fn ($detalleId) => (int) $detalleId)->all();
@@ -1172,6 +1172,7 @@ class CotizacionController extends Controller
             'partidas.*.altura_der' => 'nullable|numeric|min:0',
             'partidas.*.control' => 'nullable|string|max:100',
             'partidas.*.bastilla_taller' => 'nullable|numeric|min:0',
+            'partidas.*.bastilla_taller_tergal' => 'nullable|numeric|min:0',
             'partidas.*.vuelta_lateral' => 'nullable|numeric|min:0',
             'partidas.*.observacion_taller' => 'nullable|string|max:2000',
         ], [
@@ -1203,6 +1204,9 @@ class CotizacionController extends Controller
                     'altura_der' => $this->numeroOrdenTaller($partida['altura_der'] ?? null),
                     'control' => $this->textoOrdenTaller($partida['control'] ?? null),
                     'bastilla_taller' => $this->numeroOrdenTaller($partida['bastilla_taller'] ?? null),
+                    'bastilla_taller_tergal' => $detalle->lleva_tergal
+                        ? $this->numeroOrdenTaller($partida['bastilla_taller_tergal'] ?? null)
+                        : $detalle->bastilla_taller_tergal,
                     'vuelta_lateral' => $this->numeroOrdenTaller($partida['vuelta_lateral'] ?? null),
                     'observacion_taller' => $this->textoOrdenTaller($partida['observacion_taller'] ?? null),
                 ]);
@@ -1230,7 +1234,7 @@ class CotizacionController extends Controller
         if ($detalles->isEmpty()) {
             return redirect()
                 ->route('admin.cotizaciones.show', $cotizacion->id)
-                ->with('error', 'Esta cotización no tiene partidas de cortina para la orden de taller.');
+                ->with('error', 'Esta cotización no tiene cortinas ni tergales para la orden de taller.');
         }
 
         if ($cotizacion->orden_taller_fecha === null) {
@@ -1241,8 +1245,9 @@ class CotizacionController extends Controller
         $bastonesPorDetalle = $this->bastonesPorDetalle($detalles);
         $numeroCorrederas = $this->textosNumeroCorrederas($detalles);
         $bastillas = $this->bastillasOrdenTaller($detalles);
+        $hojas = $this->hojasOrdenTaller($detalles);
 
-        $pdf = Pdf::loadView('admin.cotizaciones.pdf-orden-taller', compact('cotizacion', 'detalles', 'bastonesPorDetalle', 'numeroCorrederas', 'bastillas'))
+        $pdf = Pdf::loadView('admin.cotizaciones.pdf-orden-taller', compact('cotizacion', 'detalles', 'bastonesPorDetalle', 'numeroCorrederas', 'bastillas', 'hojas'))
             ->setPaper('letter', 'portrait');
 
         return $pdf->stream('orden_taller_' . $cotizacion->id . '.pdf');
@@ -1561,12 +1566,44 @@ class CotizacionController extends Controller
         }
 
         return $detalles
-            ->filter(fn ($detalle) => $detalle->lleva_cortina)
+            ->filter(fn ($detalle) => $detalle->lleva_cortina || $detalle->lleva_tergal)
             ->values();
+    }
+
+    private function hojasOrdenTaller($detalles): array
+    {
+        $hojas = [];
+        $partida = 0;
+
+        foreach ($detalles as $detalle) {
+            $partida++;
+            if ($detalle->lleva_cortina) {
+                $hojas[] = [
+                    'tipo' => 'cortina',
+                    'titulo' => 'Cortina',
+                    'detalle' => $detalle,
+                    'partida' => $partida,
+                ];
+            }
+            if ($detalle->lleva_tergal) {
+                $hojas[] = [
+                    'tipo' => 'tergal',
+                    'titulo' => 'Tergal',
+                    'detalle' => $detalle,
+                    'partida' => $partida,
+                ];
+            }
+        }
+
+        return $hojas;
     }
 
     private function redireccionSiOrdenTallerNoDisponible(Cotizacion $cotizacion)
     {
+        if (!auth()->user()?->esAdministrador()) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
         if (in_array($cotizacion->estatus, ['aceptada', 'completada'], true)) {
             return null;
         }
@@ -1770,10 +1807,21 @@ class CotizacionController extends Controller
                 ? (float) $guardada
                 : $sugerida['cm'];
 
+            $sugeridaTergal = $this->bastillaPorCortinero($detalle->cortineroTergal, 'tergal');
+            $guardadaTergal = $detalle->bastilla_taller_tergal;
+            $efectivaTergal = ($guardadaTergal !== null && $guardadaTergal !== '')
+                ? (float) $guardadaTergal
+                : $sugeridaTergal['cm'];
+
             $resultado[$detalle->id] = [
                 'codigo' => $sugerida['codigo'],
                 'sugerida' => $sugerida['cm'],
                 'efectiva' => $efectiva,
+                'tergal' => [
+                    'codigo' => $sugeridaTergal['codigo'],
+                    'sugerida' => $sugeridaTergal['cm'],
+                    'efectiva' => $efectivaTergal,
+                ],
             ];
         }
 

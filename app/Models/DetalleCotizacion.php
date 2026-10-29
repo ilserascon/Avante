@@ -90,6 +90,7 @@ class DetalleCotizacion extends Model
         'corredera_id',
         'cinta_id',
         'bastilla_taller',
+        'bastilla_taller_tergal',
         'confeccion',
         'altura_izq',
         'altura_centro',

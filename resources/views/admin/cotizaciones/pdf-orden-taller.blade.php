@@ -125,6 +125,29 @@
         return $valor === null ? '—' : $valor . ' m';
     };
 
+    $centimetros = function ($value) use ($numero) {
+        $valor = $numero($value);
+
+        return $valor === null ? '—' : $valor . ' cm';
+    };
+
+    $largoFabricacion = function ($largo, $bastillaCm) use ($numero) {
+        if ($largo === null || $largo === '') {
+            return null;
+        }
+
+        $metros = (float) $largo;
+        if ($bastillaCm !== null && $bastillaCm !== '') {
+            $metros -= ((float) $bastillaCm) / 100;
+        }
+        if ($metros < 0) {
+            $metros = 0;
+        }
+
+        return $numero($metros);
+    };
+
+    $totalHojas = count($hojas);
     $totalPartidas = $detalles->count();
     $folio = str_pad($cotizacion->id, 5, '0', STR_PAD_LEFT);
     $fecha = $cotizacion->orden_taller_fecha
@@ -134,7 +157,8 @@
     $cliente = $cotizacion->cliente;
 @endphp
 
-@foreach($detalles as $index => $detalle)
+@foreach($hojas as $index => $hoja)
+    @php $detalle = $hoja['detalle']; @endphp
     <div class="{{ $loop->last ? '' : 'hoja-break' }}">
         <table class="pdf-header">
             <tr>
@@ -144,7 +168,7 @@
                 <td>
                     <div class="doc-title">ORDEN DE TALLER</div>
                     <div class="doc-number">No. {{ $folio }}</div>
-                    <div class="doc-partida">Partida {{ $index + 1 }} de {{ $totalPartidas }}</div>
+                    <div class="doc-partida">Hoja {{ $index + 1 }} de {{ $totalHojas }} · {{ $hoja['titulo'] }}</div>
                 </td>
             </tr>
         </table>
@@ -175,20 +199,23 @@
         @php
             $baston = $bastonesPorDetalle[$detalle->id] ?? ['numero' => null, 'medida' => null];
             $bastillaCm = $bastillas[$detalle->id]['efectiva'] ?? null;
-            $largoFab = $numero($detalle->largo);
-            if ($detalle->largo !== null && $detalle->largo !== '' && $bastillaCm !== null && $bastillaCm !== '') {
-                $largoMetros = (float) $detalle->largo - ((float) $bastillaCm / 100);
-                $largoFab = $numero($largoMetros < 0 ? 0 : $largoMetros);
-            }
+            $largoFab = $largoFabricacion($detalle->largo, $bastillaCm);
+            $bastillaTergalCm = $bastillas[$detalle->id]['tergal']['efectiva'] ?? null;
+            $largoFabTergal = $largoFabricacion($detalle->largo_tergal, $bastillaTergalCm);
         @endphp
-        <div class="section-title">Cortina</div>
         <table class="grid">
             <tr>
-                <td colspan="2">
+                <td colspan="4">
                     <div class="lbl">Área</div>
                     <div class="val">{{ $texto($detalle->area) }}</div>
                 </td>
-                <td colspan="2">
+            </tr>
+        </table>
+        @if($hoja['tipo'] === 'cortina')
+        <div class="section-title">Cortina · partida {{ $hoja['partida'] }} de {{ $totalPartidas }}</div>
+        <table class="grid">
+            <tr>
+                <td colspan="4">
                     <div class="lbl">Medida de fabricación</div>
                     <div class="val">{{ $medida($anchoAMetros($detalle->ancho), $largoFab) }}</div>
                 </td>
@@ -205,23 +232,6 @@
                 <td colspan="2">
                     <div class="lbl">Apertura</div>
                     <div class="val">{{ $texto($detalle->apertura) }}</div>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="4">
-                    <div class="lbl">Alturas originales (referencia)</div>
-                    <table class="alturas">
-                        <tr>
-                            <th>Izq.</th>
-                            <th>Centro</th>
-                            <th>Derecho</th>
-                        </tr>
-                        <tr>
-                            <td>{{ $metros($detalle->altura_izq) }}</td>
-                            <td>{{ $metros($detalle->altura_centro) }}</td>
-                            <td>{{ $metros($detalle->altura_der) }}</td>
-                        </tr>
-                    </table>
                 </td>
             </tr>
             <tr>
@@ -245,21 +255,69 @@
                 </td>
             </tr>
             <tr>
-                <td>
-                    <div class="lbl">Número de bastones</div>
-                    <div class="val">{{ $texto($baston['numero']) }}</div>
-                </td>
-                <td>
-                    <div class="lbl">Medida de bastón</div>
-                    <div class="val">{{ $texto($baston['medida']) }}</div>
-                </td>
-                <td>
+                <td colspan="2">
                     <div class="lbl">Número de correderas</div>
                     <div class="val">{{ $texto($numeroCorrederas[$detalle->id] ?? null) }}</div>
                 </td>
-                <td>
+                <td colspan="2">
                     <div class="lbl">Vuelta lateral</div>
-                    <div class="val">{{ $numero($detalle->vuelta_lateral) === null ? '—' : $numero($detalle->vuelta_lateral) . ' cm' }}</div>
+                    <div class="val">{{ $centimetros($detalle->vuelta_lateral) }}</div>
+                </td>
+            </tr>
+        </table>
+        @endif
+
+        @if($hoja['tipo'] === 'tergal')
+            <div class="section-title">Tergal · partida {{ $hoja['partida'] }} de {{ $totalPartidas }}</div>
+            <table class="grid">
+                <tr>
+                    <td colspan="4">
+                        <div class="lbl">Medida de fabricación</div>
+                        <div class="val">{{ $medida($anchoAMetros($detalle->ancho_tergal_real), $largoFabTergal) }}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div class="lbl">Tela tergal</div>
+                        <div class="val">{{ $texto($detalle->tergal?->nombre ?: $detalle->descripcion_tergal) }}</div>
+                    </td>
+                    <td colspan="2">
+                        <div class="lbl">Color tergal</div>
+                        <div class="val">{{ $texto($detalle->tergal?->color) }}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <div class="lbl">Cortinero tergal</div>
+                        <div class="val">{{ $texto($detalle->cortineroTergal?->nombre) }}</div>
+                    </td>
+                </tr>
+            </table>
+        @endif
+
+        <div class="section-title">Alturas originales (referencia)</div>
+        <table class="alturas">
+            <tr>
+                <th>Izq.</th>
+                <th>Centro</th>
+                <th>Derecho</th>
+            </tr>
+            <tr>
+                <td>{{ $metros($detalle->altura_izq) }}</td>
+                <td>{{ $metros($detalle->altura_centro) }}</td>
+                <td>{{ $metros($detalle->altura_der) }}</td>
+            </tr>
+        </table>
+
+        <table class="grid" style="margin-top: 10px;">
+            <tr>
+                <td colspan="2">
+                    <div class="lbl">Número de bastones</div>
+                    <div class="val">{{ $texto($baston['numero']) }}</div>
+                </td>
+                <td colspan="2">
+                    <div class="lbl">Medida de bastón</div>
+                    <div class="val">{{ $texto($baston['medida']) }}</div>
                 </td>
             </tr>
         </table>
