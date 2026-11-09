@@ -1577,22 +1577,19 @@ class CotizacionController extends Controller
 
         foreach ($detalles as $detalle) {
             $partida++;
-            if ($detalle->lleva_cortina) {
-                $hojas[] = [
-                    'tipo' => 'cortina',
-                    'titulo' => 'Cortina',
-                    'detalle' => $detalle,
-                    'partida' => $partida,
-                ];
+            if ($detalle->lleva_cortina && $detalle->lleva_tergal) {
+                $titulo = 'Cortina y tergal';
+            } elseif ($detalle->lleva_tergal) {
+                $titulo = 'Tergal';
+            } else {
+                $titulo = 'Cortina';
             }
-            if ($detalle->lleva_tergal) {
-                $hojas[] = [
-                    'tipo' => 'tergal',
-                    'titulo' => 'Tergal',
-                    'detalle' => $detalle,
-                    'partida' => $partida,
-                ];
-            }
+
+            $hojas[] = [
+                'titulo' => $titulo,
+                'detalle' => $detalle,
+                'partida' => $partida,
+            ];
         }
 
         return $hojas;
@@ -1730,7 +1727,7 @@ class CotizacionController extends Controller
         if ($tipo === 'central') {
             $piezas = $this->redondearCorrederas(($anchoCm / 2) / $medida, true);
 
-            return $piezas . ' CADA LADO ' . $medidaTexto . ' CM';
+            return $piezas . ' PIN CADA LADO ' . $medidaTexto . ' CM';
         }
 
         if ($tipo === 'jalon') {

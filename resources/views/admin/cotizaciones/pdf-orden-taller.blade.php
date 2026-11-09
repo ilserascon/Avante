@@ -211,7 +211,7 @@
                 </td>
             </tr>
         </table>
-        @if($hoja['tipo'] === 'cortina')
+        @if($detalle->lleva_cortina)
         <div class="section-title">Cortina · partida {{ $hoja['partida'] }} de {{ $totalPartidas }}</div>
         <table class="grid">
             <tr>
@@ -267,8 +267,8 @@
         </table>
         @endif
 
-        @if($hoja['tipo'] === 'tergal')
-            <div class="section-title">Tergal · partida {{ $hoja['partida'] }} de {{ $totalPartidas }}</div>
+        @if($detalle->lleva_tergal)
+            <div class="section-title">Tergal</div>
             <table class="grid">
                 <tr>
                     <td colspan="4">

@@ -244,6 +244,10 @@ class CotizacionInventarioService
         $faltantes = [];
 
         foreach ($requerimientos['insumos'] as $insumoId => $cantidad) {
+            if ($this->esInsumoManoDeObra((int) $insumoId)) {
+                continue;
+            }
+
             $disponible = $this->obtenerStockInsumo((int) $insumoId);
             if ($disponible + 0.00001 < $cantidad) {
                 $nombre = $this->nombreInsumo((int) $insumoId);
@@ -278,6 +282,10 @@ class CotizacionInventarioService
     private function descontarRequerimientos(array $requerimientos): void
     {
         foreach ($requerimientos['insumos'] as $insumoId => $cantidad) {
+            if ($this->esInsumoManoDeObra((int) $insumoId)) {
+                continue;
+            }
+
             $this->descontarInsumo((int) $insumoId, (float) $cantidad);
         }
 
@@ -376,6 +384,19 @@ class CotizacionInventarioService
         return (float) Existencia::query()
             ->where('id_producto', $productoId)
             ->sum('cantidad');
+    }
+
+    private function esInsumoManoDeObra(int $insumoId): bool
+    {
+        $insumo = Insumo::with('tipoInsumo')->find($insumoId);
+        if (!$insumo) {
+            return false;
+        }
+
+        $tipo = mb_strtolower(trim((string) ($insumo->tipoInsumo->nombre ?? '')));
+        $tipo = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $tipo);
+
+        return $tipo === 'mano de obra';
     }
 
     private function esCortinero(Producto $producto): bool

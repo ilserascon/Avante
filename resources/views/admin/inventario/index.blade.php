@@ -105,7 +105,7 @@
                     </div>
                     <div class="hero-actions">
                         <a href="{{ route('admin.inventario.export', request()->only(['nombre', 'tipo'])) }}" class="btn btn-success px-4">
-                            <i class="fas fa-file-excel mr-1"></i> Excel
+                            <i class="fas fa-file-excel mr-1"></i> Descargar Excel
                         </a>
                     </div>
                 </div>
