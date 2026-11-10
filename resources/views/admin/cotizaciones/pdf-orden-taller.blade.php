@@ -245,13 +245,9 @@
                     <div class="lbl">Confección</div>
                     <div class="val">{{ $texto($confeccion($detalle->confeccion, $detalle->descripcion_tela)) }}</div>
                 </td>
-                <td>
+                <td colspan="2">
                     <div class="lbl">Apertura</div>
                     <div class="val">{{ $texto($detalle->apertura) }}</div>
-                </td>
-                <td>
-                    <div class="lbl">Espacio</div>
-                    <div class="val">{{ $numero($detalle->espacio) ?? '10' }}</div>
                 </td>
             </tr>
             <tr>
@@ -323,13 +319,9 @@
                         <div class="lbl">Confección</div>
                         <div class="val">{{ $texto($confeccion($detalle->confeccion_tergal, $detalle->descripcion_tergal)) }}</div>
                     </td>
-                    <td>
+                    <td colspan="2">
                         <div class="lbl">Apertura</div>
                         <div class="val">{{ $texto($detalle->apertura_tergal) }}</div>
-                    </td>
-                    <td>
-                        <div class="lbl">Espacio</div>
-                        <div class="val">{{ $numero($detalle->espacio_tergal) ?? '10' }}</div>
                     </td>
                 </tr>
                 <tr>
