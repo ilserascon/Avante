@@ -47,6 +47,13 @@
             padding: 5px 8px;
             margin-top: 10px;
         }
+        .bloque-tela { margin-top: 10px; }
+        .bloque-cortina { border: 1.5px solid #1e4b8f; }
+        .bloque-tergal { border: 1.5px solid #8a5a2b; }
+        .bloque-tela .section-title { margin-top: 0; }
+        .section-title.cortina { background: #1e4b8f; }
+        .section-title.tergal { background: #8a5a2b; }
+        .bloque-tela .grid td { border-color: #d5deea; }
         .grid td {
             border: 1px solid #dde6f0;
             padding: 5px 7px;
@@ -147,8 +154,16 @@
         return $numero($metros);
     };
 
+    $confeccion = function ($guardada, $descripcion) {
+        $texto = trim((string) ($guardada ?? ''));
+        if ($texto === '') {
+            $texto = trim((string) ($descripcion ?? ''));
+        }
+
+        return $texto === '' ? null : $texto;
+    };
+
     $totalHojas = count($hojas);
-    $totalPartidas = $detalles->count();
     $folio = str_pad($cotizacion->id, 5, '0', STR_PAD_LEFT);
     $fecha = $cotizacion->orden_taller_fecha
         ? $cotizacion->orden_taller_fecha->format('d/m/Y')
@@ -205,14 +220,19 @@
         @endphp
         <table class="grid">
             <tr>
-                <td colspan="4">
+                <td colspan="2">
                     <div class="lbl">Área</div>
                     <div class="val">{{ $texto($detalle->area) }}</div>
+                </td>
+                <td colspan="2">
+                    <div class="lbl">Techo / muro</div>
+                    <div class="val">{{ $texto($detalle->techo_muro) }}</div>
                 </td>
             </tr>
         </table>
         @if($detalle->lleva_cortina)
-        <div class="section-title">Cortina · partida {{ $hoja['partida'] }} de {{ $totalPartidas }}</div>
+        <div class="bloque-tela bloque-cortina">
+        <div class="section-title cortina">Cortina</div>
         <table class="grid">
             <tr>
                 <td colspan="4">
@@ -221,17 +241,27 @@
                 </td>
             </tr>
             <tr>
-                <td>
-                    <div class="lbl">Techo / muro</div>
-                    <div class="val">{{ $texto($detalle->techo_muro) }}</div>
-                </td>
-                <td>
-                    <div class="lbl">Confección</div>
-                    <div class="val">{{ $texto($detalle->confeccion) }}</div>
-                </td>
                 <td colspan="2">
+                    <div class="lbl">Confección</div>
+                    <div class="val">{{ $texto($confeccion($detalle->confeccion, $detalle->descripcion_tela)) }}</div>
+                </td>
+                <td>
                     <div class="lbl">Apertura</div>
                     <div class="val">{{ $texto($detalle->apertura) }}</div>
+                </td>
+                <td>
+                    <div class="lbl">Espacio</div>
+                    <div class="val">{{ $numero($detalle->espacio) ?? '10' }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="lbl">Corredera</div>
+                    <div class="val">{{ $texto($detalle->corredera?->nombre) }}</div>
+                </td>
+                <td colspan="2">
+                    <div class="lbl">Cinta</div>
+                    <div class="val">{{ $texto($detalle->cinta?->nombre) }}</div>
                 </td>
             </tr>
             <tr>
@@ -256,8 +286,8 @@
             </tr>
             <tr>
                 <td colspan="2">
-                    <div class="lbl">Número de correderas</div>
-                    <div class="val">{{ $texto($numeroCorrederas[$detalle->id] ?? null) }}</div>
+                    <div class="lbl">{{ $numeroCorrederas[$detalle->id]['cortina']['etiqueta'] ?? 'PINES' }}</div>
+                    <div class="val">{{ $texto($numeroCorrederas[$detalle->id]['cortina']['texto'] ?? null) }}</div>
                 </td>
                 <td colspan="2">
                     <div class="lbl">Vuelta lateral</div>
@@ -265,10 +295,12 @@
                 </td>
             </tr>
         </table>
+        </div>
         @endif
 
         @if($detalle->lleva_tergal)
-            <div class="section-title">Tergal</div>
+            <div class="bloque-tela bloque-tergal">
+            <div class="section-title tergal">Tergal</div>
             <table class="grid">
                 <tr>
                     <td colspan="4">
@@ -287,12 +319,41 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="4">
+                    <td colspan="2">
+                        <div class="lbl">Confección</div>
+                        <div class="val">{{ $texto($confeccion($detalle->confeccion_tergal, $detalle->descripcion_tergal)) }}</div>
+                    </td>
+                    <td>
+                        <div class="lbl">Apertura</div>
+                        <div class="val">{{ $texto($detalle->apertura_tergal) }}</div>
+                    </td>
+                    <td>
+                        <div class="lbl">Espacio</div>
+                        <div class="val">{{ $numero($detalle->espacio_tergal) ?? '10' }}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div class="lbl">Corredera</div>
+                        <div class="val">{{ $texto($detalle->correderaTergal?->nombre) }}</div>
+                    </td>
+                    <td colspan="2">
+                        <div class="lbl">Cinta</div>
+                        <div class="val">{{ $texto($detalle->cintaTergal?->nombre) }}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
                         <div class="lbl">Cortinero tergal</div>
                         <div class="val">{{ $texto($detalle->cortineroTergal?->nombre) }}</div>
                     </td>
+                    <td colspan="2">
+                        <div class="lbl">{{ $numeroCorrederas[$detalle->id]['tergal']['etiqueta'] ?? 'PINES' }}</div>
+                        <div class="val">{{ $texto($numeroCorrederas[$detalle->id]['tergal']['texto'] ?? null) }}</div>
+                    </td>
                 </tr>
             </table>
+            </div>
         @endif
 
         <div class="section-title">Alturas originales (referencia)</div>

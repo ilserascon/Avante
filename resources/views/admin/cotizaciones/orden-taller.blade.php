@@ -53,6 +53,29 @@
         return $valor;
     };
 
+    $espacioCampo = function ($index, $detalle, $field) use ($campo) {
+        $valor = $campo($index, $detalle, $field);
+        if (($valor === '' || $valor === null) && !is_array(old('partidas'))) {
+            return '10';
+        }
+        if ($valor === '' || $valor === null) {
+            return '';
+        }
+
+        return rtrim(rtrim(number_format((float) $valor, 3, '.', ''), '0'), '.');
+    };
+
+    $confeccionCampo = function ($index, $detalle, $field, $sugerida) use ($campo) {
+        $valor = $campo($index, $detalle, $field);
+        if (($valor === '' || $valor === null) && !is_array(old('partidas'))) {
+            $texto = trim((string) ($sugerida ?? ''));
+
+            return $texto === '' ? '' : mb_substr($texto, 0, 255);
+        }
+
+        return $valor ?? '';
+    };
+
     $totalPartidas = $detalles->count();
 @endphp
 
@@ -95,6 +118,37 @@
         font-weight: 700;
         color: #26344d;
         margin-bottom: 0.85rem;
+    }
+
+    .orden-taller .panel-tela {
+        border-radius: 12px;
+        padding: 0.9rem 1rem 0.15rem;
+        margin-bottom: 1.15rem;
+    }
+
+    .orden-taller .panel-cortina {
+        background: #f3f7ff;
+        border: 1px solid #c5d7f6;
+    }
+
+    .orden-taller .panel-cortina .bloque-titulo {
+        color: #1e4b8f;
+    }
+
+    .orden-taller .panel-tergal {
+        background: #fbf6ef;
+        border: 1px solid #e4d3bc;
+    }
+
+    .orden-taller .panel-tergal .bloque-titulo {
+        color: #8a5a2b;
+    }
+
+    .orden-taller .panel-general {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.9rem 1rem 0.15rem;
     }
 
     .orden-taller label {
@@ -172,9 +226,18 @@
                             <label>Área</label>
                             <div class="readonly-field">{{ $fmtVal($detalle->area) }}</div>
                         </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="techo_muro_{{ $detalle->id }}">Techo / muro</label>
+                            <select id="techo_muro_{{ $detalle->id }}" name="partidas[{{ $index }}][techo_muro]" class="form-control">
+                                <option value="">Selecciona</option>
+                                <option value="Piso Techo" @selected($campo($index, $detalle, 'techo_muro') === 'Piso Techo')>Piso techo</option>
+                                <option value="Muro" @selected($campo($index, $detalle, 'techo_muro') === 'Muro')>Muro</option>
+                            </select>
+                        </div>
                     </div>
 
                     @if($detalle->lleva_cortina)
+                    <div class="panel-tela panel-cortina">
                     <h6 class="bloque-titulo">Cortina</h6>
                     <div class="row mb-2">
                         <div class="col-md-2 mb-3">
@@ -200,10 +263,52 @@
                             <label>Cortinero cortina</label>
                             <div class="readonly-field">{{ $fmtVal($detalle->cortinero?->nombre) }}</div>
                         </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="confeccion_{{ $detalle->id }}">Confección</label>
+                            <input id="confeccion_{{ $detalle->id }}" type="text" maxlength="255" class="form-control" name="partidas[{{ $index }}][confeccion]" value="{{ $confeccionCampo($index, $detalle, 'confeccion', $detalle->descripcion_tela) }}">
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label for="apertura_{{ $detalle->id }}">Apertura</label>
+                            <select id="apertura_{{ $detalle->id }}" name="partidas[{{ $index }}][apertura]" class="form-control">
+                                <option value="">Selecciona</option>
+                                <option value="Central" @selected($campo($index, $detalle, 'apertura') === 'Central')>Central</option>
+                                <option value="Jalón izquierdo" @selected(in_array($campo($index, $detalle, 'apertura'), ['Jalón izquierdo', 'Izquierdo'], true))>Jalón izquierdo</option>
+                                <option value="Jalón derecho" @selected(in_array($campo($index, $detalle, 'apertura'), ['Jalón derecho', 'Derecho'], true))>Jalón derecho</option>
+                                <option value="Híbrido" @selected($campo($index, $detalle, 'apertura') === 'Híbrido')>Híbrido</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="espacio_{{ $detalle->id }}">Espacio</label>
+                            <input id="espacio_{{ $detalle->id }}" type="number" min="0" step="0.01" class="form-control" name="partidas[{{ $index }}][espacio]" value="{{ $espacioCampo($index, $detalle, 'espacio') }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="corredera_{{ $detalle->id }}">Corredera</label>
+                            <select id="corredera_{{ $detalle->id }}" name="partidas[{{ $index }}][corredera_id]" class="form-control">
+                                <option value="">Selecciona</option>
+                                @foreach($correderas as $corredera)
+                                    <option value="{{ $corredera->id }}" @selected((string) $campo($index, $detalle, 'corredera_id') === (string) $corredera->id)>
+                                        {{ $corredera->nombre }} — {{ $corredera->primeraMedidaMostrar() }} cm
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="cinta_{{ $detalle->id }}">Cinta</label>
+                            <select id="cinta_{{ $detalle->id }}" name="partidas[{{ $index }}][cinta_id]" class="form-control">
+                                <option value="">Selecciona</option>
+                                @foreach($cintas as $cinta)
+                                    <option value="{{ $cinta->id }}" @selected((string) $campo($index, $detalle, 'cinta_id') === (string) $cinta->id)>
+                                        {{ $cinta->nombre }} — {{ $cinta->primeraMedidaMostrar() }} cm
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     </div>
                     @endif
 
                     @if($detalle->lleva_tergal)
+                        <div class="panel-tela panel-tergal">
                         <h6 class="bloque-titulo">Tergal</h6>
                         <div class="row mb-2">
                             <div class="col-md-2 mb-3">
@@ -229,55 +334,53 @@
                                 <label>Cortinero tergal</label>
                                 <div class="readonly-field">{{ $fmtVal($detalle->cortineroTergal?->nombre) }}</div>
                             </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="confeccion_tergal_{{ $detalle->id }}">Confección</label>
+                                <input id="confeccion_tergal_{{ $detalle->id }}" type="text" maxlength="255" class="form-control" name="partidas[{{ $index }}][confeccion_tergal]" value="{{ $confeccionCampo($index, $detalle, 'confeccion_tergal', $detalle->descripcion_tergal) }}">
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label for="apertura_tergal_{{ $detalle->id }}">Apertura</label>
+                                <select id="apertura_tergal_{{ $detalle->id }}" name="partidas[{{ $index }}][apertura_tergal]" class="form-control">
+                                    <option value="">Selecciona</option>
+                                    <option value="Central" @selected($campo($index, $detalle, 'apertura_tergal') === 'Central')>Central</option>
+                                    <option value="Jalón izquierdo" @selected(in_array($campo($index, $detalle, 'apertura_tergal'), ['Jalón izquierdo', 'Izquierdo'], true))>Jalón izquierdo</option>
+                                    <option value="Jalón derecho" @selected(in_array($campo($index, $detalle, 'apertura_tergal'), ['Jalón derecho', 'Derecho'], true))>Jalón derecho</option>
+                                    <option value="Híbrido" @selected($campo($index, $detalle, 'apertura_tergal') === 'Híbrido')>Híbrido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="espacio_tergal_{{ $detalle->id }}">Espacio</label>
+                                <input id="espacio_tergal_{{ $detalle->id }}" type="number" min="0" step="0.01" class="form-control" name="partidas[{{ $index }}][espacio_tergal]" value="{{ $espacioCampo($index, $detalle, 'espacio_tergal') }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="corredera_tergal_{{ $detalle->id }}">Corredera</label>
+                                <select id="corredera_tergal_{{ $detalle->id }}" name="partidas[{{ $index }}][corredera_tergal_id]" class="form-control">
+                                    <option value="">Selecciona</option>
+                                    @foreach($correderas as $corredera)
+                                        <option value="{{ $corredera->id }}" @selected((string) $campo($index, $detalle, 'corredera_tergal_id') === (string) $corredera->id)>
+                                            {{ $corredera->nombre }} — {{ $corredera->primeraMedidaMostrar() }} cm
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cinta_tergal_{{ $detalle->id }}">Cinta</label>
+                                <select id="cinta_tergal_{{ $detalle->id }}" name="partidas[{{ $index }}][cinta_tergal_id]" class="form-control">
+                                    <option value="">Selecciona</option>
+                                    @foreach($cintas as $cinta)
+                                        <option value="{{ $cinta->id }}" @selected((string) $campo($index, $detalle, 'cinta_tergal_id') === (string) $cinta->id)>
+                                            {{ $cinta->nombre }} — {{ $cinta->primeraMedidaMostrar() }} cm
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                         </div>
                     @endif
 
-                    <h6 class="bloque-titulo">Datos de taller</h6>
+                    <div class="panel-general">
+                    <h6 class="bloque-titulo">Datos generales</h6>
                     <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <label for="techo_muro_{{ $detalle->id }}">Techo / muro</label>
-                            <select id="techo_muro_{{ $detalle->id }}" name="partidas[{{ $index }}][techo_muro]" class="form-control">
-                                <option value="">Selecciona</option>
-                                <option value="Piso Techo" @selected($campo($index, $detalle, 'techo_muro') === 'Piso Techo')>Piso techo</option>
-                                <option value="Muro" @selected($campo($index, $detalle, 'techo_muro') === 'Muro')>Muro</option>
-                            </select>
-                        </div>
-                        <div class="col-md-5 mb-3">
-                            <label for="confeccion_{{ $detalle->id }}">Confección</label>
-                            <input id="confeccion_{{ $detalle->id }}" type="text" maxlength="255" class="form-control" name="partidas[{{ $index }}][confeccion]" value="{{ $campo($index, $detalle, 'confeccion') }}">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="apertura_{{ $detalle->id }}">Apertura</label>
-                            <select id="apertura_{{ $detalle->id }}" name="partidas[{{ $index }}][apertura]" class="form-control">
-                                <option value="">Selecciona</option>
-                                <option value="Central" @selected($campo($index, $detalle, 'apertura') === 'Central')>Central</option>
-                                <option value="Jalón izquierdo" @selected(in_array($campo($index, $detalle, 'apertura'), ['Jalón izquierdo', 'Izquierdo'], true))>Jalón izquierdo</option>
-                                <option value="Jalón derecho" @selected(in_array($campo($index, $detalle, 'apertura'), ['Jalón derecho', 'Derecho'], true))>Jalón derecho</option>
-                                <option value="Híbrido" @selected($campo($index, $detalle, 'apertura') === 'Híbrido')>Híbrido</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="corredera_{{ $detalle->id }}">Corredera</label>
-                            <select id="corredera_{{ $detalle->id }}" name="partidas[{{ $index }}][corredera_id]" class="form-control">
-                                <option value="">Selecciona</option>
-                                @foreach($correderas as $corredera)
-                                    <option value="{{ $corredera->id }}" @selected((string) $campo($index, $detalle, 'corredera_id') === (string) $corredera->id)>
-                                        {{ $corredera->nombre }} — {{ $corredera->primeraMedidaMostrar() }} cm
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="cinta_{{ $detalle->id }}">Cinta</label>
-                            <select id="cinta_{{ $detalle->id }}" name="partidas[{{ $index }}][cinta_id]" class="form-control">
-                                <option value="">Selecciona</option>
-                                @foreach($cintas as $cinta)
-                                    <option value="{{ $cinta->id }}" @selected((string) $campo($index, $detalle, 'cinta_id') === (string) $cinta->id)>
-                                        {{ $cinta->nombre }} — {{ $cinta->primeraMedidaMostrar() }} cm
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
                         <div class="col-md-12 mb-3">
                             <label>Alturas originales (referencia)</label>
                             <table class="table table-bordered mb-0">
@@ -324,6 +427,7 @@
                             <label for="observacion_taller_{{ $detalle->id }}">Observación</label>
                             <textarea id="observacion_taller_{{ $detalle->id }}" maxlength="2000" rows="3" class="form-control" name="partidas[{{ $index }}][observacion_taller]">{{ $campo($index, $detalle, 'observacion_taller') }}</textarea>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>

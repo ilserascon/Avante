@@ -1164,9 +1164,15 @@ class CotizacionController extends Controller
             'partidas.*.id' => ['required', 'integer', Rule::in($idsPermitidos)],
             'partidas.*.techo_muro' => 'nullable|in:Piso Techo,Muro',
             'partidas.*.confeccion' => 'nullable|string|max:255',
+            'partidas.*.confeccion_tergal' => 'nullable|string|max:255',
             'partidas.*.apertura' => 'nullable|in:Central,Izquierdo,Derecho,Jalón izquierdo,Jalón derecho,Híbrido',
+            'partidas.*.apertura_tergal' => 'nullable|in:Central,Izquierdo,Derecho,Jalón izquierdo,Jalón derecho,Híbrido',
+            'partidas.*.espacio' => 'nullable|numeric|min:0',
+            'partidas.*.espacio_tergal' => 'nullable|numeric|min:0',
             'partidas.*.corredera_id' => ['nullable', 'integer', Rule::in($idsCorrederas)],
+            'partidas.*.corredera_tergal_id' => ['nullable', 'integer', Rule::in($idsCorrederas)],
             'partidas.*.cinta_id' => ['nullable', 'integer', Rule::in($idsCintas)],
+            'partidas.*.cinta_tergal_id' => ['nullable', 'integer', Rule::in($idsCintas)],
             'partidas.*.altura_izq' => 'nullable|numeric|min:0',
             'partidas.*.altura_centro' => 'nullable|numeric|min:0',
             'partidas.*.altura_der' => 'nullable|numeric|min:0',
@@ -1195,10 +1201,36 @@ class CotizacionController extends Controller
 
                 $detalle->update([
                     'techo_muro' => $partida['techo_muro'] ?? null,
-                    'confeccion' => $this->textoOrdenTaller($partida['confeccion'] ?? null),
-                    'apertura' => $partida['apertura'] ?? null,
-                    'corredera_id' => ($partida['corredera_id'] ?? '') === '' ? null : (int) $partida['corredera_id'],
-                    'cinta_id' => ($partida['cinta_id'] ?? '') === '' ? null : (int) $partida['cinta_id'],
+                    'confeccion' => $detalle->lleva_cortina
+                        ? $this->textoOrdenTaller($partida['confeccion'] ?? null)
+                        : $detalle->confeccion,
+                    'confeccion_tergal' => $detalle->lleva_tergal
+                        ? $this->textoOrdenTaller($partida['confeccion_tergal'] ?? null)
+                        : $detalle->confeccion_tergal,
+                    'apertura' => $detalle->lleva_cortina
+                        ? ($partida['apertura'] ?? null)
+                        : $detalle->apertura,
+                    'apertura_tergal' => $detalle->lleva_tergal
+                        ? ($partida['apertura_tergal'] ?? null)
+                        : $detalle->apertura_tergal,
+                    'espacio' => $detalle->lleva_cortina
+                        ? $this->numeroOrdenTaller($partida['espacio'] ?? null)
+                        : $detalle->espacio,
+                    'espacio_tergal' => $detalle->lleva_tergal
+                        ? $this->numeroOrdenTaller($partida['espacio_tergal'] ?? null)
+                        : $detalle->espacio_tergal,
+                    'corredera_id' => $detalle->lleva_cortina
+                        ? $this->idOrdenTaller($partida['corredera_id'] ?? null)
+                        : $detalle->corredera_id,
+                    'corredera_tergal_id' => $detalle->lleva_tergal
+                        ? $this->idOrdenTaller($partida['corredera_tergal_id'] ?? null)
+                        : $detalle->corredera_tergal_id,
+                    'cinta_id' => $detalle->lleva_cortina
+                        ? $this->idOrdenTaller($partida['cinta_id'] ?? null)
+                        : $detalle->cinta_id,
+                    'cinta_tergal_id' => $detalle->lleva_tergal
+                        ? $this->idOrdenTaller($partida['cinta_tergal_id'] ?? null)
+                        : $detalle->cinta_tergal_id,
                     'altura_izq' => $this->numeroOrdenTaller($partida['altura_izq'] ?? null),
                     'altura_centro' => $this->numeroOrdenTaller($partida['altura_centro'] ?? null),
                     'altura_der' => $this->numeroOrdenTaller($partida['altura_der'] ?? null),
@@ -1549,12 +1581,16 @@ class CotizacionController extends Controller
             'detallesCotizacion.cortineroTergal',
             'detallesCotizacion.corredera.tipoInsumo',
             'detallesCotizacion.cinta.tipoInsumo',
+            'detallesCotizacion.correderaTergal.tipoInsumo',
+            'detallesCotizacion.cintaTergal.tipoInsumo',
             'detalleCotizacion.tela',
             'detalleCotizacion.tergal',
             'detalleCotizacion.cortinero',
             'detalleCotizacion.cortineroTergal',
             'detalleCotizacion.corredera.tipoInsumo',
             'detalleCotizacion.cinta.tipoInsumo',
+            'detalleCotizacion.correderaTergal.tipoInsumo',
+            'detalleCotizacion.cintaTergal.tipoInsumo',
         ])->findOrFail($id);
     }
 
@@ -1665,7 +1701,11 @@ class CotizacionController extends Controller
             ->get();
 
         $ids = $correderas->pluck('id');
-        $seleccionadas = collect($detalles)->pluck('corredera_id')->filter()->map(fn ($id) => (int) $id)->unique();
+        $seleccionadas = collect($detalles)
+            ->flatMap(fn ($detalle) => [$detalle->corredera_id, $detalle->corredera_tergal_id])
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique();
         $faltantes = $seleccionadas->diff($ids);
         if ($faltantes->isEmpty()) {
             return $correderas;
@@ -1688,7 +1728,11 @@ class CotizacionController extends Controller
             ->get();
 
         $ids = $cintas->pluck('id');
-        $seleccionadas = collect($detalles)->pluck('cinta_id')->filter()->map(fn ($id) => (int) $id)->unique();
+        $seleccionadas = collect($detalles)
+            ->flatMap(fn ($detalle) => [$detalle->cinta_id, $detalle->cinta_tergal_id])
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique();
         $faltantes = $seleccionadas->diff($ids);
         if ($faltantes->isEmpty()) {
             return $cintas;
@@ -1704,14 +1748,72 @@ class CotizacionController extends Controller
     {
         $textos = [];
         foreach ($detalles as $detalle) {
-            $textos[$detalle->id] = $this->textoNumeroCorrederas(
-                $detalle->apertura,
-                $detalle->ancho,
-                $detalle->corredera?->primeraMedidaMostrar()
-            );
+            $textos[$detalle->id] = [
+                'cortina' => $this->textoConteoTaller(
+                    $detalle->confeccion,
+                    $detalle->descripcion_tela,
+                    $detalle->apertura,
+                    $detalle->ancho,
+                    $detalle->corredera?->primeraMedidaMostrar(),
+                    $detalle->espacio
+                ),
+                'tergal' => $this->textoConteoTaller(
+                    $detalle->confeccion_tergal,
+                    $detalle->descripcion_tergal,
+                    $detalle->apertura_tergal,
+                    $detalle->ancho_tergal_real,
+                    $detalle->correderaTergal?->primeraMedidaMostrar(),
+                    $detalle->espacio_tergal
+                ),
+            ];
         }
 
         return $textos;
+    }
+
+    private function textoConteoTaller($confeccion, $descripcion, $apertura, $ancho, $medidaCorredera, $espacio): array
+    {
+        if ($this->confeccionEsPatol($confeccion, $descripcion)) {
+            return [
+                'etiqueta' => 'ESPACIOS',
+                'texto' => $this->textoEspaciosPatol($ancho, $espacio),
+            ];
+        }
+
+        return [
+            'etiqueta' => 'PINES',
+            'texto' => $this->textoNumeroCorrederas($apertura, $ancho, $medidaCorredera),
+        ];
+    }
+
+    private function confeccionEsPatol($confeccion, $descripcion): bool
+    {
+        $texto = trim((string) ($confeccion ?? ''));
+        if ($texto === '') {
+            $texto = trim((string) ($descripcion ?? ''));
+        }
+
+        $texto = mb_strtolower($texto);
+        $texto = str_replace(['á', 'é', 'í', 'ó', 'ú'], ['a', 'e', 'i', 'o', 'u'], $texto);
+
+        return preg_match('/\bpatol\b/u', $texto) === 1;
+    }
+
+    private function textoEspaciosPatol($ancho, $espacio): ?string
+    {
+        $anchoCm = $this->anchoCortinaEnCm($ancho);
+        if ($anchoCm === null) {
+            return null;
+        }
+
+        $espacioCm = (float) str_replace(',', '.', trim((string) ($espacio ?? '')));
+        if ($espacioCm <= 0) {
+            $espacioCm = 10;
+        }
+
+        $espacios = (int) floor(($anchoCm / $espacioCm) + 0.0001) + 2;
+
+        return $espacios . ' ESPACIOS';
     }
 
     private function textoNumeroCorrederas($apertura, $ancho, $medidaCorredera): ?string
@@ -1841,6 +1943,15 @@ class CotizacionController extends Controller
         }
 
         return ['codigo' => null, 'cm' => null];
+    }
+
+    private function idOrdenTaller($value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (int) $value;
     }
 
     private function numeroOrdenTaller($value): ?string

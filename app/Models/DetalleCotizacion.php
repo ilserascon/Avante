@@ -89,9 +89,14 @@ class DetalleCotizacion extends Model
         'techo_muro',
         'corredera_id',
         'cinta_id',
+        'corredera_tergal_id',
+        'cinta_tergal_id',
         'bastilla_taller',
         'bastilla_taller_tergal',
         'confeccion',
+        'confeccion_tergal',
+        'espacio',
+        'espacio_tergal',
         'altura_izq',
         'altura_centro',
         'altura_der',
@@ -149,6 +154,16 @@ class DetalleCotizacion extends Model
     public function cinta()
     {
         return $this->belongsTo(Insumo::class, 'cinta_id');
+    }
+
+    public function correderaTergal()
+    {
+        return $this->belongsTo(Insumo::class, 'corredera_tergal_id');
+    }
+
+    public function cintaTergal()
+    {
+        return $this->belongsTo(Insumo::class, 'cinta_tergal_id');
     }
 
     public function cortineroTergal()
