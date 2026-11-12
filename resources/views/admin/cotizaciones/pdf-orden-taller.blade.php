@@ -235,11 +235,11 @@
         <div class="section-title cortina">Cortina</div>
         <table class="grid">
             <tr>
-                <td colspan="3">
+                <td colspan="2">
                     <div class="lbl">Medida de fabricación</div>
                     <div class="val">{{ $medida($anchoAMetros($detalle->ancho), $largoFab) }}</div>
                 </td>
-                <td>
+                <td colspan="2">
                     <div class="lbl">Forro</div>
                     <div class="val">{{ $detalle->lleva_forro ? 'SI' : 'NO' }}</div>
                 </td>
@@ -309,11 +309,11 @@
                         <div class="val">{{ $medida($anchoAMetros($detalle->ancho_tergal_real), $largoFabTergal) }}</div>
                     </td>
                     @else
-                    <td colspan="3">
+                    <td colspan="2">
                         <div class="lbl">Medida de fabricación</div>
                         <div class="val">{{ $medida($anchoAMetros($detalle->ancho_tergal_real), $largoFabTergal) }}</div>
                     </td>
-                    <td>
+                    <td colspan="2">
                         <div class="lbl">Forro</div>
                         <div class="val">{{ $detalle->lleva_forro ? 'SI' : 'NO' }}</div>
                     </td>
