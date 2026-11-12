@@ -1833,7 +1833,7 @@ class CotizacionController extends Controller
         }
 
         if ($tipo === 'jalon') {
-            $piezas = $this->redondearCorrederas($anchoCm / $medida, false);
+            $piezas = $this->redondearCorrederas($anchoCm / $medida, true);
 
             return $piezas . ' PIN ' . $medidaTexto . ' CM';
         }
