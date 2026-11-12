@@ -235,9 +235,13 @@
         <div class="section-title cortina">Cortina</div>
         <table class="grid">
             <tr>
-                <td colspan="4">
+                <td colspan="3">
                     <div class="lbl">Medida de fabricación</div>
                     <div class="val">{{ $medida($anchoAMetros($detalle->ancho), $largoFab) }}</div>
+                </td>
+                <td>
+                    <div class="lbl">Forro</div>
+                    <div class="val">{{ $detalle->lleva_forro ? 'SI' : 'NO' }}</div>
                 </td>
             </tr>
             <tr>
@@ -299,10 +303,21 @@
             <div class="section-title tergal">Tergal</div>
             <table class="grid">
                 <tr>
+                    @if($detalle->lleva_cortina)
                     <td colspan="4">
                         <div class="lbl">Medida de fabricación</div>
                         <div class="val">{{ $medida($anchoAMetros($detalle->ancho_tergal_real), $largoFabTergal) }}</div>
                     </td>
+                    @else
+                    <td colspan="3">
+                        <div class="lbl">Medida de fabricación</div>
+                        <div class="val">{{ $medida($anchoAMetros($detalle->ancho_tergal_real), $largoFabTergal) }}</div>
+                    </td>
+                    <td>
+                        <div class="lbl">Forro</div>
+                        <div class="val">{{ $detalle->lleva_forro ? 'SI' : 'NO' }}</div>
+                    </td>
+                    @endif
                 </tr>
                 <tr>
                     <td colspan="2">
