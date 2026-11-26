@@ -133,8 +133,8 @@ class CotizacionController extends Controller
             'fecha' => 'required|date',
             'detalle' => 'array',
             'totales' => 'array',
-            'insumos.*.area' => 'nullable|numeric|min:0',
-            'productos.*.area' => 'nullable|numeric|min:0',
+            'insumos.*.area_descripcion' => 'nullable|string|max:255',
+            'productos.*.area_descripcion' => 'nullable|string|max:255',
         ]);
 
         $detalle = $request->input('detalle', []);
@@ -315,21 +315,10 @@ class CotizacionController extends Controller
             $cotizacion->detallesCotizacion()->create($dataDetalle);
         }
 
-        $todosLosInsumos = [];
-
-        foreach ($insumosGlobales as $insumoFila) {
-            $this->acumularFilaPivot(
-                $todosLosInsumos,
-                (int) ($insumoFila['id'] ?? 0),
-                (float) ($insumoFila['cantidad'] ?? 0),
-                (float) ($insumoFila['precio'] ?? 0),
-                (float) ($insumoFila['descuento'] ?? 0),
-                isset($insumoFila['area']) && $insumoFila['area'] !== '' ? (float) $insumoFila['area'] : null
-            );
-        }
-
-        if (!empty($todosLosInsumos)) {
-            $cotizacion->insumos()->attach($todosLosInsumos);
+        foreach ($this->filasPivotInsumos($insumosGlobales) as $fila) {
+            $insumoId = $fila['insumo_id'];
+            unset($fila['insumo_id']);
+            $cotizacion->insumos()->attach($insumoId, $fila);
         }
 
         $this->guardarProductosCotizacion($cotizacion, $productosGlobales);
@@ -447,7 +436,7 @@ class CotizacionController extends Controller
                     'tipo_id' => $insumo->id_tipo_insumo,
                     'id' => $insumo->id,
                     'cantidad' => $insumo->pivot->cantidad,
-                    'area' => $insumo->pivot->area,
+                    'area_descripcion' => $insumo->pivot->area_descripcion,
                     'precio' => $insumo->pivot->precio_unitario,
                     'descuento' => $insumo->pivot->descuento ?? 0,
                 ];
@@ -460,7 +449,7 @@ class CotizacionController extends Controller
                     'tipo_id' => $producto->id_tipo_producto,
                     'id' => $producto->id,
                     'cantidad' => $producto->pivot->cantidad,
-                    'area' => $producto->pivot->area,
+                    'area_descripcion' => $producto->pivot->area_descripcion,
                     'ancho' => $producto->pivot->ancho,
                     'largo' => $producto->pivot->largo,
                     'precio' => $producto->pivot->precio_unitario,
@@ -505,8 +494,8 @@ class CotizacionController extends Controller
             'fecha' => 'required|date',
             'detalle' => 'array',
             'totales' => 'array',
-            'insumos.*.area' => 'nullable|numeric|min:0',
-            'productos.*.area' => 'nullable|numeric|min:0',
+            'insumos.*.area_descripcion' => 'nullable|string|max:255',
+            'productos.*.area_descripcion' => 'nullable|string|max:255',
         ]);
 
         $detalle = $request->input('detalle', []);
@@ -678,20 +667,12 @@ class CotizacionController extends Controller
             $cotizacion->detallesCotizacion()->create($dataDetalle);
         }
 
-        $todosLosInsumos = [];
-
-        foreach ($insumosGlobales as $insumoFila) {
-            $this->acumularFilaPivot(
-                $todosLosInsumos,
-                (int) ($insumoFila['id'] ?? 0),
-                (float) ($insumoFila['cantidad'] ?? 0),
-                (float) ($insumoFila['precio'] ?? 0),
-                (float) ($insumoFila['descuento'] ?? 0),
-                isset($insumoFila['area']) && $insumoFila['area'] !== '' ? (float) $insumoFila['area'] : null
-            );
+        $cotizacion->insumos()->detach();
+        foreach ($this->filasPivotInsumos($insumosGlobales) as $fila) {
+            $insumoId = $fila['insumo_id'];
+            unset($fila['insumo_id']);
+            $cotizacion->insumos()->attach($insumoId, $fila);
         }
-
-        $cotizacion->insumos()->sync($todosLosInsumos);
         $this->guardarProductosCotizacion($cotizacion, $productosGlobales);
             });
         } catch (RuntimeException $e) {
@@ -774,7 +755,7 @@ class CotizacionController extends Controller
         return round($bruto, 2);
     }
 
-    private function acumularFilaPivot(array &$acumulado, int $id, float $cantidad, float $precio, float $descuento = 0, ?float $area = null): void
+    private function acumularFilaPivot(array &$acumulado, int $id, float $cantidad, float $precio, float $descuento = 0): void
     {
         if ($id <= 0 || $cantidad <= 0 || $precio <= 0) {
             return;
@@ -787,14 +768,8 @@ class CotizacionController extends Controller
             $precioUnitario = (float) $acumulado[$id]['precio_unitario'];
             $subtotalTotal = (float) $acumulado[$id]['subtotal'] + $subtotalLinea;
             $brutoTotal = $cantidadTotal * $precioUnitario;
-            $areaTotal = $acumulado[$id]['area'];
-            if ($area !== null) {
-                $areaTotal = ($areaTotal ?? 0) + $area;
-            }
-
             $acumulado[$id] = [
                 'cantidad' => $cantidadTotal,
-                'area' => $areaTotal,
                 'precio_unitario' => $precioUnitario,
                 'descuento' => $brutoTotal > 0 ? round((1 - ($subtotalTotal / $brutoTotal)) * 100, 2) : 0,
                 'subtotal' => round($subtotalTotal, 2),
@@ -805,18 +780,55 @@ class CotizacionController extends Controller
 
         $acumulado[$id] = [
             'cantidad' => $cantidad,
-            'area' => $area,
             'precio_unitario' => $precio,
             'descuento' => $descuento > 0 ? round($descuento, 2) : 0,
             'subtotal' => $subtotalLinea,
         ];
     }
 
+    private function filasPivotInsumos(array $insumosGlobales): array
+    {
+        $agrupados = [];
+        $independientes = [];
+
+        foreach ($insumosGlobales as $insumoFila) {
+            $insumoId = (int) ($insumoFila['id'] ?? 0);
+            $cantidad = (float) ($insumoFila['cantidad'] ?? 0);
+            $precio = (float) ($insumoFila['precio'] ?? 0);
+            $descuento = (float) ($insumoFila['descuento'] ?? 0);
+            $areaDescripcion = trim((string) ($insumoFila['area_descripcion'] ?? ''));
+
+            if ($insumoId <= 0 || $cantidad <= 0 || $precio <= 0) {
+                continue;
+            }
+
+            if ($areaDescripcion !== '') {
+                $independientes[] = [
+                    'insumo_id' => $insumoId,
+                    'cantidad' => $cantidad,
+                    'area_descripcion' => $areaDescripcion,
+                    'precio_unitario' => $precio,
+                    'descuento' => $descuento > 0 ? round($descuento, 2) : 0,
+                    'subtotal' => $this->calcularSubtotalLinea($cantidad, $precio, $descuento),
+                ];
+                continue;
+            }
+
+            $this->acumularFilaPivot($agrupados, $insumoId, $cantidad, $precio, $descuento);
+        }
+
+        foreach ($agrupados as $insumoId => $datos) {
+            $independientes[] = array_merge($datos, ['insumo_id' => (int) $insumoId]);
+        }
+
+        return $independientes;
+    }
+
     /**
      * Los productos con medidas (persianas) conservan un renglon por pieza, aunque se repita el producto.
      * El resto se sigue agrupando por producto como en el resto de la cotizacion.
      *
-     * @return list<array<string, float|int|null>>
+        * @return list<array<string, mixed>>
      */
     private function filasPivotProductos(array $productosGlobales): array
     {
@@ -828,10 +840,10 @@ class CotizacionController extends Controller
             [$ancho, $largo, $cantidad] = $this->medidasFilaProducto($productoFila);
             $precio = (float) ($productoFila['precio'] ?? 0);
             $descuento = (float) ($productoFila['descuento'] ?? 0);
-            $area = isset($productoFila['area']) && $productoFila['area'] !== '' ? (float) $productoFila['area'] : null;
+            $areaDescripcion = trim((string) ($productoFila['area_descripcion'] ?? ''));
 
-            if ($ancho === null || $largo === null) {
-                $this->acumularFilaPivot($agrupados, $productoId, $cantidad, $precio, $descuento, $area);
+            if (($ancho === null || $largo === null) && $areaDescripcion === '') {
+                $this->acumularFilaPivot($agrupados, $productoId, $cantidad, $precio, $descuento);
                 continue;
             }
 
@@ -842,7 +854,7 @@ class CotizacionController extends Controller
             $independientes[] = [
                 'producto_id' => $productoId,
                 'cantidad' => $cantidad,
-                'area' => $area,
+                'area_descripcion' => $areaDescripcion !== '' ? $areaDescripcion : null,
                 'ancho' => $ancho,
                 'largo' => $largo,
                 'precio_unitario' => $precio,

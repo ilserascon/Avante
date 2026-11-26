@@ -270,7 +270,7 @@
         return '$' . number_format((float) ($value ?? 0), 2);
     };
     $fmtArea = function ($value) {
-        return $value === null || $value === '' ? '' : rtrim(rtrim(number_format((float) $value, 2), '0'), '.');
+        return trim((string) ($value ?? ''));
     };
 
     $describirCatalogo = function ($nombre, ...$detalles) {
@@ -361,7 +361,7 @@
         $lineas[] = [
             'descripcion' => $describirCatalogo($insumo->nombre, $insumo->color, $insumo->medidaMostrar()),
             'cantidad' => $cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1,
-            'area' => $fmtArea($insumo->pivot->area ?? ''),
+            'area' => $fmtArea($insumo->pivot->area_descripcion ?? ''),
             'tipo' => $insumo->tipoInsumo?->nombre ?? 'Insumo',
             'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
             'precio_unitario' => $precioUnit,
@@ -388,7 +388,7 @@
             'cantidad' => $esPersiana
                 ? ($cantidad > 0 ? '1 (' . rtrim(rtrim(number_format($cantidad, 2), '0'), '.') . ' m²)' : 1)
                 : ($cantidad > 0 ? rtrim(rtrim(number_format($cantidad, 2), '0'), '.') : 1),
-            'area' => $fmtArea($producto->pivot->area ?? ''),
+            'area' => $fmtArea($producto->pivot->area_descripcion ?? ''),
             'tipo' => $producto->tipoProducto?->nombre ?? 'Producto',
             'descuento' => $descuentoPct > 0 ? number_format($descuentoPct, 2) . '%' : '-',
             'precio_unitario' => $precioUnit,

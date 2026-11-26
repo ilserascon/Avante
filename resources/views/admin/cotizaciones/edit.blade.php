@@ -890,7 +890,14 @@
             return `<option value="">Seleccione un insumo</option>${opciones}`;
         }
 
-        function crearFilaInsumo(index, tipoId = '', insumoId = '', cantidad = '', precio = '', descuento = '0', area = '') {
+        function escaparAtributoHtml(valor) {
+            const elemento = document.createElement('span');
+            elemento.textContent = valor ?? '';
+            return elemento.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function crearFilaInsumo(index, tipoId = '', insumoId = '', cantidad = '', precio = '', descuento = '0', areaDescripcion = '') {
+            const areaDescripcionEscapada = escaparAtributoHtml(areaDescripcion);
             return `
                 <tr class="insumo-fila">
                     <td colspan="7" class="p-0 pb-3">
@@ -920,8 +927,8 @@
                                     <input type="number" name="insumos[${index}][cantidad]" class="form-control" step="0.01" value="${cantidad}">
                                 </div>
                                 <div class="col-xl-2 col-md-3 col-6">
-                                    <label class="small font-weight-bold text-muted mb-1 d-block">Área (m²)</label>
-                                    <input type="number" name="insumos[${index}][area]" class="form-control" min="0" step="0.01" value="${area}">
+                                    <label class="small font-weight-bold text-muted mb-1 d-block">Área / ubicación</label>
+                                    <input type="text" name="insumos[${index}][area_descripcion]" class="form-control" maxlength="255" placeholder="Ej. Cocina, Habitación" value="${areaDescripcionEscapada}">
                                 </div>
                                 <div class="col-xl-3 col-md-3 col-6">
                                     <label class="small font-weight-bold text-muted mb-1 d-block">Precio</label>
@@ -973,7 +980,8 @@
             return `<option value="">Seleccione un producto</option>${opciones}`;
         }
 
-        function crearFilaProducto(index, tipoId = '', productoId = '', cantidad = '', precio = '', descuento = '0', ancho = '', largo = '', area = '') {
+        function crearFilaProducto(index, tipoId = '', productoId = '', cantidad = '', precio = '', descuento = '0', ancho = '', largo = '', areaDescripcion = '') {
+            const areaDescripcionEscapada = escaparAtributoHtml(areaDescripcion);
             return `
                 <tr class="producto-fila">
                     <td colspan="8" class="p-0 pb-3">
@@ -1011,8 +1019,8 @@
                                     <input type="number" name="productos[${index}][cantidad]" class="form-control producto-cantidad" step="0.01" value="${cantidad}">
                                 </div>
                                 <div class="col-xl-2 col-md-3 col-6">
-                                    <label class="small font-weight-bold text-muted mb-1 d-block">Área (m²)</label>
-                                    <input type="number" name="productos[${index}][area]" class="form-control" min="0" step="0.01" value="${area}">
+                                    <label class="small font-weight-bold text-muted mb-1 d-block">Área / ubicación</label>
+                                    <input type="text" name="productos[${index}][area_descripcion]" class="form-control" maxlength="255" placeholder="Ej. Cocina, Habitación" value="${areaDescripcionEscapada}">
                                 </div>
                                 <div class="col-xl-2 col-md-3 col-6">
                                     <label class="small font-weight-bold text-muted mb-1 d-block producto-precio-label">Precio</label>
@@ -2366,7 +2374,7 @@
                     insumo.cantidad ?? '',
                     insumo.precio ?? '',
                     insumo.descuento ?? '0',
-                    insumo.area ?? ''
+                    insumo.area_descripcion ?? ''
                 ));
             });
             inicializarSelect2EnContenedor(insumosBody);
@@ -2397,7 +2405,7 @@
                     producto.descuento ?? '0',
                     producto.ancho ?? '',
                     producto.largo ?? '',
-                    producto.area ?? ''
+                    producto.area_descripcion ?? ''
                 ));
             });
             inicializarSelect2EnContenedor(productosBody);
