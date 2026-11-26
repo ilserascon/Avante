@@ -133,6 +133,8 @@ class CotizacionController extends Controller
             'fecha' => 'required|date',
             'detalle' => 'array',
             'totales' => 'array',
+            'insumos.*.area' => 'nullable|numeric|min:0',
+            'productos.*.area' => 'nullable|numeric|min:0',
         ]);
 
         $detalle = $request->input('detalle', []);
@@ -321,7 +323,8 @@ class CotizacionController extends Controller
                 (int) ($insumoFila['id'] ?? 0),
                 (float) ($insumoFila['cantidad'] ?? 0),
                 (float) ($insumoFila['precio'] ?? 0),
-                (float) ($insumoFila['descuento'] ?? 0)
+                (float) ($insumoFila['descuento'] ?? 0),
+                isset($insumoFila['area']) && $insumoFila['area'] !== '' ? (float) $insumoFila['area'] : null
             );
         }
 
@@ -444,6 +447,7 @@ class CotizacionController extends Controller
                     'tipo_id' => $insumo->id_tipo_insumo,
                     'id' => $insumo->id,
                     'cantidad' => $insumo->pivot->cantidad,
+                    'area' => $insumo->pivot->area,
                     'precio' => $insumo->pivot->precio_unitario,
                     'descuento' => $insumo->pivot->descuento ?? 0,
                 ];
@@ -456,6 +460,7 @@ class CotizacionController extends Controller
                     'tipo_id' => $producto->id_tipo_producto,
                     'id' => $producto->id,
                     'cantidad' => $producto->pivot->cantidad,
+                    'area' => $producto->pivot->area,
                     'ancho' => $producto->pivot->ancho,
                     'largo' => $producto->pivot->largo,
                     'precio' => $producto->pivot->precio_unitario,
@@ -500,6 +505,8 @@ class CotizacionController extends Controller
             'fecha' => 'required|date',
             'detalle' => 'array',
             'totales' => 'array',
+            'insumos.*.area' => 'nullable|numeric|min:0',
+            'productos.*.area' => 'nullable|numeric|min:0',
         ]);
 
         $detalle = $request->input('detalle', []);
@@ -679,7 +686,8 @@ class CotizacionController extends Controller
                 (int) ($insumoFila['id'] ?? 0),
                 (float) ($insumoFila['cantidad'] ?? 0),
                 (float) ($insumoFila['precio'] ?? 0),
-                (float) ($insumoFila['descuento'] ?? 0)
+                (float) ($insumoFila['descuento'] ?? 0),
+                isset($insumoFila['area']) && $insumoFila['area'] !== '' ? (float) $insumoFila['area'] : null
             );
         }
 
@@ -766,7 +774,7 @@ class CotizacionController extends Controller
         return round($bruto, 2);
     }
 
-    private function acumularFilaPivot(array &$acumulado, int $id, float $cantidad, float $precio, float $descuento = 0): void
+    private function acumularFilaPivot(array &$acumulado, int $id, float $cantidad, float $precio, float $descuento = 0, ?float $area = null): void
     {
         if ($id <= 0 || $cantidad <= 0 || $precio <= 0) {
             return;
@@ -779,9 +787,14 @@ class CotizacionController extends Controller
             $precioUnitario = (float) $acumulado[$id]['precio_unitario'];
             $subtotalTotal = (float) $acumulado[$id]['subtotal'] + $subtotalLinea;
             $brutoTotal = $cantidadTotal * $precioUnitario;
+            $areaTotal = $acumulado[$id]['area'];
+            if ($area !== null) {
+                $areaTotal = ($areaTotal ?? 0) + $area;
+            }
 
             $acumulado[$id] = [
                 'cantidad' => $cantidadTotal,
+                'area' => $areaTotal,
                 'precio_unitario' => $precioUnitario,
                 'descuento' => $brutoTotal > 0 ? round((1 - ($subtotalTotal / $brutoTotal)) * 100, 2) : 0,
                 'subtotal' => round($subtotalTotal, 2),
@@ -792,6 +805,7 @@ class CotizacionController extends Controller
 
         $acumulado[$id] = [
             'cantidad' => $cantidad,
+            'area' => $area,
             'precio_unitario' => $precio,
             'descuento' => $descuento > 0 ? round($descuento, 2) : 0,
             'subtotal' => $subtotalLinea,
@@ -814,9 +828,10 @@ class CotizacionController extends Controller
             [$ancho, $largo, $cantidad] = $this->medidasFilaProducto($productoFila);
             $precio = (float) ($productoFila['precio'] ?? 0);
             $descuento = (float) ($productoFila['descuento'] ?? 0);
+            $area = isset($productoFila['area']) && $productoFila['area'] !== '' ? (float) $productoFila['area'] : null;
 
             if ($ancho === null || $largo === null) {
-                $this->acumularFilaPivot($agrupados, $productoId, $cantidad, $precio, $descuento);
+                $this->acumularFilaPivot($agrupados, $productoId, $cantidad, $precio, $descuento, $area);
                 continue;
             }
 
@@ -827,6 +842,7 @@ class CotizacionController extends Controller
             $independientes[] = [
                 'producto_id' => $productoId,
                 'cantidad' => $cantidad,
+                'area' => $area,
                 'ancho' => $ancho,
                 'largo' => $largo,
                 'precio_unitario' => $precio,
